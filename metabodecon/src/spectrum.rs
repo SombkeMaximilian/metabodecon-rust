@@ -16,4 +16,18 @@ impl Spectrum {
             water_region_width: 0.,
         }
     }
+
+    pub fn from_data(
+        chemical_shifts: Vec<f64>,
+        intensities: Vec<f64>,
+        signal_region_boundaries: (f64, f64),
+        water_region_width: f64
+    ) -> Self {
+        Self {
+            chemical_shifts,
+            intensities,
+            signal_region_boundaries,
+            water_region_width
+        }
+    }
 }
