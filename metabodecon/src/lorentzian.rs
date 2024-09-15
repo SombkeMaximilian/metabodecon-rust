@@ -19,4 +19,7 @@ impl Lorentzian {
         }
     }
 
+    pub fn evaluate(&self, x: f64) -> f64 {
+        self.sfhw / (self.hw2 + (x - self.maxp).powi(2))
+    }
 }
