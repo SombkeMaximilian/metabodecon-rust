@@ -1,5 +1,3 @@
-// file: src/deconvolution.rs
-
 use crate::spectrum::Spectrum;
 use crate::lorentzian::Lorentzian;
 

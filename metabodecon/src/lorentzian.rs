@@ -1,5 +1,3 @@
-// file: src/lorentzian.rs
-
 pub struct Lorentzian {
     sfhw: f64, // A * lambda
     hw2: f64,  // lambda^2

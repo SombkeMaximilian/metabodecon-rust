@@ -1,5 +1,3 @@
-// file: src/spectrum.rs
-
 pub struct Spectrum {
     chemical_shifts: Vec<f64>,
     intensities: Vec<f64>,
