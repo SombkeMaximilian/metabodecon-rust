@@ -30,4 +30,20 @@ impl Spectrum {
             water_region_width
         }
     }
+
+    pub fn chemical_shifts(&self) -> &Vec<f64> {
+        &self.chemical_shifts
+    }
+
+    pub fn intensities(&self) -> &Vec<f64> {
+        &self.intensities
+    }
+
+    pub fn signal_region_boundaries(&self) -> (f64, f64) {
+        self.signal_region_boundaries
+    }
+
+    pub fn water_region_width(&self) -> f64 {
+        self.water_region_width
+    }
 }
