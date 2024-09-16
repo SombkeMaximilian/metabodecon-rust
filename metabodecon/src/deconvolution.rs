@@ -15,4 +15,12 @@ impl Deconvolution {
             spectrum: Spectrum::new()
         }
     }
+
+    pub fn lorenztians(&self) -> &Vec<Lorentzian> {
+        &self.lorentzians
+    }
+
+    pub fn spectrum(&self) -> &Spectrum {
+        &self.spectrum
+    }
 }
