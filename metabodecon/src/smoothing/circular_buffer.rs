@@ -63,13 +63,13 @@ mod tests {
     use super::*;
     #[test]
     fn new() {
-        let buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        let buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         assert_eq!(buffer.num_elements(), 0);
     }
 
     #[test]
     fn push() {
-        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         buffer.push(1);
         assert_eq!(buffer.num_elements(), 1);
         assert_eq!(buffer.first(), Some(1));
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn pop() {
-        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         buffer.push(1);
         buffer.push(2);
         assert_eq!(buffer.pop(), Some(1));
@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn next() {
-        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         buffer.push(1);
         buffer.push(2);
         buffer.push(3);
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         buffer.push(1);
         buffer.push(2);
         buffer.push(3);
