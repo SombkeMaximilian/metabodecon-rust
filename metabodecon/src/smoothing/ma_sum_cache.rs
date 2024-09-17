@@ -33,6 +33,11 @@ where
     fn compute_average(&self) -> Type {
         self.sum * self.div
     }
+
+    fn clear(&mut self) {
+        self.buffer.clear();
+        self.sum = Type::from_u8(0).unwrap();
+    }
 }
 
 #[cfg(test)]
