@@ -1,4 +1,4 @@
-use crate::smoothing::MA;
+use crate::smoothing::MovingAverage;
 use crate::smoothing::circular_buffer::CircularBuffer;
 use num_traits::FromPrimitive;
 use std::ops::{AddAssign, SubAssign, Div, Mul};
@@ -9,8 +9,11 @@ pub struct SumCacheMA<Type, const WINDOW_SIZE: usize> {
     div: Type
 }
 
-impl<Type, const WINDOW_SIZE: usize> MA<Type, WINDOW_SIZE> for SumCacheMA<Type, WINDOW_SIZE>
-where Type: Copy + FromPrimitive + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> {
+impl<Type, const WINDOW_SIZE: usize> MovingAverage<Type, WINDOW_SIZE>
+for
+    SumCacheMA<Type, WINDOW_SIZE>
+where
+    Type: Copy + FromPrimitive + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> {
     fn new(value: Type) -> Self {
         Self {
             buffer: CircularBuffer::new(value),
