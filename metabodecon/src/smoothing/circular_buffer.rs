@@ -1,4 +1,4 @@
-pub(super) struct CircularBuffer<Type, const N: usize> {
+pub struct CircularBuffer<Type, const N: usize> {
     buffer: [Type; N],
     index: usize,
     num_elements: usize,
