@@ -9,7 +9,7 @@ pub struct SumCacheMA<Type, const WINDOW_SIZE: usize> {
 }
 
 impl<Type, const WINDOW_SIZE: usize> SumCacheMA<Type, WINDOW_SIZE>
-where Type: Copy + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> + FromPrimitive {
+where Type: Copy + FromPrimitive + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> {
     pub fn new(value: Type) -> Self {
         Self {
             buffer: CircularBuffer::new(value),
