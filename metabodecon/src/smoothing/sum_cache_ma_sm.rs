@@ -18,7 +18,7 @@ where Type: Copy + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Typ
         }
     }
 
-    pub fn add_value(&mut self, value: Type) -> Type {
+    pub fn add_value(&mut self, value: Type) {
         self.sum += value;
         if let Some(popped_value) = self.buffer.next(value) {
             self.sum -= popped_value;
