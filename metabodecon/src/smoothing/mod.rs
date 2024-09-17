@@ -1,2 +1,2 @@
-mod circular_buffer;
-mod sum_cache_ma_sm;
+pub mod circular_buffer;
+pub mod sum_cache_ma_sm;
