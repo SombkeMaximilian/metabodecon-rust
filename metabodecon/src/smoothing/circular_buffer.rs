@@ -52,3 +52,41 @@ impl<Type: Copy, const N: usize> CircularBuffer<Type, N> {
         self.num_elements
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn new() {
+        let buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        assert_eq!(buffer.num_elements(), 0);
+    }
+
+    #[test]
+    fn push() {
+        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        buffer.push(1);
+        assert_eq!(buffer.num_elements(), 1);
+        assert_eq!(buffer.first(), Some(1));
+    }
+
+    #[test]
+    fn pop() {
+        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        buffer.push(1);
+        buffer.push(2);
+        assert_eq!(buffer.pop(), Some(1));
+        assert_eq!(buffer.num_elements(), 1);
+    }
+
+    #[test]
+    fn next() {
+        let mut buffer: CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        buffer.push(1);
+        buffer.push(2);
+        buffer.push(3);
+        assert_eq!(buffer.next(4), Some(1));
+        assert_eq!(buffer.first(), Some(2));
+        assert_eq!(buffer.num_elements(), 3);
+    }
+}
