@@ -47,4 +47,8 @@ impl<Type: Copy, const N: usize> CircularBuffer<Type, N> {
         let index : usize = (self.index + N - self.num_elements) % N;
         Some(self.buffer[index])
     }
+
+    pub fn num_elements(&self) -> usize {
+        self.num_elements
+    }
 }
