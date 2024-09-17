@@ -1,4 +1,5 @@
 use crate::smoothing::circular_buffer::CircularBuffer;
+use num_traits::FromPrimitive;
 use std::ops::{AddAssign, SubAssign, Div, Mul};
 
 pub struct SumCacheMA<Type, const WINDOW_SIZE: usize> {
@@ -8,12 +9,12 @@ pub struct SumCacheMA<Type, const WINDOW_SIZE: usize> {
 }
 
 impl<Type, const WINDOW_SIZE: usize> SumCacheMA<Type, WINDOW_SIZE>
-where Type: Copy + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> {
+where Type: Copy + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type> + FromPrimitive {
     pub fn new(value: Type) -> Self {
         Self {
             buffer: CircularBuffer::new(value),
             sum: value,
-            div: (1 as Type) / (WINDOW_SIZE as Type)
+            div: Type::from_u8(1).unwrap() / Type::from_usize(WINDOW_SIZE).unwrap()
         }
     }
 
