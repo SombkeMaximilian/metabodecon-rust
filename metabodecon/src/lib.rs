@@ -1,4 +1,4 @@
 pub mod spectrum;
 pub mod deconvolution;
 pub mod lorentzian;
-mod smoothing;
+pub mod smoothing;
