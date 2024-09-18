@@ -45,7 +45,7 @@ impl<Type, const WINDOW_SIZE: usize> SumCacheMA<Type, WINDOW_SIZE>
 where
     Type: Copy + Zero + FromPrimitive + Div<Output = Type>
 {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             buffer: CircularBuffer::new(Type::zero()),
             sum: Type::zero(),
