@@ -9,7 +9,6 @@ where
     Algo: MovingAverage<Type, WINDOW_SIZE>
 {
     algo: Algo,
-    left: usize,
     right: usize,
     type_marker: PhantomData<Type>
 }
@@ -24,7 +23,6 @@ where
     fn new(value: Type) -> Self {
         Self {
             algo: Algo::new(value),
-            left: WINDOW_SIZE / 2,
             right: if WINDOW_SIZE % 2 == 1 {WINDOW_SIZE / 2} else {WINDOW_SIZE / 2 - 1},
             type_marker: PhantomData
         }
