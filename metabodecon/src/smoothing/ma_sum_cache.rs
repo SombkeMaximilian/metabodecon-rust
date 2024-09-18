@@ -30,6 +30,15 @@ where
         }
     }
 
+    fn pop_last(&mut self) -> Option<Type> {
+        if let Some(popped_value) = self.buffer.pop() {
+            self.sum -= popped_value;
+            Some(popped_value)
+        } else {
+            None
+        }
+    }
+
     fn compute_average(&self) -> Type {
         self.sum * self.div
     }
