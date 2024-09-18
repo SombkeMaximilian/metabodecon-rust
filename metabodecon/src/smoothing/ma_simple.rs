@@ -73,55 +73,55 @@ mod tests {
 
     #[test]
     fn new() {
-        let buffer : SimpleMA<i32, 3> = SimpleMA::new();
-        assert_eq!(buffer.compute_average(), 0);
+        let simple_ma: SimpleMA<i32, 3> = SimpleMA::new();
+        assert_eq!(simple_ma.compute_average(), 0);
     }
 
     #[test]
     fn add_value() {
-        let mut buffer : SimpleMA<f32, 3> = SimpleMA::new();
-        buffer.add_value(1.0);
-        assert_eq!(buffer.compute_average(), 1.0/1.0);
-        buffer.add_value(2.0);
-        assert_eq!(buffer.compute_average(), 3.0/2.0);
-        buffer.add_value(3.0);
-        assert_eq!(buffer.compute_average(), 6.0/3.0);
-        buffer.add_value(4.0);
-        assert_eq!(buffer.compute_average(), 9.0/3.0);
-        buffer.add_value(5.0);
-        assert_eq!(buffer.compute_average(), 12.0/3.0);
+        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        simple_ma.add_value(1.0);
+        assert_eq!(simple_ma.compute_average(), 1.0/1.0);
+        simple_ma.add_value(2.0);
+        assert_eq!(simple_ma.compute_average(), 3.0/2.0);
+        simple_ma.add_value(3.0);
+        assert_eq!(simple_ma.compute_average(), 6.0/3.0);
+        simple_ma.add_value(4.0);
+        assert_eq!(simple_ma.compute_average(), 9.0/3.0);
+        simple_ma.add_value(5.0);
+        assert_eq!(simple_ma.compute_average(), 12.0/3.0);
     }
 
     #[test]
     fn pop_last() {
-        let mut buffer : SimpleMA<f32, 3> = SimpleMA::new();
-        buffer.add_value(1.0);
-        buffer.add_value(2.0);
-        buffer.add_value(3.0);
-        buffer.add_value(4.0);
-        buffer.add_value(5.0);
-        assert_eq!(buffer.compute_average(), 12.0/3.0);
-        assert_eq!(buffer.pop_last(), Some(3.0));
-        assert_eq!(buffer.compute_average(), 9.0/2.0);
-        assert_eq!(buffer.pop_last(), Some(4.0));
-        assert_eq!(buffer.compute_average(), 5.0/1.0);
-        assert_eq!(buffer.pop_last(), Some(5.0));
-        assert_eq!(buffer.compute_average(), 0.0);
-        assert_eq!(buffer.pop_last(), None);
-        assert_eq!(buffer.compute_average(), 0.0);
-        assert_eq!(buffer.pop_last(), None);
-        assert_eq!(buffer.compute_average(), 0.0);
-        assert_eq!(buffer.pop_last(), None);
+        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        simple_ma.add_value(1.0);
+        simple_ma.add_value(2.0);
+        simple_ma.add_value(3.0);
+        simple_ma.add_value(4.0);
+        simple_ma.add_value(5.0);
+        assert_eq!(simple_ma.compute_average(), 12.0/3.0);
+        assert_eq!(simple_ma.pop_last(), Some(3.0));
+        assert_eq!(simple_ma.compute_average(), 9.0/2.0);
+        assert_eq!(simple_ma.pop_last(), Some(4.0));
+        assert_eq!(simple_ma.compute_average(), 5.0/1.0);
+        assert_eq!(simple_ma.pop_last(), Some(5.0));
+        assert_eq!(simple_ma.compute_average(), 0.0);
+        assert_eq!(simple_ma.pop_last(), None);
+        assert_eq!(simple_ma.compute_average(), 0.0);
+        assert_eq!(simple_ma.pop_last(), None);
+        assert_eq!(simple_ma.compute_average(), 0.0);
+        assert_eq!(simple_ma.pop_last(), None);
     }
 
     #[test]
     fn clear() {
-        let mut buffer : SimpleMA<f32, 3> = SimpleMA::new();
-        buffer.add_value(1.0);
-        buffer.add_value(2.0);
-        buffer.add_value(3.0);
-        assert_eq!(buffer.compute_average(), 6.0/3.0);
-        buffer.clear();
-        assert_eq!(buffer.compute_average(), 0.0);
+        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        simple_ma.add_value(1.0);
+        simple_ma.add_value(2.0);
+        simple_ma.add_value(3.0);
+        assert_eq!(simple_ma.compute_average(), 6.0/3.0);
+        simple_ma.clear();
+        assert_eq!(simple_ma.compute_average(), 0.0);
     }
 }
