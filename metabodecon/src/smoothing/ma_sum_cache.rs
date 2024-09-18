@@ -90,4 +90,37 @@ mod tests {
         sum_cache_ma.add_value(5.0);
         assert_eq!(sum_cache_ma.compute_average(), 12.0/3.0);
     }
+
+    #[test]
+    fn pop_last() {
+        let mut sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        sum_cache_ma.add_value(1.0);
+        sum_cache_ma.add_value(2.0);
+        sum_cache_ma.add_value(3.0);
+        sum_cache_ma.add_value(4.0);
+        sum_cache_ma.add_value(5.0);
+        assert_eq!(sum_cache_ma.compute_average(), 12.0/3.0);
+        assert_eq!(sum_cache_ma.pop_last(), Some(3.0));
+        assert_eq!(sum_cache_ma.compute_average(), 9.0/2.0);
+        assert_eq!(sum_cache_ma.pop_last(), Some(4.0));
+        assert_eq!(sum_cache_ma.compute_average(), 5.0/1.0);
+        assert_eq!(sum_cache_ma.pop_last(), Some(5.0));
+        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+        assert_eq!(sum_cache_ma.pop_last(), None);
+        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+        assert_eq!(sum_cache_ma.pop_last(), None);
+        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+        assert_eq!(sum_cache_ma.pop_last(), None);
+    }
+
+    #[test]
+    fn clear() {
+        let mut sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        sum_cache_ma.add_value(1.0);
+        sum_cache_ma.add_value(2.0);
+        sum_cache_ma.add_value(3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 6.0/3.0);
+        sum_cache_ma.clear();
+        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+    }
 }
