@@ -1,7 +1,13 @@
 pub struct CircularBuffer<Type, const N: usize> {
     buffer: [Type; N],
     index: usize,
-    num_elements: usize,
+    num_elements: usize
+}
+
+pub struct CircularBufferIterator<'a, Type: 'a, const N: usize> {
+    buffer: &'a [Type],
+    index: usize,
+    count: usize
 }
 
 impl<Type: Copy, const N: usize> CircularBuffer<Type, N> {
@@ -55,6 +61,33 @@ impl<Type: Copy, const N: usize> CircularBuffer<Type, N> {
 
     pub fn num_elements(&self) -> usize {
         self.num_elements
+    }
+
+    pub fn iter(&self) -> CircularBufferIterator<Type, N> {
+        CircularBufferIterator::new(&self.buffer, self.index, self.num_elements)
+    }
+}
+
+impl<'a, Type: 'a, const N: usize> CircularBufferIterator<'a, Type, N> {
+    pub fn new(buffer: &'a [Type], index: usize, count: usize) -> Self {
+        Self {
+            buffer,
+            index,
+            count
+        }
+    }
+}
+
+impl<'a, Type: Copy, const N: usize> Iterator for CircularBufferIterator<'a, Type, N> {
+    type Item = &'a Type;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.count == 0 {
+            return None;
+        }
+        let index : usize = (self.index + N - self.count) % N;
+        self.count -= 1;
+        Some(&self.buffer[index])
     }
 }
 
