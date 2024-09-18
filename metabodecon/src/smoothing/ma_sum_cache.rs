@@ -39,6 +39,9 @@ where
     }
 
     fn compute_average(&self) -> Type {
+        if self.buffer.num_elements() == 0 {
+            return Type::zero();
+        }
         self.sum * self.div
     }
 
