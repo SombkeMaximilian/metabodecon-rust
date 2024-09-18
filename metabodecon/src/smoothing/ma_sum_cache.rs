@@ -15,7 +15,8 @@ impl<Type, const WINDOW_SIZE: usize> MovingAverage<Type, WINDOW_SIZE>
 for
     SumCacheMA<Type, WINDOW_SIZE>
 where
-    Type: Copy + FromPrimitive + AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
+    Type: Copy + FromPrimitive + Zero +
+          AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
 {
     fn add_value(&mut self, value: Type) {
         self.sum += value;
