@@ -137,4 +137,18 @@ mod tests {
         buffer.clear();
         assert_eq!(buffer.num_elements(), 0);
     }
+
+    #[test]
+    fn iter() {
+        let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
+        buffer.push(1);
+        buffer.push(2);
+        buffer.push(3);
+        let mut iter = buffer.iter();
+        assert_eq!(iter.next(), Some(&1));
+        assert_eq!(iter.next(), Some(&2));
+        assert_eq!(iter.next(), Some(&3));
+        assert_eq!(iter.next(), None);
+        assert_eq!(iter.next(), None);
+    }
 }
