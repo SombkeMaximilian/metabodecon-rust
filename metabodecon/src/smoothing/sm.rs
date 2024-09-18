@@ -1,4 +1,3 @@
-pub trait Smoother<Type, Algo, const WINDOW_SIZE: usize> {
-    fn new(value: Type) -> Self;
+pub trait Smoother<Type, const WINDOW_SIZE: usize> {
     fn compute_smoothed(&mut self, values: Vec<Type>) -> Vec<Type>;
 }

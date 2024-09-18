@@ -1,33 +1,25 @@
 use crate::smoothing::Smoother;
 use crate::smoothing::MovingAverage;
-use num_traits::Zero;
+use crate::smoothing::ma_sum_cache::SumCacheMA;
+use num_traits::{FromPrimitive, Zero};
+use std::ops::{AddAssign, SubAssign, Div, Mul};
 use std::marker::PhantomData;
 
-pub struct MovingAverageSmoother<Type, Algo, const WINDOW_SIZE: usize>
-where
-    Type: Copy + Zero,
-    Algo: MovingAverage<Type, WINDOW_SIZE>
+pub enum MovingAverageAlgo {
+    SumCache
+}
+
+pub struct MovingAverageSmoother<Type, const WINDOW_SIZE: usize>
 {
-    algo: Algo,
+    algo: Box<dyn MovingAverage<Type, WINDOW_SIZE>>,
     right: usize,
     type_marker: PhantomData<Type>
 }
 
-impl<Type, Algo, const WINDOW_SIZE: usize> Smoother<Type, Algo, WINDOW_SIZE>
+impl<Type: Copy + Zero, const WINDOW_SIZE: usize> Smoother<Type, WINDOW_SIZE>
 for
-    MovingAverageSmoother<Type, Algo, WINDOW_SIZE>
-where
-    Type: Copy + Zero,
-    Algo: MovingAverage<Type, WINDOW_SIZE>
+    MovingAverageSmoother<Type, WINDOW_SIZE>
 {
-    fn new(value: Type) -> Self {
-        Self {
-            algo: Algo::new(value),
-            right: if WINDOW_SIZE % 2 == 1 {WINDOW_SIZE / 2} else {WINDOW_SIZE / 2 - 1},
-            type_marker: PhantomData
-        }
-    }
-
     fn compute_smoothed(&mut self, values: Vec<Type>) -> Vec<Type> {
         let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
 
@@ -45,5 +37,22 @@ where
         self.algo.clear();
 
         smoothed_values
+    }
+}
+
+impl<Type, const WINDOW_SIZE: usize> MovingAverageSmoother<Type, WINDOW_SIZE>
+where
+    Type: Copy + Zero + FromPrimitive + 'static +
+          AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
+{
+    pub fn new(algo: MovingAverageAlgo) -> Self {
+        let algo : Box<dyn MovingAverage<Type, WINDOW_SIZE>> = match algo {
+            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new())
+        };
+        Self {
+            algo,
+            right: WINDOW_SIZE / 2,
+            type_marker: PhantomData
+        }
     }
 }
