@@ -1,0 +1,9 @@
+[package]
+name = "metabodecon-bindings"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+metabodecon = { path = "../metabodecon" }
+pyo3 = { version = "0.22.3", features = ["extension-module"] }
+extendr-api = "0.7.1"
