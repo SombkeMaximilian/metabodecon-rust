@@ -1,4 +1,2 @@
-pub mod spectrum;
-pub mod deconvolution;
-pub mod lorentzian;
+pub mod data;
 pub mod smoothing;

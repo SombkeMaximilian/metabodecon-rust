@@ -1,5 +1,5 @@
-use crate::spectrum::Spectrum;
-use crate::lorentzian::Lorentzian;
+use crate::data::spectrum::Spectrum;
+use crate::data::lorentzian::Lorentzian;
 
 pub struct Deconvolution {
     lorentzians: Vec<Lorentzian>,
