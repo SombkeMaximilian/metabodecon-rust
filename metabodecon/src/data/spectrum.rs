@@ -1,6 +1,7 @@
 pub struct Spectrum {
     chemical_shifts: Vec<f64>,
     intensities: Vec<f64>,
+    intensities_raw: Vec<f64>,
     signal_region_boundaries: (f64, f64),
     water_region_width: f64
 }
@@ -10,6 +11,7 @@ impl Spectrum {
         Self {
             chemical_shifts: Vec::new(),
             intensities: Vec::new(),
+            intensities_raw: Vec::new(),
             signal_region_boundaries: (0., 0.),
             water_region_width: 0.,
         }
@@ -21,9 +23,12 @@ impl Spectrum {
         signal_region_boundaries: (f64, f64),
         water_region_width: f64
     ) -> Self {
+        let intensities_raw = intensities.clone();
+
         Self {
             chemical_shifts,
             intensities,
+            intensities_raw,
             signal_region_boundaries,
             water_region_width
         }
@@ -35,6 +40,10 @@ impl Spectrum {
 
     pub fn intensities(&self) -> &Vec<f64> {
         &self.intensities
+    }
+
+    pub fn intensities_raw(&self) -> &Vec<f64> {
+        &self.intensities_raw
     }
 
     pub fn signal_region_boundaries(&self) -> (f64, f64) {
