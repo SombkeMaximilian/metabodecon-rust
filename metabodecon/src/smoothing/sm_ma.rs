@@ -18,7 +18,7 @@ pub struct MovingAverageSmoother<Type, const WINDOW_SIZE: usize>
     type_marker: PhantomData<Type>
 }
 
-impl<Type: Copy + Zero, const WINDOW_SIZE: usize> Smoother<Type, WINDOW_SIZE>
+impl<Type: Copy + Zero, const WINDOW_SIZE: usize> Smoother<Type>
 for
     MovingAverageSmoother<Type, WINDOW_SIZE>
 {
