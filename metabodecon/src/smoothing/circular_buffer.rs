@@ -51,14 +51,6 @@ impl<Type: Copy, const N: usize> CircularBuffer<Type, N> {
         self.num_elements = 0;
     }
 
-    pub fn first(&self) -> Option<Type> {
-        if self.num_elements == 0 {
-            return None;
-        }
-        let index : usize = (self.index + N - self.num_elements) % N;
-        Some(self.buffer[index])
-    }
-
     pub fn num_elements(&self) -> usize {
         self.num_elements
     }
@@ -105,7 +97,6 @@ mod tests {
         let mut buffer : CircularBuffer<i32, 3> = CircularBuffer::new(0);
         buffer.push(1);
         assert_eq!(buffer.num_elements(), 1);
-        assert_eq!(buffer.first(), Some(1));
     }
 
     #[test]
@@ -124,7 +115,6 @@ mod tests {
         buffer.push(2);
         buffer.push(3);
         assert_eq!(buffer.next(4), Some(1));
-        assert_eq!(buffer.first(), Some(2));
         assert_eq!(buffer.num_elements(), 3);
     }
 
