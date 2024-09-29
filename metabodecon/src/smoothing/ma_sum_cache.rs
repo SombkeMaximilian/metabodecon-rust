@@ -3,17 +3,17 @@ use crate::smoothing::circular_buffer::CircularBuffer;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, SubAssign, Div, Mul};
 
-pub struct SumCacheMA<Type, const WINDOW_SIZE: usize> {
-    buffer: CircularBuffer<Type, WINDOW_SIZE>,
+pub struct SumCacheMA<Type> {
+    buffer: CircularBuffer<Type>,
     num: usize,
     sum: Type,
     div: Type,
     one: Type
 }
 
-impl<Type, const WINDOW_SIZE: usize> MovingAverage<Type, WINDOW_SIZE>
+impl<Type> MovingAverage<Type>
 for
-    SumCacheMA<Type, WINDOW_SIZE>
+    SumCacheMA<Type>
 where
     Type: Copy + FromPrimitive + Zero +
           AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
@@ -52,13 +52,13 @@ where
     }
 }
 
-impl<Type, const WINDOW_SIZE: usize> SumCacheMA<Type, WINDOW_SIZE>
+impl<Type> SumCacheMA<Type>
 where
-    Type: Copy + Zero + FromPrimitive + Div<Output = Type>
+    Type: Copy + Zero + FromPrimitive
 {
-    pub fn new() -> Self {
+    pub fn new(window_size: usize) -> Self {
         Self {
-            buffer: CircularBuffer::new(Type::zero()),
+            buffer: CircularBuffer::new(window_size),
             num: 0,
             sum: Type::zero(),
             div: Type::from_u8(1).unwrap(),
@@ -72,13 +72,13 @@ mod tests {
     use super::*;
     #[test]
     fn new() {
-        let sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        let sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
         assert_eq!(sum_cache_ma.compute_average(), 0.0);
     }
 
     #[test]
     fn add_value() {
-        let mut sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
         assert_eq!(sum_cache_ma.compute_average(), 1.0/1.0);
         sum_cache_ma.add_value(2.0);
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn pop_last() {
-        let mut sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut sum_cache_ma : SumCacheMA<f32, 3> = SumCacheMA::new();
+        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);

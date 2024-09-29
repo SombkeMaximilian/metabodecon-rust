@@ -1,4 +1,4 @@
-pub trait MovingAverage<Type, const WINDOW_SIZE: usize> {
+pub trait MovingAverage<Type> {
     fn add_value(&mut self, value: Type);
     fn pop_last(&mut self) -> Option<Type>;
     fn compute_average(&self) -> Type;

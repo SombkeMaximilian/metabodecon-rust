@@ -11,16 +11,16 @@ pub enum MovingAverageAlgo {
     SumCache
 }
 
-pub struct MovingAverageSmoother<Type, const WINDOW_SIZE: usize>
+pub struct MovingAverageSmoother<Type>
 {
-    algo: Box<dyn MovingAverage<Type, WINDOW_SIZE>>,
+    algo: Box<dyn MovingAverage<Type>>,
     right: usize,
     type_marker: PhantomData<Type>
 }
 
-impl<Type: Copy + Zero, const WINDOW_SIZE: usize> Smoother<Type>
+impl<Type: Copy + Zero> Smoother<Type>
 for
-    MovingAverageSmoother<Type, WINDOW_SIZE>
+    MovingAverageSmoother<Type>
 {
     fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
         let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
@@ -42,19 +42,19 @@ for
     }
 }
 
-impl<Type, const WINDOW_SIZE: usize> MovingAverageSmoother<Type, WINDOW_SIZE>
+impl<Type> MovingAverageSmoother<Type>
 where
     Type: Copy + Zero + FromPrimitive + 'static +
           AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
 {
-    pub fn new(algo: MovingAverageAlgo) -> Self {
-        let algo : Box<dyn MovingAverage<Type, WINDOW_SIZE>> = match algo {
-            MovingAverageAlgo::Simple => Box::new(SimpleMA::new()),
-            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new())
+    pub fn new(algo: MovingAverageAlgo, window_size: usize) -> Self {
+        let algo : Box<dyn MovingAverage<Type>> = match algo {
+            MovingAverageAlgo::Simple => Box::new(SimpleMA::new(window_size)),
+            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new(window_size))
         };
         Self {
             algo,
-            right: WINDOW_SIZE / 2,
+            right: window_size / 2,
             type_marker: PhantomData
         }
     }

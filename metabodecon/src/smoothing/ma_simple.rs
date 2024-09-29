@@ -3,16 +3,16 @@ use crate::smoothing::circular_buffer::CircularBuffer;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, SubAssign, Div, Mul};
 
-pub struct SimpleMA<Type, const WINDOW_SIZE: usize> {
-    buffer: CircularBuffer<Type, WINDOW_SIZE>,
+pub struct SimpleMA<Type> {
+    buffer: CircularBuffer<Type>,
     num: usize,
     div: Type,
     one: Type
 }
 
-impl<Type, const WINDOW_SIZE: usize> MovingAverage<Type, WINDOW_SIZE>
+impl<Type> MovingAverage<Type>
 for
-    SimpleMA<Type, WINDOW_SIZE>
+    SimpleMA<Type>
 where
     Type: Copy + FromPrimitive + Zero +
           AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
@@ -53,13 +53,13 @@ where
     }
 }
 
-impl<Type, const WINDOW_SIZE: usize> SimpleMA<Type, WINDOW_SIZE>
+impl<Type> SimpleMA<Type>
 where
-    Type: Copy + Zero + FromPrimitive + Div<Output = Type>
+    Type: Copy + Zero + FromPrimitive
 {
-    pub fn new() -> Self {
+    pub fn new(window_size: usize) -> Self {
         Self {
-            buffer: CircularBuffer::new(Type::zero()),
+            buffer: CircularBuffer::new(window_size),
             num: 0,
             div: Type::from_u8(1).unwrap(),
             one: Type::from_u8(1).unwrap()
@@ -73,13 +73,13 @@ mod tests {
 
     #[test]
     fn new() {
-        let simple_ma: SimpleMA<i32, 3> = SimpleMA::new();
+        let simple_ma: SimpleMA<i32> = SimpleMA::new(3);
         assert_eq!(simple_ma.compute_average(), 0);
     }
 
     #[test]
     fn add_value() {
-        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        let mut simple_ma: SimpleMA<f32> = SimpleMA::new(3);
         simple_ma.add_value(1.0);
         assert_eq!(simple_ma.compute_average(), 1.0/1.0);
         simple_ma.add_value(2.0);
@@ -94,7 +94,7 @@ mod tests {
 
     #[test]
     fn pop_last() {
-        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        let mut simple_ma: SimpleMA<f32> = SimpleMA::new(3);
         simple_ma.add_value(1.0);
         simple_ma.add_value(2.0);
         simple_ma.add_value(3.0);
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut simple_ma: SimpleMA<f32, 3> = SimpleMA::new();
+        let mut simple_ma: SimpleMA<f32> = SimpleMA::new(3);
         simple_ma.add_value(1.0);
         simple_ma.add_value(2.0);
         simple_ma.add_value(3.0);
