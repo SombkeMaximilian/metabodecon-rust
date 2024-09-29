@@ -22,7 +22,7 @@ impl<Type: Copy + Zero, const WINDOW_SIZE: usize> Smoother<Type, WINDOW_SIZE>
 for
     MovingAverageSmoother<Type, WINDOW_SIZE>
 {
-    fn compute_smoothed(&mut self, values: Vec<Type>) -> Vec<Type> {
+    fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
         let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
 
         for i in 0..self.right {
