@@ -22,22 +22,24 @@ impl<Type: Copy + Zero> Smoother<Type>
 for
     MovingAverageSmoother<Type>
 {
-    fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
-        let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
-
+    fn smooth_values(&mut self, values: &mut [Type]) {
         for i in 0..self.right {
             self.algo.add_value(values[i]);
         }
         for i in 0..(values.len() - self.right) {
             self.algo.add_value(values[i + self.right]);
-            smoothed_values[i] = self.algo.compute_average();
+            values[i] = self.algo.compute_average();
         }
         for i in (values.len() - self.right)..values.len() {
             self.algo.pop_last();
-            smoothed_values[i] = self.algo.compute_average();
+            values[i] = self.algo.compute_average();
         }
         self.algo.clear();
+    }
 
+    fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
+        let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
+        self.smooth_values(&mut smoothed_values);
         smoothed_values
     }
 }
