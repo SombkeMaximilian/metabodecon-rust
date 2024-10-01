@@ -1,5 +1,5 @@
 use crate::data::Spectrum;
-use crate::smoothing::{SmoothingAlgo};
+use crate::smoothing::{Smoother, SmoothingAlgo, MovingAverageSmoother};
 
 pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlgo) {
     let water_region_width = spectrum.water_region_width();
@@ -14,5 +14,13 @@ fn remove_water_signal(intensities: &mut [f64], water_region_width: f64) {}
 #[allow(dead_code, unused_variables)]
 fn remove_negative_values(intensities: &mut [f64]) {}
 
-#[allow(dead_code, unused_variables)]
-fn apply_smoothing(intensities: &mut [f64], algorithm: SmoothingAlgo) {}
+fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
+    match algorithm {
+        SmoothingAlgo::MovingAverage { algo, iterations, window_size } => {
+            let mut smoother = MovingAverageSmoother::<f64>::new(algo, window_size);
+            for _ in 0..iterations {
+                smoother.smooth_values(intensities);
+            }
+        }
+    }
+}
