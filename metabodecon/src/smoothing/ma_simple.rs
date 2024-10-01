@@ -48,8 +48,8 @@ where
 
     fn clear(&mut self) {
         self.buffer.clear();
-        self.div = self.one;
         self.num = 0;
+        self.div = self.one;
     }
 }
 
