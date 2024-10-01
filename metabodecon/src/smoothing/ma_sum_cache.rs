@@ -48,7 +48,9 @@ where
 
     fn clear(&mut self) {
         self.buffer.clear();
+        self.num = 0;
         self.sum = Type::from_u8(0).unwrap();
+        self.div = self.one;
     }
 }
 
