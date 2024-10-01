@@ -42,6 +42,10 @@ impl Spectrum {
         &self.intensities
     }
 
+    pub fn intensities_mut(&mut self) -> &mut Vec<f64> {
+        &mut self.intensities
+    }
+
     pub fn intensities_raw(&self) -> &Vec<f64> {
         &self.intensities_raw
     }
