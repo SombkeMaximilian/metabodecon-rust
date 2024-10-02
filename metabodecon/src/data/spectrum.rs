@@ -57,4 +57,12 @@ impl Spectrum {
     pub fn water_region_width(&self) -> f64 {
         self.water_region_width
     }
+
+    pub fn width(&self) -> f64 {
+        self.chemical_shifts.last().unwrap() - self.chemical_shifts.first().unwrap()
+    }
+
+    pub fn center(&self) -> f64 {
+        self.chemical_shifts.first().unwrap() + self.width() / 2.
+    }
 }
