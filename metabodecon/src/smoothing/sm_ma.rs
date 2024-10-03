@@ -38,7 +38,7 @@ for
     }
 
     fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
-        let mut smoothed_values : Vec<Type> = vec![Type::zero(); values.len()];
+        let mut smoothed_values = values.to_vec();
         self.smooth_values(&mut smoothed_values);
         smoothed_values
     }
