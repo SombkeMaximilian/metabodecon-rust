@@ -1,3 +1,3 @@
 mod score;
 mod filter;
-mod maxima_detection;
+mod detection;
