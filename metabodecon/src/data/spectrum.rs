@@ -24,6 +24,10 @@ impl Spectrum {
         water_width: f64
     ) -> Self {
         let intensities_raw = intensities.clone();
+        let signal_boundaries_sorted = (
+            f64::min(signal_boundaries.0, signal_boundaries.1),
+            f64::max(signal_boundaries.0, signal_boundaries.1)
+        );
 
         Self {
             chemical_shifts,
