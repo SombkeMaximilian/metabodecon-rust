@@ -34,3 +34,36 @@ fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::smoothing::MovingAverageAlgo;
+
+    #[test]
+    fn test_remove_water_signal() {
+        let mut intensities = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let water_boundaries_indices = (1, 4);
+        remove_water_signal(&mut intensities, water_boundaries_indices);
+        assert_eq!(intensities, vec![1.0, 1.0, 1.0, 1.0, 5.0]);
+    }
+
+    #[test]
+    fn test_remove_negative_values() {
+        let mut intensities = vec![1.0, -2.0, 3.0, -4.0, 5.0];
+        remove_negative_values(&mut intensities);
+        assert_eq!(intensities, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn test_smooth_intensities() {
+        let mut intensities = vec![1.25, 1.75, 1.5, 2.0, 1.75];
+        let algorithm = SmoothingAlgo::MovingAverage {
+            algo: MovingAverageAlgo::Simple,
+            iterations: 1,
+            window_size: 3
+        };
+        smooth_intensities(&mut intensities, algorithm);
+        assert_eq!(intensities, vec![1.5, 1.5, 1.75, 1.75, 1.875]);
+    }
+}
