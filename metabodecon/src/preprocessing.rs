@@ -2,7 +2,7 @@ use crate::data::Spectrum;
 use crate::smoothing::{Smoother, SmoothingAlgo, MovingAverageSmoother};
 
 pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlgo) {
-    let water_region_width = spectrum.water_region_width();
+    let water_region_width = spectrum.water_width();
     remove_water_signal(spectrum.intensities_mut(), water_region_width);
     remove_negative_values(spectrum.intensities_mut());
     smooth_intensities(spectrum.intensities_mut(), smoothing_algo);
