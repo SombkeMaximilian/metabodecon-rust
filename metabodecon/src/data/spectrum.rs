@@ -62,11 +62,23 @@ impl Spectrum {
         self.water_width
     }
 
+    pub fn len(&self) -> usize {
+        self.chemical_shifts.len()
+    }
+
     pub fn width(&self) -> f64 {
         self.chemical_shifts.last().unwrap() - self.chemical_shifts.first().unwrap()
     }
 
     pub fn center(&self) -> f64 {
         self.chemical_shifts.first().unwrap() + self.width() / 2.
+    }
+
+    pub fn water_boundaries_indices(&self) -> (usize, usize) {
+        let step = self.chemical_shifts[1] - self.chemical_shifts[0];
+        let half_width = self.water_width / 2.;
+        let center = self.len() as f64 / 2.;
+        ((center - half_width / step).floor() as usize,
+         (center + half_width / step).ceil() as usize)
     }
 }
