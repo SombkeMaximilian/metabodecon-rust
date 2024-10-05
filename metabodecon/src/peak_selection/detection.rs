@@ -18,3 +18,23 @@ fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
         .map(|(i, _)| i + 2)
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_second_derivative() {
+        let intensities = vec![1., 2., 3., 2., 1.];
+        let expected = vec![0., -2., 0.];
+        assert_eq!(second_derivative(&intensities), expected);
+    }
+
+    #[test]
+    fn test_find_peak_centers() {
+        let intensities = vec![1., 2., 3., 2., 1.];
+        let second_derivative = second_derivative(&intensities);
+        let expected = vec![2];
+        assert_eq!(find_peak_centers(&second_derivative), expected);
+    }
+}
