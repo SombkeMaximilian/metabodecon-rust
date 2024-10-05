@@ -62,4 +62,20 @@ mod tests {
         let expected = vec![2];
         assert_eq!(find_peak_centers(&second_derivative), expected);
     }
+
+    #[test]
+    fn test_find_right_border() {
+        let mut second_derivative = vec![0., -2., -1., -0.5, 0.5];
+        assert_eq!(find_right_border(&second_derivative[2..]), 1);
+        second_derivative = vec![0., -2., -1., 0., 0.5, 0.];
+        assert_eq!(find_right_border(&second_derivative[2..]), 2);
+    }
+
+    #[test]
+    fn test_find_left_border() {
+        let mut second_derivative = vec![0.5, -0.5, -1., -2., 0.];
+        assert_eq!(find_left_border(&second_derivative[0..=2]), 1);
+        second_derivative = vec![0., 0.5, 0., -1., -2., 0.];
+        assert_eq!(find_left_border(&second_derivative[0..=3]), 2);
+    }
 }
