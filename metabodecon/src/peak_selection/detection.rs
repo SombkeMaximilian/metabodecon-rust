@@ -1,7 +1,15 @@
 use crate::data::Peak;
 
 #[allow(dead_code, unused_variables)]
-pub fn detect_peaks(intensities: &[f64]) -> Vec<Peak> { Vec::<Peak>::new() }
+pub fn detect_peaks(intensities: &[f64]) -> Vec<Peak> {
+    let second_derivative = second_derivative(intensities);
+    let peak_centers = find_peak_centers(&second_derivative);
+    let peak_borders = find_peak_borders(&second_derivative, &peak_centers);
+    peak_centers.into_iter()
+        .zip(peak_borders.into_iter())
+        .map(|(center, (left, right))| Peak::from_pos(center, left, right))
+        .collect()
+}
 
 #[allow(dead_code, unused_variables)]
 fn second_derivative(intensities: &[f64]) -> Vec<f64> {
