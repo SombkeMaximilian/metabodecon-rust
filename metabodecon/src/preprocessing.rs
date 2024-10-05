@@ -17,11 +17,9 @@ fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)
 }
 
 fn remove_negative_values(intensities: &mut [f64]) {
-    for intensity in intensities.iter_mut() {
-        if *intensity < 0.0 {
-            *intensity = -*intensity;
-        }
-    }
+    intensities.iter_mut()
+        .filter(|intensity| **intensity < 0.0)
+        .for_each(|intensity| *intensity = -*intensity);
 }
 
 fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
