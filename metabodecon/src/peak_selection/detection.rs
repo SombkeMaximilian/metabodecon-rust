@@ -19,6 +19,31 @@ fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
         .collect()
 }
 
+#[allow(dead_code, unused_variables)]
+fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(usize, usize)> {
+    peak_centers.iter()
+        .map(|&i| {
+            (i - find_left_border(&second_derivative[0..i]),
+             i + find_right_border(&second_derivative[i-1..]))
+        })
+        .collect()
+}
+
+fn find_right_border(second_derivative_right: &[f64]) -> usize {
+    second_derivative_right.windows(3)
+        .skip_while(|w| w[1] <= w[0])
+        .position(|w| w[1] >= w[2] || (w[1] < 0. && w[2] >= 0.))
+        .map_or(usize::MAX, |i| i + 1)
+}
+
+fn find_left_border(second_derivative_left: &[f64]) -> usize {
+    second_derivative_left.windows(3)
+        .rev()
+        .skip_while(|w| w[1] <= w[2])
+        .position(|w| w[1] >= w[0] || (w[1] < 0. && w[0] >= 0.))
+        .map_or(usize::MAX, |i| i + 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
