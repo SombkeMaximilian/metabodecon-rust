@@ -1,6 +1,5 @@
 use crate::data::Peak;
 
-#[allow(dead_code, unused_variables)]
 pub fn detect_peaks(intensities: &[f64]) -> Vec<Peak> {
     let second_derivative = second_derivative(intensities);
     let peak_centers = find_peak_centers(&second_derivative);
@@ -11,14 +10,12 @@ pub fn detect_peaks(intensities: &[f64]) -> Vec<Peak> {
         .collect()
 }
 
-#[allow(dead_code, unused_variables)]
 fn second_derivative(intensities: &[f64]) -> Vec<f64> {
     intensities.windows(3)
         .map(|w| w[0] - 2. * w[1] + w[2])
         .collect()
 }
 
-#[allow(dead_code, unused_variables)]
 fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
     second_derivative.windows(3)
         .enumerate()
@@ -27,7 +24,6 @@ fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
         .collect()
 }
 
-#[allow(dead_code, unused_variables)]
 fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(usize, usize)> {
     peak_centers.iter()
         .map(|&i| {
