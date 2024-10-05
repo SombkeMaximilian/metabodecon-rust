@@ -10,8 +10,8 @@ pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlg
 
 fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
     let min_intensity = *intensities.iter()
-                                .min_by(|a, b| a.total_cmp(b))
-                                .unwrap_or(&0.);
+        .min_by(|a, b| a.total_cmp(b))
+        .unwrap_or(&0.);
     let water_region = &mut intensities[boundary_indices.0..boundary_indices.1];
     water_region.fill(min_intensity);
 }
