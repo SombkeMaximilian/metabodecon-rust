@@ -64,6 +64,15 @@ mod tests {
     }
 
     #[test]
+    fn test_find_peak_borders() {
+        // indices are offset by 1, as second derivative is computed for central points only
+        let mut second_derivative = vec![0.5, -0.5, -1., 0., 0.5, 0.];
+        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![(2, 5)]);
+        second_derivative = vec![0., 0.5, 0., -1., -0.5, 0.5];
+        assert_eq!(find_peak_borders(&second_derivative, &[4]), vec![(2, 5)])
+    }
+
+    #[test]
     fn test_find_right_border() {
         let mut second_derivative = vec![0., -2., -1., -0.5, 0.5];
         assert_eq!(find_right_border(&second_derivative[2..]), 1);
