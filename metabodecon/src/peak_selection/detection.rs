@@ -30,7 +30,7 @@ fn find_right_border(second_derivative_right: &[f64]) -> usize {
     second_derivative_right.windows(3)
         .skip_while(|w| w[1] <= w[0])
         .position(|w| w[1] >= w[2] || (w[1] < 0. && w[2] >= 0.))
-        .map_or(usize::MAX, |i| i + 1)
+        .map_or(second_derivative_right.len(), |i| i + 1)
 }
 
 fn find_left_border(second_derivative_left: &[f64]) -> usize {
@@ -38,7 +38,7 @@ fn find_left_border(second_derivative_left: &[f64]) -> usize {
         .rev()
         .skip_while(|w| w[1] <= w[2])
         .position(|w| w[1] >= w[0] || (w[1] < 0. && w[0] >= 0.))
-        .map_or(usize::MAX, |i| i + 1)
+        .map_or(second_derivative_left.len(), |i| i + 1)
 }
 
 #[cfg(test)]
