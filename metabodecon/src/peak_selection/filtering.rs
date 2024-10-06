@@ -4,7 +4,16 @@ use crate::data::Peak;
 pub fn filter_peaks(peaks: Vec<Peak>, abs_second_derivative: Vec<f64>) {}
 
 #[allow(dead_code, unused_variables)]
-fn score_peaks(peaks: &mut Vec<Peak>, abs_second_derivative: Vec<f64>) {}
+fn score_peaks(peaks: &mut Vec<Peak>, abs_second_derivative: Vec<f64>) {
+    peaks.iter_mut()
+        .for_each(|peak| {
+            let (left, right) : (f64, f64) = (
+                abs_second_derivative[peak.left()-1..peak.center()].iter().sum(),
+                abs_second_derivative[peak.center()-1..peak.right()].iter().sum()
+            );
+            peak.set_score(f64::min(left, right))
+        });
+}
 
 #[cfg(test)]
 mod tests {
