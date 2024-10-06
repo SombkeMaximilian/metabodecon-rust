@@ -17,8 +17,16 @@ fn score_peaks(peaks: &mut Vec<Peak>, abs_second_derivative: Vec<f64>) {
 
 #[cfg(test)]
 mod tests {
-    //use super::*;
+    use super::*;
 
     #[test]
-    fn test_score_peaks() {}
+    fn test_score_peaks() {
+        let mut peaks = vec![Peak::from_pos(1, 3, 4), Peak::from_pos(5, 6, 9)];
+        let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
+        let expected = vec![6., 7.];
+        score_peaks(&mut peaks, abs_second_derivative);
+        peaks.iter()
+            .zip(expected)
+            .for_each(|(peak, e)| assert_eq!(peak.score(), e));
+    }
 }
