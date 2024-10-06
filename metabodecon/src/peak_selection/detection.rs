@@ -49,8 +49,7 @@ mod tests {
     #[test]
     fn test_find_peak_centers() {
         let second_derivative = vec![0., -2., 0.];
-        let expected = vec![2];
-        assert_eq!(find_peak_centers(&second_derivative), expected);
+        assert_eq!(find_peak_centers(&second_derivative), vec![2]);
     }
 
     #[test]
