@@ -2,6 +2,7 @@ pub struct Peak {
     left: usize,
     center: usize,
     right: usize,
+    score: f64
 }
 
 impl Peak {
@@ -9,7 +10,8 @@ impl Peak {
         Peak {
             left: 0,
             center: 0,
-            right: 0
+            right: 0,
+            score: 0.
         }
     }
 
@@ -17,7 +19,8 @@ impl Peak {
         Peak {
             left,
             center,
-            right
+            right,
+            score: 0.
         }
     }
 
@@ -33,6 +36,10 @@ impl Peak {
         self.right
     }
 
+    pub fn score(&self) -> f64 {
+        self.score
+    }
+
     pub fn set_left(&mut self, left: usize) {
         self.left = left;
     }
@@ -43,5 +50,9 @@ impl Peak {
 
     pub fn set_right(&mut self, right: usize) {
         self.right = right;
+    }
+
+    pub fn set_score(&mut self, score: f64) {
+        self.score = score;
     }
 }
