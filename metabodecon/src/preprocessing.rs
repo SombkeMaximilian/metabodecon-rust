@@ -36,7 +36,7 @@ fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::smoothing::MovingAverageAlgo;
+    use crate::smoothing::{SmoothingAlgo, MovingAverageAlgo};
 
     #[test]
     fn test_remove_water_signal() {
