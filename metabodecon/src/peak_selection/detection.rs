@@ -58,7 +58,9 @@ mod tests {
         let mut second_derivative = vec![0.5, -0.5, -1., 0., 0.5, 0.];
         assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![(2, 5)]);
         second_derivative = vec![0., 0.5, 0., -1., -0.5, 0.5];
-        assert_eq!(find_peak_borders(&second_derivative, &[4]), vec![(2, 5)])
+        assert_eq!(find_peak_borders(&second_derivative, &[4]), vec![(2, 5)]);
+        second_derivative = vec![1., 1., 1., 1., 1.];
+        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![]);
     }
 
     #[test]
