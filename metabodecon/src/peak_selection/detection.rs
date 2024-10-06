@@ -1,18 +1,11 @@
 use crate::data::Peak;
 
-pub fn detect_peaks(intensities: &[f64]) -> Vec<Peak> {
-    let second_derivative = second_derivative(intensities);
+pub fn detect_peaks(second_derivative: &[f64]) -> Vec<Peak> {
     let peak_centers = find_peak_centers(&second_derivative);
     let peak_borders = find_peak_borders(&second_derivative, &peak_centers);
     peak_centers.into_iter()
         .zip(peak_borders.into_iter())
         .map(|(center, (left, right))| Peak::from_pos(center, left, right))
-        .collect()
-}
-
-fn second_derivative(intensities: &[f64]) -> Vec<f64> {
-    intensities.windows(3)
-        .map(|w| w[0] - 2. * w[1] + w[2])
         .collect()
 }
 
@@ -53,16 +46,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_second_derivative() {
-        let intensities = vec![1., 2., 3., 2., 1.];
-        let expected = vec![0., -2., 0.];
-        assert_eq!(second_derivative(&intensities), expected);
-    }
-
-    #[test]
     fn test_find_peak_centers() {
-        let intensities = vec![1., 2., 3., 2., 1.];
-        let second_derivative = second_derivative(&intensities);
+        let second_derivative = vec![0., -2., 0.];
         let expected = vec![2];
         assert_eq!(find_peak_centers(&second_derivative), expected);
     }
