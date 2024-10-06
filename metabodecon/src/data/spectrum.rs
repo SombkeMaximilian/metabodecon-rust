@@ -74,6 +74,12 @@ impl Spectrum {
         self.chemical_shifts.first().unwrap() + self.width() / 2.
     }
 
+    pub fn signal_boundaries_indices(&self) -> (usize, usize) {
+        let step = self.chemical_shifts[1] - self.chemical_shifts[0];
+        (((self.signal_boundaries.0 - self.chemical_shifts[0]) / step).floor() as usize,
+         ((self.signal_boundaries.1 - self.chemical_shifts[0]) / step).ceil() as usize)
+    }
+
     pub fn water_boundaries_indices(&self) -> (usize, usize) {
         let step = self.chemical_shifts[1] - self.chemical_shifts[0];
         let half_width = self.water_width / 2.;
