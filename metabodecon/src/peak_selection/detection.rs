@@ -23,7 +23,7 @@ fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(
             (i - find_left_border(&second_derivative[0..i]),
              i + find_right_border(&second_derivative[i-1..]))
         })
-        .filter(|(l, r)| *l != 0 && *r != 0)
+        .filter(|(l, r)| *l != 0 && *r != second_derivative.len() + 1)
         .collect()
 }
 
