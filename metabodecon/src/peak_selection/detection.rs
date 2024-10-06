@@ -70,6 +70,8 @@ mod tests {
         assert_eq!(find_right_border(&second_derivative[2..]), 1);
         second_derivative = vec![0., -2., -1., 0., 0.5, 0.];
         assert_eq!(find_right_border(&second_derivative[2..]), 2);
+        second_derivative = vec![1., 1., 1., 1., 1.];
+        assert_eq!(find_right_border(&second_derivative[2..]), 3);
     }
 
     #[test]
@@ -78,5 +80,7 @@ mod tests {
         assert_eq!(find_left_border(&second_derivative[0..=2]), 1);
         second_derivative = vec![0., 0.5, 0., -1., -2., 0.];
         assert_eq!(find_left_border(&second_derivative[0..=3]), 2);
+        second_derivative = vec![1., 1., 1., 1., 1.];
+        assert_eq!(find_left_border(&second_derivative[0..=2]), 3);
     }
 }
