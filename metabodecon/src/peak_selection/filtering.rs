@@ -1,7 +1,14 @@
 use crate::data::Peak;
 
 #[allow(dead_code, unused_variables)]
-pub fn filter_peaks(peaks: &[Peak], abs_second_derivative: &[f64]) {}
+pub fn filter_peaks(peaks: &[Peak], abs_second_derivative: &[f64], signal_boundaries: (usize, usize), threshold: f64) -> Vec<Peak> {
+    let boundaries = peak_region_boundaries(&peaks, signal_boundaries);
+    let (mean, sd) = mean_sd_sfr_scores(&peaks, &abs_second_derivative, boundaries);
+    peaks[boundaries.0..boundaries.1].iter()
+        .skip_while(|peak| score_peak(*peak, &abs_second_derivative) < mean + threshold * sd)
+        .cloned()
+        .collect()
+}
 
 #[allow(dead_code, unused_variables)]
 fn score_peak(peak: &Peak, abs_second_derivative: &[f64]) -> f64 {
