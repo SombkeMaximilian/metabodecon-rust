@@ -21,6 +21,23 @@ fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> 
     (left, right)
 }
 
+#[allow(dead_code, unused_variables)]
+fn mean_sd_sfr_scores(peaks: &[Peak], abs_second_derivative: &[f64],
+                                      peak_region_boundaries: (usize, usize)) -> (f64, f64) {
+    let left_sfr = &peaks[0..peak_region_boundaries.0];
+    let right_sfr = &peaks[peak_region_boundaries.1..];
+    let scores_sfr: Vec<f64> = left_sfr.iter()
+        .chain(right_sfr.iter())
+        .map(|peak| score_peak(peak, &abs_second_derivative))
+        .collect();
+    let mean : f64 = scores_sfr.iter().sum::<f64>() / (left_sfr.len() + right_sfr.len()) as f64;
+    let standard_deviation : f64 = scores_sfr.iter()
+        .map(|score| (score - mean).powi(2))
+        .sum::<f64>()
+        / (left_sfr.len() + right_sfr.len()) as f64;
+    (mean, standard_deviation)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
