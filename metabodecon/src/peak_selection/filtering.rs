@@ -14,12 +14,12 @@ fn score_peaks(peaks: &[Peak], abs_second_derivative: &[f64]) -> Vec<f64> {
 }
 
 #[allow(dead_code, unused_variables)]
-fn peak_region_boundaries(peaks: &[Peak], boundaries: (usize, usize)) -> (usize, usize) {
+fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> (usize, usize) {
     let left = peaks.iter()
-        .position(|peak| peak.center() > boundaries.0)
+        .position(|peak| peak.center() > signal_boundaries.0)
         .unwrap();
     let right = peaks[left..].iter()
-        .position(|peak| peak.center() > boundaries.1)
+        .position(|peak| peak.center() > signal_boundaries.1)
         .map(|i| left + i - 1)
         .unwrap();
     (left, right)
