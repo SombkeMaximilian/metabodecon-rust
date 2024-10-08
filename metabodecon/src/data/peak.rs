@@ -1,4 +1,3 @@
-#[derive(Clone)]
 pub struct Peak {
     left: usize,
     center: usize,
