@@ -4,14 +4,14 @@ pub struct CircularBuffer<Type> {
     buffer: Box<[Type]>,
     index: usize,
     num_elements: usize,
-    capacity: usize
+    capacity: usize,
 }
 
 pub struct CircularBufferIterator<'a, Type: 'a> {
     buffer: &'a [Type],
     index: usize,
     count: usize,
-    capacity: usize
+    capacity: usize,
 }
 
 impl<Type: Copy + Zero> CircularBuffer<Type> {
@@ -20,12 +20,12 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
             buffer: vec![Type::zero(); capacity].into_boxed_slice(),
             index: 0,
             num_elements: 0,
-            capacity
+            capacity,
         }
     }
 
     pub fn next(&mut self, value: Type) -> Option<Type> {
-        let popped_value : Option<Type> = if self.num_elements == self.capacity {
+        let popped_value: Option<Type> = if self.num_elements == self.capacity {
             self.pop()
         } else {
             None
@@ -46,7 +46,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         if self.num_elements == 0 {
             return None;
         }
-        let index : usize = (self.index + self.capacity - self.num_elements) % self.capacity;
+        let index: usize = (self.index + self.capacity - self.num_elements) % self.capacity;
         self.num_elements -= 1;
         Some(self.buffer[index])
     }
@@ -71,7 +71,7 @@ impl<'a, Type: 'a> CircularBufferIterator<'a, Type> {
             buffer,
             index,
             count,
-            capacity
+            capacity,
         }
     }
 }
@@ -83,7 +83,7 @@ impl<'a, Type: Copy> Iterator for CircularBufferIterator<'a, Type> {
         if self.count == 0 {
             return None;
         }
-        let index : usize = (self.index + self.capacity - self.count) % self.capacity;
+        let index: usize = (self.index + self.capacity - self.count) % self.capacity;
         self.count -= 1;
         Some(&self.buffer[index])
     }
@@ -94,20 +94,20 @@ mod tests {
     use super::*;
     #[test]
     fn new() {
-        let buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         assert_eq!(buffer.num_elements(), 0);
     }
 
     #[test]
     fn push() {
-        let mut buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
         assert_eq!(buffer.num_elements(), 1);
     }
 
     #[test]
     fn pop() {
-        let mut buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
         buffer.push(2);
         assert_eq!(buffer.pop(), Some(1));
@@ -116,7 +116,7 @@ mod tests {
 
     #[test]
     fn next() {
-        let mut buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
         buffer.push(2);
         buffer.push(3);
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
         buffer.push(2);
         buffer.push(3);
@@ -136,7 +136,7 @@ mod tests {
 
     #[test]
     fn iter() {
-        let mut buffer : CircularBuffer<i32> = CircularBuffer::new(3);
+        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
         buffer.push(2);
         buffer.push(3);

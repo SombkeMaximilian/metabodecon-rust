@@ -2,7 +2,7 @@
 pub struct Peak {
     left: usize,
     center: usize,
-    right: usize
+    right: usize,
 }
 
 impl Peak {
@@ -10,7 +10,7 @@ impl Peak {
         Peak {
             left: 0,
             center: 0,
-            right: 0
+            right: 0,
         }
     }
 
@@ -18,7 +18,7 @@ impl Peak {
         Peak {
             left,
             center,
-            right
+            right,
         }
     }
 

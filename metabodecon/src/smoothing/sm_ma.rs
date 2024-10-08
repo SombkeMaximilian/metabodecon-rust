@@ -1,27 +1,23 @@
-use crate::smoothing::Smoother;
-use crate::smoothing::MovingAverage;
 use crate::smoothing::ma_simple::SimpleMA;
 use crate::smoothing::ma_sum_cache::SumCacheMA;
+use crate::smoothing::MovingAverage;
+use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
-use std::ops::{AddAssign, SubAssign, Div, Mul};
 use std::marker::PhantomData;
+use std::ops::{AddAssign, Div, Mul, SubAssign};
 
 pub enum MovingAverageAlgo {
     Simple,
-    SumCache
+    SumCache,
 }
 
-pub struct MovingAverageSmoother<Type>
-{
+pub struct MovingAverageSmoother<Type> {
     algo: Box<dyn MovingAverage<Type>>,
     right: usize,
-    type_marker: PhantomData<Type>
+    type_marker: PhantomData<Type>,
 }
 
-impl<Type: Copy + Zero> Smoother<Type>
-for
-    MovingAverageSmoother<Type>
-{
+impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
     fn smooth_values(&mut self, values: &mut [Type]) {
         for i in 0..self.right {
             self.algo.add_value(values[i]);
@@ -46,18 +42,24 @@ for
 
 impl<Type> MovingAverageSmoother<Type>
 where
-    Type: Copy + Zero + FromPrimitive + 'static +
-          AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
+    Type: Copy
+        + Zero
+        + FromPrimitive
+        + 'static
+        + AddAssign
+        + SubAssign
+        + Div<Output = Type>
+        + Mul<Output = Type>,
 {
     pub fn new(algo: MovingAverageAlgo, window_size: usize) -> Self {
-        let algo : Box<dyn MovingAverage<Type>> = match algo {
+        let algo: Box<dyn MovingAverage<Type>> = match algo {
             MovingAverageAlgo::Simple => Box::new(SimpleMA::new(window_size)),
-            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new(window_size))
+            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new(window_size)),
         };
         Self {
             algo,
             right: window_size / 2,
-            type_marker: PhantomData
+            type_marker: PhantomData,
         }
     }
 }

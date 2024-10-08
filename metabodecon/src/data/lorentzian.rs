@@ -1,7 +1,7 @@
 pub struct Lorentzian {
     scale_factor: f64,
     half_width: f64,
-    max_position: f64
+    max_position: f64,
 }
 
 impl Lorentzian {
@@ -9,7 +9,7 @@ impl Lorentzian {
         Self {
             scale_factor: 0.,
             half_width: 0.,
-            max_position: 0.
+            max_position: 0.,
         }
     }
 
@@ -17,7 +17,7 @@ impl Lorentzian {
         Self {
             scale_factor,
             half_width,
-            max_position
+            max_position,
         }
     }
 
@@ -34,7 +34,11 @@ impl Lorentzian {
     }
 
     pub fn parameters(&self) -> (f64, f64, f64) {
-        (self.scale_factor(), self.half_width(), self.maximum_position())
+        (
+            self.scale_factor(),
+            self.half_width(),
+            self.maximum_position(),
+        )
     }
 
     pub fn set_scale_factor(&mut self, scale_factor: f64) {
@@ -56,7 +60,7 @@ impl Lorentzian {
     }
 
     pub fn evaluate(&self, x: f64) -> f64 {
-        self.scale_factor * self.half_width /
-            (self.half_width.powi(2) + (x - self.max_position).powi(2))
+        self.scale_factor * self.half_width
+            / (self.half_width.powi(2) + (x - self.max_position).powi(2))
     }
 }

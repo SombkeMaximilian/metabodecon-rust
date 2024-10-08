@@ -1,11 +1,10 @@
 #[allow(dead_code, unused_variables)]
-pub fn select_peaks() {
-
-}
+pub fn select_peaks() {}
 
 #[allow(dead_code, unused_variables)]
 fn second_derivative(intensities: &[f64]) -> Vec<f64> {
-    intensities.windows(3)
+    intensities
+        .windows(3)
         .map(|w| w[0] - 2. * w[1] + w[2])
         .collect()
 }

@@ -1,22 +1,25 @@
-use crate::smoothing::MovingAverage;
 use crate::smoothing::circular_buffer::CircularBuffer;
+use crate::smoothing::MovingAverage;
 use num_traits::{FromPrimitive, Zero};
-use std::ops::{AddAssign, SubAssign, Div, Mul};
+use std::ops::{AddAssign, Div, Mul, SubAssign};
 
 pub struct SumCacheMA<Type> {
     buffer: CircularBuffer<Type>,
     num: usize,
     sum: Type,
     div: Type,
-    one: Type
+    one: Type,
 }
 
-impl<Type> MovingAverage<Type>
-for
-    SumCacheMA<Type>
+impl<Type> MovingAverage<Type> for SumCacheMA<Type>
 where
-    Type: Copy + FromPrimitive + Zero +
-          AddAssign + SubAssign + Div<Output = Type> + Mul<Output = Type>
+    Type: Copy
+        + FromPrimitive
+        + Zero
+        + AddAssign
+        + SubAssign
+        + Div<Output = Type>
+        + Mul<Output = Type>,
 {
     fn add_value(&mut self, value: Type) {
         self.sum += value;
@@ -56,7 +59,7 @@ where
 
 impl<Type> SumCacheMA<Type>
 where
-    Type: Copy + Zero + FromPrimitive
+    Type: Copy + Zero + FromPrimitive,
 {
     pub fn new(window_size: usize) -> Self {
         Self {
@@ -64,7 +67,7 @@ where
             num: 0,
             sum: Type::zero(),
             div: Type::from_u8(1).unwrap(),
-            one: Type::from_u8(1).unwrap()
+            one: Type::from_u8(1).unwrap(),
         }
     }
 }
@@ -74,38 +77,38 @@ mod tests {
     use super::*;
     #[test]
     fn new() {
-        let sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
+        let sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
         assert_eq!(sum_cache_ma.compute_average(), 0.0);
     }
 
     #[test]
     fn add_value() {
-        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
-        assert_eq!(sum_cache_ma.compute_average(), 1.0/1.0);
+        assert_eq!(sum_cache_ma.compute_average(), 1.0 / 1.0);
         sum_cache_ma.add_value(2.0);
-        assert_eq!(sum_cache_ma.compute_average(), 3.0/2.0);
+        assert_eq!(sum_cache_ma.compute_average(), 3.0 / 2.0);
         sum_cache_ma.add_value(3.0);
-        assert_eq!(sum_cache_ma.compute_average(), 6.0/3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 6.0 / 3.0);
         sum_cache_ma.add_value(4.0);
-        assert_eq!(sum_cache_ma.compute_average(), 9.0/3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 9.0 / 3.0);
         sum_cache_ma.add_value(5.0);
-        assert_eq!(sum_cache_ma.compute_average(), 12.0/3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 12.0 / 3.0);
     }
 
     #[test]
     fn pop_last() {
-        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);
         sum_cache_ma.add_value(4.0);
         sum_cache_ma.add_value(5.0);
-        assert_eq!(sum_cache_ma.compute_average(), 12.0/3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 12.0 / 3.0);
         assert_eq!(sum_cache_ma.pop_last(), Some(3.0));
-        assert_eq!(sum_cache_ma.compute_average(), 9.0/2.0);
+        assert_eq!(sum_cache_ma.compute_average(), 9.0 / 2.0);
         assert_eq!(sum_cache_ma.pop_last(), Some(4.0));
-        assert_eq!(sum_cache_ma.compute_average(), 5.0/1.0);
+        assert_eq!(sum_cache_ma.compute_average(), 5.0 / 1.0);
         assert_eq!(sum_cache_ma.pop_last(), Some(5.0));
         assert_eq!(sum_cache_ma.compute_average(), 0.0);
         assert_eq!(sum_cache_ma.pop_last(), None);
@@ -117,11 +120,11 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut sum_cache_ma : SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);
-        assert_eq!(sum_cache_ma.compute_average(), 6.0/3.0);
+        assert_eq!(sum_cache_ma.compute_average(), 6.0 / 3.0);
         sum_cache_ma.clear();
         assert_eq!(sum_cache_ma.compute_average(), 0.0);
     }

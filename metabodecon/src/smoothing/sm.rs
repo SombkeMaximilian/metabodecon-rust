@@ -1,7 +1,11 @@
 use crate::smoothing::sm_ma::MovingAverageAlgo;
 
 pub enum SmoothingAlgo {
-    MovingAverage { algo: MovingAverageAlgo, iterations: usize, window_size: usize }
+    MovingAverage {
+        algo: MovingAverageAlgo,
+        iterations: usize,
+        window_size: usize,
+    },
 }
 
 pub trait Smoother<Type> {

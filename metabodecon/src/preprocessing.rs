@@ -1,5 +1,5 @@
 use crate::data::Spectrum;
-use crate::smoothing::{Smoother, SmoothingAlgo, MovingAverageSmoother};
+use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
 
 pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlgo) {
     let water_boundaries_indices = spectrum.water_boundaries_indices();
@@ -9,7 +9,8 @@ pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlg
 }
 
 fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
-    let min_intensity = *intensities.iter()
+    let min_intensity = *intensities
+        .iter()
         .min_by(|a, b| a.total_cmp(b))
         .unwrap_or(&0.);
     let water_region = &mut intensities[boundary_indices.0..boundary_indices.1];
@@ -17,14 +18,19 @@ fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)
 }
 
 fn remove_negative_values(intensities: &mut [f64]) {
-    intensities.iter_mut()
+    intensities
+        .iter_mut()
         .filter(|intensity| **intensity < 0.0)
         .for_each(|intensity| *intensity = -*intensity);
 }
 
 fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
     match algorithm {
-        SmoothingAlgo::MovingAverage { algo, iterations, window_size } => {
+        SmoothingAlgo::MovingAverage {
+            algo,
+            iterations,
+            window_size,
+        } => {
             let mut smoother = MovingAverageSmoother::<f64>::new(algo, window_size);
             for _ in 0..iterations {
                 smoother.smooth_values(intensities);
@@ -36,7 +42,7 @@ fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::smoothing::{SmoothingAlgo, MovingAverageAlgo};
+    use crate::smoothing::{MovingAverageAlgo, SmoothingAlgo};
 
     #[test]
     fn test_remove_water_signal() {
@@ -59,7 +65,7 @@ mod tests {
         let algorithm = SmoothingAlgo::MovingAverage {
             algo: MovingAverageAlgo::Simple,
             iterations: 1,
-            window_size: 3
+            window_size: 3,
         };
         smooth_intensities(&mut intensities, algorithm);
         assert_eq!(intensities, vec![1.5, 1.5, 1.75, 1.75, 1.875]);

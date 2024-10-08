@@ -3,14 +3,16 @@ use crate::data::Peak;
 pub fn detect_peaks(second_derivative: &[f64]) -> Vec<Peak> {
     let peak_centers = find_peak_centers(&second_derivative);
     let peak_borders = find_peak_borders(&second_derivative, &peak_centers);
-    peak_centers.into_iter()
+    peak_centers
+        .into_iter()
         .zip(peak_borders.into_iter())
         .map(|(center, (left, right))| Peak::from_pos(center, left, right))
         .collect()
 }
 
 fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
-    second_derivative.windows(3)
+    second_derivative
+        .windows(3)
         .enumerate()
         .filter(|(_, w)| w[1] < w[0] && w[1] < 0. && w[1] < w[2])
         .map(|(i, _)| i + 2)
@@ -18,24 +20,29 @@ fn find_peak_centers(second_derivative: &[f64]) -> Vec<usize> {
 }
 
 fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(usize, usize)> {
-    peak_centers.iter()
+    peak_centers
+        .iter()
         .map(|&i| {
-            (i - find_left_border(&second_derivative[0..i]),
-             i + find_right_border(&second_derivative[i-1..]))
+            (
+                i - find_left_border(&second_derivative[0..i]),
+                i + find_right_border(&second_derivative[i - 1..]),
+            )
         })
         .filter(|(l, r)| *l != 0 && *r != second_derivative.len() + 1)
         .collect()
 }
 
 fn find_right_border(second_derivative_right: &[f64]) -> usize {
-    second_derivative_right.windows(3)
+    second_derivative_right
+        .windows(3)
         .skip_while(|w| w[1] <= w[0])
         .position(|w| w[1] >= w[2] || (w[1] < 0. && w[2] >= 0.))
         .map_or(second_derivative_right.len(), |i| i + 1)
 }
 
 fn find_left_border(second_derivative_left: &[f64]) -> usize {
-    second_derivative_left.windows(3)
+    second_derivative_left
+        .windows(3)
         .rev()
         .skip_while(|w| w[1] <= w[2])
         .position(|w| w[1] >= w[0] || (w[1] < 0. && w[0] >= 0.))
