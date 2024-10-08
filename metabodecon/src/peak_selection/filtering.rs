@@ -20,7 +20,7 @@ fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> 
         .unwrap();
     let right = peaks[left..].iter()
         .position(|peak| peak.center() > signal_boundaries.1)
-        .map(|i| left + i - 1)
+        .map(|i| left + i)
         .unwrap();
     (left, right)
 }
@@ -34,5 +34,14 @@ mod tests {
         let peaks = vec![Peak::from_pos(1, 3, 4), Peak::from_pos(5, 6, 9)];
         let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
         assert_eq!(score_peaks(&peaks, &abs_second_derivative), vec![6., 7.]);
+    }
+    
+    #[test]
+    fn test_peak_region_boundaries() {
+        let signal_region_boundaries : (usize, usize) = (3, 7);
+        let peaks : Vec<Peak> = vec![2, 4, 5, 8].into_iter()
+            .map(|i| Peak::from_pos(i-1, i, i+1))
+            .collect();
+        assert_eq!(peak_region_boundaries(&peaks, signal_region_boundaries), (1, 3));
     }
 }
