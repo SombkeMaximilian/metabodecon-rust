@@ -1,6 +1,5 @@
 use crate::data::Peak;
 
-#[allow(dead_code, unused_variables)]
 pub fn filter_peaks(
     peaks: &[Peak],
     abs_second_derivative: &[f64],
@@ -16,7 +15,6 @@ pub fn filter_peaks(
         .collect()
 }
 
-#[allow(dead_code, unused_variables)]
 fn score_peak(peak: &Peak, abs_second_derivative: &[f64]) -> f64 {
     f64::min(
         abs_second_derivative[peak.left() - 1..peak.center()]
@@ -28,7 +26,6 @@ fn score_peak(peak: &Peak, abs_second_derivative: &[f64]) -> f64 {
     )
 }
 
-#[allow(dead_code, unused_variables)]
 fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> (usize, usize) {
     let left = peaks
         .iter()
@@ -42,7 +39,6 @@ fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> 
     (left, right)
 }
 
-#[allow(dead_code, unused_variables)]
 fn mean_sd_sfr_scores(
     peaks: &[Peak],
     abs_second_derivative: &[f64],
