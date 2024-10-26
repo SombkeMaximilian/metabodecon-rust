@@ -41,7 +41,7 @@ impl PeakStencilData {
                 right_intensity: left_intensity,
             },
             (_, true) => Self {
-                left_chemical_shift: 2. * center_chemical_shift + right_chemical_shift,
+                left_chemical_shift: 2. * center_chemical_shift - right_chemical_shift,
                 center_chemical_shift,
                 right_chemical_shift,
                 left_intensity: right_intensity,
