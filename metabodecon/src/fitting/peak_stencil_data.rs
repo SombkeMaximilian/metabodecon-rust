@@ -27,35 +27,13 @@ impl PeakStencilData {
         center_intensity: f64,
         right_intensity: f64,
     ) -> Self {
-        let increasing = left_intensity < center_intensity
-            && center_intensity < right_intensity;
-        let decreasing = left_intensity > center_intensity
-            && center_intensity > right_intensity;
-        match (increasing, decreasing) {
-            (true, _) => Self {
-                left_chemical_shift,
-                center_chemical_shift,
-                right_chemical_shift: 2. * center_chemical_shift - left_chemical_shift,
-                left_intensity,
-                center_intensity,
-                right_intensity: left_intensity,
-            },
-            (_, true) => Self {
-                left_chemical_shift: 2. * center_chemical_shift - right_chemical_shift,
-                center_chemical_shift,
-                right_chemical_shift,
-                left_intensity: right_intensity,
-                center_intensity,
-                right_intensity,
-            },
-            _ => Self {
-                left_chemical_shift,
-                center_chemical_shift,
-                right_chemical_shift,
-                left_intensity,
-                center_intensity,
-                right_intensity,
-            },
+        Self {
+            left_chemical_shift,
+            center_chemical_shift,
+            right_chemical_shift,
+            left_intensity,
+            center_intensity,
+            right_intensity,
         }
     }
 
@@ -105,5 +83,49 @@ impl PeakStencilData {
 
     pub fn set_y_3(&mut self, y_3: f64) {
         self.right_intensity = y_3;
+    }
+
+    pub fn mirror_shoulder(&mut self) {
+        let increasing = self.left_intensity < self.center_intensity
+            && self.center_intensity < self.right_intensity;
+        let decreasing = self.left_intensity > self.center_intensity
+            && self.center_intensity > self.right_intensity;
+        match (increasing, decreasing) {
+            (true, _) => {
+                self.right_intensity = self.left_intensity;
+                self.right_chemical_shift = 2. * self.center_chemical_shift - self.left_chemical_shift;
+            },
+            (_, true) => {
+                self.left_intensity = self.right_intensity;
+                self.left_chemical_shift = 2. * self.center_chemical_shift - self.right_chemical_shift;
+            },
+            _ => (),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_mirror_shoulder() {
+        let mut peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
+        peak.mirror_shoulder();
+        assert_eq!(peak.x_1(), 1.);
+        assert_eq!(peak.x_2(), 2.);
+        assert_eq!(peak.x_3(), 3.);
+        assert_eq!(peak.y_1(), 1.);
+        assert_eq!(peak.y_2(), 2.);
+        assert_eq!(peak.y_3(), 1.);
+
+        let mut peak = PeakStencilData::from_data(1., 2., 3., 3., 2., 1.);
+        peak.mirror_shoulder();
+        assert_eq!(peak.x_1(), 1.);
+        assert_eq!(peak.x_2(), 2.);
+        assert_eq!(peak.x_3(), 3.);
+        assert_eq!(peak.y_1(), 1.);
+        assert_eq!(peak.y_2(), 2.);
+        assert_eq!(peak.y_3(), 1.);
     }
 }
