@@ -27,13 +27,35 @@ impl PeakStencilData {
         center_intensity: f64,
         right_intensity: f64,
     ) -> Self {
-        Self {
-            left_chemical_shift,
-            center_chemical_shift,
-            right_chemical_shift,
-            left_intensity,
-            center_intensity,
-            right_intensity,
+        let increasing = left_intensity < center_intensity
+            && center_intensity < right_intensity;
+        let decreasing = left_intensity > center_intensity
+            && center_intensity > right_intensity;
+        match (increasing, decreasing) {
+            (true, _) => Self {
+                left_chemical_shift,
+                center_chemical_shift,
+                right_chemical_shift: 2. * center_chemical_shift - left_chemical_shift,
+                left_intensity,
+                center_intensity,
+                right_intensity: left_intensity,
+            },
+            (_, true) => Self {
+                left_chemical_shift: 2. * center_chemical_shift + right_chemical_shift,
+                center_chemical_shift,
+                right_chemical_shift,
+                left_intensity: right_intensity,
+                center_intensity,
+                right_intensity,
+            },
+            _ => Self {
+                left_chemical_shift,
+                center_chemical_shift,
+                right_chemical_shift,
+                left_intensity,
+                center_intensity,
+                right_intensity,
+            },
         }
     }
 
