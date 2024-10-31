@@ -1,6 +1,5 @@
 mod fitter;
 mod fitter_analytical;
-mod fitter_gradient_descent;
 mod peak_stencil_data;
 mod reduced_spectrum;
 

@@ -1,13 +1,7 @@
 use crate::data::{Lorentzian, Spectrum};
 
 pub enum FittingAlgo {
-    Analytical {
-        iterations: usize,
-    },
-    GradientDescent {
-        iterations: usize,
-        learning_rate: f64,
-    },
+    Analytical { iterations: usize },
 }
 
 pub trait Fitter {
