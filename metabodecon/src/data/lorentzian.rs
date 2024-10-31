@@ -1,66 +1,62 @@
 pub struct Lorentzian {
-    scale_factor: f64,
-    half_width: f64,
-    max_position: f64,
+    scale_factor_half_width: f64, // A * lambda
+    half_width_squared: f64,      // lambda^2
+    maximum_position: f64,        // x_0
 }
 
 impl Lorentzian {
     pub fn new() -> Self {
         Self {
-            scale_factor: 0.,
-            half_width: 0.,
-            max_position: 0.,
+            scale_factor_half_width: 0.,
+            half_width_squared: 0.,
+            maximum_position: 0.,
         }
     }
 
-    pub fn from_param(scale_factor: f64, half_width: f64, max_position: f64) -> Self {
+    pub fn from_param(sfhw: f64, hw2: f64, maxp: f64) -> Self {
         Self {
-            scale_factor,
-            half_width,
-            max_position,
+            scale_factor_half_width: sfhw,
+            half_width_squared: hw2,
+            maximum_position: maxp,
         }
     }
 
-    pub fn scale_factor(&self) -> f64 {
-        self.scale_factor
+    pub fn sfhw(&self) -> f64 {
+        self.scale_factor_half_width
     }
 
-    pub fn half_width(&self) -> f64 {
-        self.half_width
+    pub fn hw2(&self) -> f64 {
+        self.half_width_squared
     }
 
-    pub fn maximum_position(&self) -> f64 {
-        self.max_position
+    pub fn maxp(&self) -> f64 {
+        self.maximum_position
     }
 
     pub fn parameters(&self) -> (f64, f64, f64) {
-        (
-            self.scale_factor(),
-            self.half_width(),
-            self.maximum_position(),
-        )
+        (self.sfhw(), self.hw2(), self.maxp())
     }
 
-    pub fn set_scale_factor(&mut self, scale_factor: f64) {
-        self.scale_factor = scale_factor;
+    pub fn set_sfhw(&mut self, scale_factor: f64) {
+        self.scale_factor_half_width = scale_factor;
     }
 
-    pub fn set_half_width(&mut self, half_width: f64) {
-        self.half_width = half_width;
+    pub fn set_hw2(&mut self, half_width: f64) {
+        self.half_width_squared = half_width;
     }
 
-    pub fn set_maximum_position(&mut self, max_position: f64) {
-        self.max_position = max_position;
+    pub fn set_maxp(&mut self, max_position: f64) {
+        self.maximum_position = max_position;
     }
 
-    pub fn set_parameters(&mut self, scale_factor: f64, half_width: f64, max_position: f64) {
-        self.scale_factor = scale_factor;
-        self.half_width = half_width;
-        self.max_position = max_position;
+    pub fn set_parameters(&mut self, sfhw: f64, hw2: f64, maxp: f64) {
+        self.scale_factor_half_width = sfhw;
+        self.half_width_squared = hw2;
+        self.maximum_position = maxp;
     }
 
     pub fn evaluate(&self, x: f64) -> f64 {
-        self.scale_factor * self.half_width
-            / (self.half_width.powi(2) + (x - self.max_position).powi(2))
+        self.scale_factor_half_width
+            / (self.half_width_squared + (x - self.maximum_position).powi(2))
     }
 }
