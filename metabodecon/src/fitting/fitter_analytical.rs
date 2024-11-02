@@ -1,13 +1,19 @@
-use crate::data::{Lorentzian, Spectrum};
-use crate::fitting::Fitter;
+use crate::data::{Lorentzian, Peak, Spectrum};
+use crate::fitting::{Fitter, PeakStencilData, ReducedSpectrum};
 
 pub struct FitterAnalytical {
     iterations: usize,
 }
 
 impl Fitter for FitterAnalytical {
-    fn fit_lorentzian(&self, _spectrum: &Spectrum) -> Vec<Lorentzian> {
-        unimplemented!()
+    fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
+        let _reduced_spectrum = ReducedSpectrum::from_spectrum(spectrum, peaks);
+        let _peak_data = peaks
+            .iter()
+            .map(|peak| PeakStencilData::from_peak(spectrum, peak))
+            .collect::<Vec<_>>();
+
+        Vec::<Lorentzian>::new()
     }
 }
 
