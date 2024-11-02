@@ -1,3 +1,5 @@
+use crate::data::{Peak, Spectrum};
+
 pub struct PeakStencilData {
     left_chemical_shift: f64,
     center_chemical_shift: f64,
@@ -34,6 +36,17 @@ impl PeakStencilData {
             left_intensity,
             center_intensity,
             right_intensity,
+        }
+    }
+
+    pub fn from_peak(spectrum: &Spectrum, peak: &Peak) -> Self {
+        Self {
+            left_chemical_shift: spectrum.chemical_shifts()[peak.left()],
+            center_chemical_shift: spectrum.chemical_shifts()[peak.center()],
+            right_chemical_shift: spectrum.chemical_shifts()[peak.right()],
+            left_intensity: spectrum.intensities()[peak.left()],
+            center_intensity: spectrum.intensities()[peak.center()],
+            right_intensity: spectrum.intensities()[peak.right()],
         }
     }
 
