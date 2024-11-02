@@ -30,4 +30,25 @@ impl FitterAnalytical {
         self.iterations = iterations;
     }
 
+    pub fn maximum_position(&self, p: &PeakStencilData) -> f64 {
+        let numerator = p.x_1().powi(2) * p.y_1() * (p.y_2() - p.y_3())
+            + p.x_2().powi(2) * p.y_2() * (p.y_3() - p.y_1())
+            + p.x_3().powi(2) * p.y_3() * (p.y_1() - p.y_2());
+        let divisor = 2. * (p.x_1() - p.x_2()) * p.y_1() * p.y_2()
+            + 2. * (p.x_2() - p.x_3()) * p.y_2() * p.y_3()
+            + 2. * (p.x_3() - p.x_1()) * p.y_3() * p.y_1();
+        numerator / divisor
+    }
+
+    pub fn half_width2(&self, p: &PeakStencilData, maxp: f64) -> f64 {
+        let left = (p.y_1() * (p.x_1() - maxp).powi(2) - p.y_2() * (p.x_2() - maxp).powi(2))
+            / (p.y_1() - p.y_2());
+        let right = (p.y_2() * (p.x_2() - maxp).powi(2) - p.y_3() * (p.x_3() - maxp).powi(2))
+            / (p.y_2() - p.y_3());
+        (left + right) / 2.
+    }
+
+    pub fn scale_factor_half_width(&self, p: &PeakStencilData, maxp: f64, hw2: f64) -> f64 {
+        p.x_2() * (hw2 + (p.x_2() - maxp).powi(2))
+    }
 }
