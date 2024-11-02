@@ -52,3 +52,19 @@ impl FitterAnalytical {
         p.y_2() * (hw2 + (p.x_2() - maxp).powi(2))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_approximations() {
+        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
+        let maxp = FitterAnalytical::maximum_position(&peak);
+        let hw2 = FitterAnalytical::half_width2(&peak, maxp);
+        let sfhw = FitterAnalytical::scale_factor_half_width(&peak, maxp, hw2);
+        assert_eq!(maxp, 8.);
+        assert_eq!(hw2.sqrt(), 4.);
+        assert_eq!(sfhw / hw2.sqrt(), 40.);
+    }
+}
