@@ -67,6 +67,30 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_maxp() {
+        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
+        let maxp = FitterAnalytical::maximum_position(&peak);
+        assert_eq!(maxp, 8.);
+    }
+
+    #[test]
+    fn test_hw2() {
+        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
+        let maxp = 8.;
+        let hw2 = FitterAnalytical::half_width2(&peak, maxp);
+        assert_eq!(hw2.sqrt(), 4.);
+    }
+
+    #[test]
+    fn test_sfhw() {
+        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
+        let maxp = 8.;
+        let hw2 = 16.;
+        let sfhw = FitterAnalytical::scale_factor_half_width(&peak, maxp, hw2);
+        assert_eq!(sfhw / hw2.sqrt(), 40.);
+    }
+
+    #[test]
     fn test_approximations() {
         let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
         let maxp = FitterAnalytical::maximum_position(&peak);
