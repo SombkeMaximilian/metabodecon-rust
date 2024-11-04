@@ -59,4 +59,8 @@ impl Lorentzian {
         self.scale_factor_half_width
             / (self.half_width_squared + (x - self.maximum_position).powi(2))
     }
+
+    pub fn evaluate_vec(&self, x: &[f64]) -> Vec<f64> {
+        x.iter().map(|&x| self.evaluate(x)).collect()
+    }
 }
