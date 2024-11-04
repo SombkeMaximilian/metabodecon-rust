@@ -7,12 +7,12 @@ pub struct FitterAnalytical {
 
 impl Fitter for FitterAnalytical {
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
-        let _reduced_spectrum = ReducedSpectrum::from_spectrum(spectrum, peaks);
+        let reduced_spectrum = ReducedSpectrum::from_spectrum(spectrum, peaks);
         let peak_data = peaks
             .iter()
             .map(|peak| PeakStencilData::from_peak(spectrum, peak))
             .collect::<Vec<_>>();
-        let mut lorentzians = peak_data
+        let lorentzians = peak_data
             .iter()
             .map(|peak| {
                 let maxp = Self::maximum_position(peak);
@@ -20,6 +20,24 @@ impl Fitter for FitterAnalytical {
                 let sfhw = Self::scale_factor_half_width(peak, maxp, hw2);
                 Lorentzian::from_param(sfhw, hw2, maxp)
             })
+            .collect::<Vec<_>>();
+        let superposition = lorentzians
+            .iter()
+            .map(|l| l.evaluate_vec(reduced_spectrum.chemical_shifts()))
+            .fold(
+                vec![0.; reduced_spectrum.chemical_shifts().len()],
+                |acc, x| {
+                    acc.iter()
+                        .zip(x.iter())
+                        .map(|(a, b)| a + b)
+                        .collect::<Vec<_>>()
+                },
+            );
+        let _ratios = reduced_spectrum
+            .intensities()
+            .iter()
+            .zip(superposition.iter())
+            .map(|(a, b)| a / b)
             .collect::<Vec<_>>();
 
         lorentzians
