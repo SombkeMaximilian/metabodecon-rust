@@ -68,7 +68,13 @@ mod tests {
             Peak::from_pos(6, 7, 8),
         ];
         let reduced = ReducedSpectrum::from_spectrum(&spectrum, &peaks);
-        assert_eq!(reduced.chemical_shifts, vec![3., 4., 5., 5., 6., 7., 7., 8., 9.]);
-        assert_eq!(reduced.intensities, vec![8., 7., 6., 6., 5., 4., 4., 3., 2.]);
+        assert_eq!(
+            reduced.chemical_shifts,
+            vec![3., 4., 5., 5., 6., 7., 7., 8., 9.]
+        );
+        assert_eq!(
+            reduced.intensities,
+            vec![8., 7., 6., 6., 5., 4., 4., 3., 2.]
+        );
     }
 }
