@@ -1,6 +1,5 @@
 use crate::data::Peak;
 use crate::data::Spectrum;
-use std::collections::HashSet;
 
 pub struct ReducedSpectrum {
     chemical_shifts: Vec<f64>,
@@ -23,13 +22,10 @@ impl ReducedSpectrum {
     }
 
     pub fn from_spectrum(spectrum: &Spectrum, peaks: &[Peak]) -> Self {
-        let mut positions = peaks
+        let positions = peaks
             .iter()
             .flat_map(|peak| vec![peak.left(), peak.center(), peak.right()])
-            .collect::<HashSet<_>>()
-            .into_iter()
             .collect::<Vec<_>>();
-        positions.sort_unstable();
         let chemical_shifts = positions
             .iter()
             .map(|&pos| spectrum.chemical_shifts()[pos])
@@ -72,7 +68,7 @@ mod tests {
             Peak::from_pos(6, 7, 8),
         ];
         let reduced = ReducedSpectrum::from_spectrum(&spectrum, &peaks);
-        assert_eq!(reduced.chemical_shifts, vec![3., 4., 5., 6., 7., 8., 9.]);
-        assert_eq!(reduced.intensities, vec![8., 7., 6., 5., 4., 3., 2.]);
+        assert_eq!(reduced.chemical_shifts, vec![3., 4., 5., 5., 6., 7., 7., 8., 9.]);
+        assert_eq!(reduced.intensities, vec![8., 7., 6., 6., 5., 4., 4., 3., 2.]);
     }
 }
