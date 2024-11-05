@@ -8,11 +8,11 @@ pub struct FitterAnalytical {
 impl Fitter for FitterAnalytical {
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
         let reduced_spectrum = ReducedSpectrum::from_spectrum(spectrum, peaks);
-        let peak_data = peaks
+        let mut peak_data = peaks
             .iter()
             .map(|peak| PeakStencilData::from_peak(spectrum, peak))
             .collect::<Vec<_>>();
-        let lorentzians = peak_data
+        let mut lorentzians = peak_data
             .iter()
             .map(|peak| {
                 let maxp = Self::maximum_position(peak);
@@ -21,24 +21,44 @@ impl Fitter for FitterAnalytical {
                 Lorentzian::from_param(sfhw, hw2, maxp)
             })
             .collect::<Vec<_>>();
-        let superposition = lorentzians
-            .iter()
-            .map(|l| l.evaluate_vec(reduced_spectrum.chemical_shifts()))
-            .fold(
-                vec![0.; reduced_spectrum.chemical_shifts().len()],
-                |acc, x| {
-                    acc.iter()
-                        .zip(x.iter())
-                        .map(|(a, b)| a + b)
-                        .collect::<Vec<_>>()
-                },
-            );
-        let _ratios = reduced_spectrum
-            .intensities()
-            .iter()
-            .zip(superposition.iter())
-            .map(|(a, b)| a / b)
-            .collect::<Vec<_>>();
+
+        for _ in 0..self.iterations {
+            let superposition = lorentzians
+                .iter()
+                .map(|l| l.evaluate_vec(reduced_spectrum.chemical_shifts()))
+                .fold(
+                    vec![0.; reduced_spectrum.chemical_shifts().len()],
+                    |acc, x| {
+                        acc.iter()
+                            .zip(x.iter())
+                            .map(|(a, b)| a + b)
+                            .collect::<Vec<_>>()
+                    },
+                );
+            let ratios = reduced_spectrum
+                .intensities()
+                .iter()
+                .zip(superposition.iter())
+                .map(|(a, b)| a / b)
+                .collect::<Vec<_>>();
+            peak_data
+                .iter_mut()
+                .zip(ratios.chunks(3))
+                .for_each(|(p, r)| {
+                    p.set_y_1(p.y_1() * r[0]);
+                    p.set_y_2(p.y_2() * r[1]);
+                    p.set_y_3(p.y_3() * r[2]);
+                });
+            lorentzians
+                .iter_mut()
+                .zip(peak_data.iter())
+                .for_each(|(l, p)| {
+                    let maxp = Self::maximum_position(p);
+                    let hw2 = Self::half_width2(p, maxp);
+                    let sfhw = Self::scale_factor_half_width(p, maxp, hw2);
+                    l.set_parameters(sfhw, hw2, maxp);
+                });
+        }
 
         lorentzians
     }
