@@ -48,6 +48,7 @@ impl Fitter for FitterAnalytical {
                     p.set_y_1(p.y_1() * r[0]);
                     p.set_y_2(p.y_2() * r[1]);
                     p.set_y_3(p.y_3() * r[2]);
+                    p.mirror_shoulder();
                 });
             lorentzians
                 .iter_mut()
