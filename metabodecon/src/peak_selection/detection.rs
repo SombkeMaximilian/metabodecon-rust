@@ -6,7 +6,7 @@ pub fn detect_peaks(second_derivative: &[f64]) -> Vec<Peak> {
     peak_centers
         .into_iter()
         .zip(peak_borders.into_iter())
-        .map(|(center, (left, right))| Peak::from_pos(center, left, right))
+        .map(|(center, (left, right))| Peak::from_pos(left, center, right))
         .collect()
 }
 
