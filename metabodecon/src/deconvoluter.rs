@@ -1,5 +1,7 @@
 use crate::data::{Deconvolution, Spectrum};
-use crate::fitting::FittingAlgo;
+use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
+use crate::peak_selection::select_peaks;
+use crate::preprocessing::preprocess_spectrum;
 use crate::smoothing::SmoothingAlgo;
 
 #[derive(Debug, Clone, Copy)]
@@ -46,7 +48,31 @@ impl Deconvoluter {
         self.fitting_algo = fitting_algo;
     }
 
-    pub fn deconvolute_spectrum(&self, _spectrum: &mut Spectrum) -> Deconvolution {
-        unimplemented!()
+    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
+        preprocess_spectrum(spectrum, self.smoothing_algo);
+        let peaks = select_peaks(spectrum.clone(), self.noise_threshold);
+        let lorentzians = {
+            match self.fitting_algo {
+                FittingAlgo::Analytical { iterations } => {
+                    let fitter = FitterAnalytical::new(iterations);
+                    fitter.fit_lorentzian(spectrum, &peaks)
+                }
+            }
+        };
+        let mse = lorentzians
+            .iter()
+            .map(|l| l.evaluate_vec(spectrum.chemical_shifts()))
+            .fold(vec![0.; spectrum.chemical_shifts().len()], |acc, x| {
+                acc.iter()
+                    .zip(x.iter())
+                    .map(|(a, b)| a + b)
+                    .collect::<Vec<_>>()
+            })
+            .into_iter()
+            .map(|x| x.powi(2))
+            .sum::<f64>()
+            / spectrum.intensities_raw().len() as f64;
+
+        Deconvolution::new(lorentzians, mse)
     }
 }
