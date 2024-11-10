@@ -6,15 +6,7 @@ pub struct Peak {
 }
 
 impl Peak {
-    pub fn new() -> Self {
-        Peak {
-            left: 0,
-            center: 0,
-            right: 0,
-        }
-    }
-
-    pub fn from_pos(left: usize, center: usize, right: usize) -> Self {
+    pub fn new(left: usize, center: usize, right: usize) -> Self {
         Peak {
             left,
             center,

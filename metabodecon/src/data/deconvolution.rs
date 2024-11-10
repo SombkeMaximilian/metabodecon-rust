@@ -7,14 +7,7 @@ pub struct Deconvolution {
 }
 
 impl Deconvolution {
-    pub fn new() -> Self {
-        Self {
-            lorentzians: Vec::new(),
-            mse: 0.0,
-        }
-    }
-
-    pub fn from_data(lorentzians: Vec<Lorentzian>, mse: f64) -> Self {
+    pub fn new(lorentzians: Vec<Lorentzian>, mse: f64) -> Self {
         Self { lorentzians, mse }
     }
 

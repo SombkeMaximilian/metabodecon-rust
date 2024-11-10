@@ -8,17 +8,7 @@ pub struct Spectrum {
 }
 
 impl Spectrum {
-    pub fn new() -> Self {
-        Self {
-            chemical_shifts: Vec::new(),
-            intensities: Vec::new(),
-            intensities_raw: Vec::new(),
-            signal_boundaries: (0., 0.),
-            water_width: 0.,
-        }
-    }
-
-    pub fn from_data(
+    pub fn new(
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),

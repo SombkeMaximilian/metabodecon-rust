@@ -6,15 +6,7 @@ pub struct Lorentzian {
 }
 
 impl Lorentzian {
-    pub fn new() -> Self {
-        Self {
-            scale_factor_half_width: 0.,
-            half_width_squared: 0.,
-            maximum_position: 0.,
-        }
-    }
-
-    pub fn from_param(sfhw: f64, hw2: f64, maxp: f64) -> Self {
+    pub fn new(sfhw: f64, hw2: f64, maxp: f64) -> Self {
         Self {
             scale_factor_half_width: sfhw,
             half_width_squared: hw2,

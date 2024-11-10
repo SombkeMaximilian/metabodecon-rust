@@ -19,7 +19,7 @@ impl Fitter for FitterAnalytical {
                 let maxp = Self::maximum_position(peak);
                 let hw2 = Self::half_width2(peak, maxp);
                 let sfhw = Self::scale_factor_half_width(peak, maxp, hw2);
-                Lorentzian::from_param(sfhw, hw2, maxp)
+                Lorentzian::new(sfhw, hw2, maxp)
             })
             .collect::<Vec<_>>();
 

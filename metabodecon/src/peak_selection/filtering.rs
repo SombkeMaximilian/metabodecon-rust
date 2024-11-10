@@ -65,7 +65,7 @@ mod tests {
 
     #[test]
     fn test_score_peak() {
-        let peaks = vec![Peak::from_pos(1, 3, 4), Peak::from_pos(5, 6, 9)];
+        let peaks = vec![Peak::new(1, 3, 4), Peak::new(5, 6, 9)];
         let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
         let scores: Vec<f64> = peaks
             .iter()
@@ -79,7 +79,7 @@ mod tests {
         let signal_region_boundaries: (usize, usize) = (3, 7);
         let peaks: Vec<Peak> = vec![2, 4, 5, 8]
             .into_iter()
-            .map(|i| Peak::from_pos(i - 1, i, i + 1))
+            .map(|i| Peak::new(i - 1, i, i + 1))
             .collect();
         assert_eq!(
             peak_region_boundaries(&peaks, signal_region_boundaries),
