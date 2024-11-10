@@ -14,6 +14,10 @@ impl Deconvolution {
         }
     }
 
+    pub fn from_data(lorentzians: Vec<Lorentzian>, mse: f64) -> Self {
+        Self { lorentzians, mse }
+    }
+
     pub fn lorenztians(&self) -> &Vec<Lorentzian> {
         &self.lorentzians
     }
