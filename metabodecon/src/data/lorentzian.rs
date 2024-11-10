@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, Copy)]
 pub struct Lorentzian {
     scale_factor_half_width: f64, // A * lambda
     half_width_squared: f64,      // lambda^2

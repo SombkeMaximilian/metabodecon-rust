@@ -1,3 +1,4 @@
+#[derive(Debug, Clone)]
 pub struct Spectrum {
     chemical_shifts: Vec<f64>,
     intensities: Vec<f64>,

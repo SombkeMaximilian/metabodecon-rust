@@ -1,6 +1,7 @@
 use crate::data::{Lorentzian, Peak, Spectrum};
 use crate::fitting::{Fitter, PeakStencilData, ReducedSpectrum};
 
+#[derive(Clone, Copy, Debug)]
 pub struct FitterAnalytical {
     iterations: usize,
 }

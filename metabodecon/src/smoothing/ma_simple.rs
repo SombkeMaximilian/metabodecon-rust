@@ -3,6 +3,7 @@ use crate::smoothing::MovingAverage;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
+#[derive(Clone, Debug)]
 pub struct SimpleMA<Type> {
     buffer: CircularBuffer<Type>,
     num: usize,

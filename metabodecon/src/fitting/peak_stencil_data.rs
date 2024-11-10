@@ -1,5 +1,6 @@
 use crate::data::{Peak, Spectrum};
 
+#[derive(Clone, Copy, Debug)]
 pub struct PeakStencilData {
     left_chemical_shift: f64,
     center_chemical_shift: f64,

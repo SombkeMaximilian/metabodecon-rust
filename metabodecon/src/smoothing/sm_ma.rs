@@ -6,11 +6,13 @@ use num_traits::{FromPrimitive, Zero};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
+#[derive(Clone, Copy, Debug)]
 pub enum MovingAverageAlgo {
     Simple,
     SumCache,
 }
 
+#[derive (Clone, Copy, Debug)]
 pub struct MovingAverageSmoother<Type> {
     algo: Box<dyn MovingAverage<Type>>,
     right: usize,

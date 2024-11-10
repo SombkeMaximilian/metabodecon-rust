@@ -1,5 +1,6 @@
 use crate::data::Lorentzian;
 
+#[derive(Debug, Clone)]
 pub struct Deconvolution {
     lorentzians: Vec<Lorentzian>,
     mse: f64,

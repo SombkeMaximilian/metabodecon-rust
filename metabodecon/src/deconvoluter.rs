@@ -2,6 +2,7 @@ use crate::data::{Deconvolution, Spectrum};
 use crate::fitting::FittingAlgo;
 use crate::smoothing::SmoothingAlgo;
 
+#[derive(Debug, Clone, Copy)]
 pub struct Deconvoluter {
     smoothing_algo: SmoothingAlgo,
     noise_threshold: f64,

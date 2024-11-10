@@ -1,5 +1,6 @@
 use crate::data::{Lorentzian, Peak, Spectrum};
 
+#[derive(Clone, Copy, Debug)]
 pub enum FittingAlgo {
     Analytical { iterations: usize },
 }
