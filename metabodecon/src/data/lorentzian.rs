@@ -55,6 +55,18 @@ impl Lorentzian {
         self.maximum_position = maxp;
     }
 
+    pub fn sf(&self) -> f64 {
+        self.scale_factor_half_width / self.hw()
+    }
+
+    pub fn hw(&self) -> f64 {
+        self.half_width_squared.sqrt()
+    }
+
+    pub fn retransformed_parameters(&self) -> (f64, f64, f64) {
+        (self.sf(), self.hw(), self.maxp())
+    }
+
     pub fn evaluate(&self, x: f64) -> f64 {
         self.scale_factor_half_width
             / (self.half_width_squared + (x - self.maximum_position).powi(2))
@@ -62,5 +74,9 @@ impl Lorentzian {
 
     pub fn evaluate_vec(&self, x: &[f64]) -> Vec<f64> {
         x.iter().map(|&x| self.evaluate(x)).collect()
+    }
+
+    pub fn integral(&self) -> f64 {
+        std::f64::consts::PI * self.sf()
     }
 }
