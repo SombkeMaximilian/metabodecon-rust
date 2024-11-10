@@ -12,7 +12,6 @@ pub enum MovingAverageAlgo {
     SumCache,
 }
 
-#[derive (Clone, Copy, Debug)]
 pub struct MovingAverageSmoother<Type> {
     algo: Box<dyn MovingAverage<Type>>,
     right: usize,
