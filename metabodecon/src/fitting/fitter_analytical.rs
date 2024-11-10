@@ -8,10 +8,10 @@ pub struct FitterAnalytical {
 
 impl Fitter for FitterAnalytical {
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
-        let reduced_spectrum = ReducedSpectrum::from_spectrum(spectrum, peaks);
+        let reduced_spectrum = ReducedSpectrum::new(spectrum, peaks);
         let mut peak_data = peaks
             .iter()
-            .map(|peak| PeakStencilData::from_peak(spectrum, peak))
+            .map(|peak| PeakStencilData::new(spectrum, peak))
             .collect::<Vec<_>>();
         let mut lorentzians = peak_data
             .iter()

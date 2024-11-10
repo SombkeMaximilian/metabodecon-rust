@@ -33,12 +33,6 @@ impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
         }
         self.algo.clear();
     }
-
-    fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type> {
-        let mut smoothed_values = values.to_vec();
-        self.smooth_values(&mut smoothed_values);
-        smoothed_values
-    }
 }
 
 impl<Type> MovingAverageSmoother<Type>

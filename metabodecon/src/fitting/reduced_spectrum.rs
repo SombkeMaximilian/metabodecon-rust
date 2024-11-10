@@ -8,21 +8,7 @@ pub struct ReducedSpectrum {
 }
 
 impl ReducedSpectrum {
-    pub fn new() -> Self {
-        Self {
-            chemical_shifts: Vec::new(),
-            intensities: Vec::new(),
-        }
-    }
-
-    pub fn from_data(chemical_shifts: Vec<f64>, intensities: Vec<f64>) -> Self {
-        Self {
-            chemical_shifts,
-            intensities,
-        }
-    }
-
-    pub fn from_spectrum(spectrum: &Spectrum, peaks: &[Peak]) -> Self {
+    pub fn new(spectrum: &Spectrum, peaks: &[Peak]) -> Self {
         let positions = peaks
             .iter()
             .flat_map(|peak| vec![peak.left(), peak.center(), peak.right()])
@@ -68,7 +54,7 @@ mod tests {
             Peak::from_pos(4, 5, 6),
             Peak::from_pos(6, 7, 8),
         ];
-        let reduced = ReducedSpectrum::from_spectrum(&spectrum, &peaks);
+        let reduced = ReducedSpectrum::new(&spectrum, &peaks);
         assert_eq!(
             reduced.chemical_shifts,
             vec![3., 4., 5., 5., 6., 7., 7., 8., 9.]

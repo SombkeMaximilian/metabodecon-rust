@@ -11,5 +11,4 @@ pub enum SmoothingAlgo {
 
 pub trait Smoother<Type> {
     fn smooth_values(&mut self, values: &mut [Type]);
-    fn compute_smoothed(&mut self, values: &[Type]) -> Vec<Type>;
 }
