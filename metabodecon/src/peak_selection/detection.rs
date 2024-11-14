@@ -35,8 +35,7 @@ fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(
 fn find_right_border(second_derivative_right: &[f64]) -> usize {
     second_derivative_right
         .windows(3)
-        .skip_while(|w| w[1] <= w[0])
-        .position(|w| w[1] >= w[2] || (w[1] < 0. && w[2] >= 0.))
+        .position(|w| w[1] > w[0] && (w[1] >= w[2] || (w[1] < 0. && w[2] >= 0.)))
         .map_or(second_derivative_right.len(), |i| i + 1)
 }
 
@@ -44,8 +43,7 @@ fn find_left_border(second_derivative_left: &[f64]) -> usize {
     second_derivative_left
         .windows(3)
         .rev()
-        .skip_while(|w| w[1] <= w[2])
-        .position(|w| w[1] >= w[0] || (w[1] < 0. && w[0] >= 0.))
+        .position(|w| w[1] > w[2] && (w[1] >= w[0] || (w[1] < 0. && w[0] >= 0.)))
         .map_or(second_derivative_left.len(), |i| i + 1)
 }
 
