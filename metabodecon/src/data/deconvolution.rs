@@ -14,6 +14,7 @@ impl Deconvolution {
     pub fn lorenztians(&self) -> &Vec<Lorentzian> {
         &self.lorentzians
     }
+
     pub fn mse(&self) -> f64 {
         self.mse
     }
