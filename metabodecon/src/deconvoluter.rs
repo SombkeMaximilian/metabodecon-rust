@@ -73,6 +73,12 @@ impl Deconvoluter {
             .sum::<f64>()
             / spectrum.intensities_raw().len() as f64;
 
-        Deconvolution::new(lorentzians, mse)
+        Deconvolution::new(
+            lorentzians,
+            self.smoothing_algo,
+            self.noise_threshold,
+            self.fitting_algo,
+            mse,
+        )
     }
 }
