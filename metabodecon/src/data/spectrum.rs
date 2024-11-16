@@ -4,7 +4,7 @@ pub struct Spectrum {
     intensities: Vec<f64>,
     intensities_raw: Vec<f64>,
     signal_boundaries: (f64, f64),
-    water_width: f64,
+    water_boundaries: (f64, f64),
 }
 
 impl Spectrum {
@@ -12,12 +12,16 @@ impl Spectrum {
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),
-        water_width: f64,
+        water_boundaries: (f64, f64),
     ) -> Self {
         let intensities_raw = intensities.clone();
         let signal_boundaries_sorted = (
             f64::min(signal_boundaries.0, signal_boundaries.1),
             f64::max(signal_boundaries.0, signal_boundaries.1),
+        );
+        let water_boundaries_sorted = (
+            f64::min(water_boundaries.0, water_boundaries.1),
+            f64::max(water_boundaries.0, water_boundaries.1),
         );
 
         Self {
@@ -25,7 +29,7 @@ impl Spectrum {
             intensities,
             intensities_raw,
             signal_boundaries: signal_boundaries_sorted,
-            water_width,
+            water_boundaries: water_boundaries_sorted,
         }
     }
 
@@ -49,12 +53,16 @@ impl Spectrum {
         self.signal_boundaries
     }
 
-    pub fn water_width(&self) -> f64 {
-        self.water_width
+    pub fn water_boundaries(&self) -> (f64, f64) {
+        self.water_boundaries
     }
 
     pub fn len(&self) -> usize {
         self.chemical_shifts.len()
+    }
+
+    pub fn step(&self) -> f64 {
+        self.chemical_shifts[1] - self.chemical_shifts[0]
     }
 
     pub fn width(&self) -> f64 {
@@ -66,20 +74,16 @@ impl Spectrum {
     }
 
     pub fn signal_boundaries_indices(&self) -> (usize, usize) {
-        let step = self.chemical_shifts[1] - self.chemical_shifts[0];
         (
-            ((self.signal_boundaries.0 - self.chemical_shifts[0]) / step).floor() as usize,
-            ((self.signal_boundaries.1 - self.chemical_shifts[0]) / step).ceil() as usize,
+            ((self.signal_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
+            ((self.signal_boundaries.1 - self.chemical_shifts[0]) / self.step()).ceil() as usize,
         )
     }
 
     pub fn water_boundaries_indices(&self) -> (usize, usize) {
-        let step = self.chemical_shifts[1] - self.chemical_shifts[0];
-        let half_width = self.water_width / 2.;
-        let center = self.len() as f64 / 2.;
         (
-            (center - half_width / step).floor() as usize,
-            (center + half_width / step).ceil() as usize,
+            ((self.water_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
+            ((self.water_boundaries.1 - self.chemical_shifts[0]) / self.step()).ceil() as usize,
         )
     }
 }

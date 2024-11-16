@@ -47,7 +47,7 @@ mod tests {
             vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.],
             vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.],
             (2., 9.),
-            0.,
+            (5.45, 5.55),
         );
         let peaks = vec![Peak::new(2, 3, 4), Peak::new(4, 5, 6), Peak::new(6, 7, 8)];
         let reduced = ReducedSpectrum::new(&spectrum, &peaks);
