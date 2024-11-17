@@ -33,6 +33,29 @@ impl Spectrum {
         }
     }
 
+    pub fn from_hdf5(path: &str, dataset: &str) -> Result<Self, hdf5::Error> {
+        let file = hdf5::File::open(path)?;
+        let spectrum_group = file.group(dataset)?.group("spectrum")?;
+        let data_group = spectrum_group.group("data")?;
+        let meta_group = spectrum_group.group("meta")?;
+
+        let chemical_shifts: Vec<f64> = data_group.dataset("cs")?.read_1d()?.to_vec();
+        let intensities: Vec<f64> = data_group.dataset("si")?.read_1d()?.to_vec();
+        let intensities_raw: Vec<f64> = intensities.clone();
+        let signal_boundaries: Vec<f64> =
+            meta_group.dataset("signal_boundaries")?.read_1d()?.to_vec();
+        let water_boundaries: Vec<f64> =
+            meta_group.dataset("water_boundaries")?.read_1d()?.to_vec();
+
+        Ok(Self {
+            chemical_shifts,
+            intensities,
+            intensities_raw,
+            signal_boundaries: (signal_boundaries[0], signal_boundaries[1]),
+            water_boundaries: (water_boundaries[0], water_boundaries[1]),
+        })
+    }
+
     pub fn chemical_shifts(&self) -> &Vec<f64> {
         &self.chemical_shifts
     }
