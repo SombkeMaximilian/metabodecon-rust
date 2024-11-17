@@ -69,7 +69,8 @@ impl Deconvoluter {
                     .collect::<Vec<_>>()
             })
             .into_iter()
-            .map(|x| x.powi(2))
+            .zip(spectrum.intensities_raw().iter())
+            .map(|(superposition, raw)| (superposition - raw).powi(2))
             .sum::<f64>()
             / spectrum.intensities_raw().len() as f64;
 
