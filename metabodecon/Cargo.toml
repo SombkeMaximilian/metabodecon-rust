@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 num-traits = "0.2.19"
 hdf5 = "0.8.1"
+
+[dev-dependencies]
+assert_approx_eq = "1.1.0"
