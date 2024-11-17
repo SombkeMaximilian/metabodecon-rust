@@ -6,6 +6,7 @@ pub fn detect_peaks(second_derivative: &[f64]) -> Vec<Peak> {
     peak_centers
         .into_iter()
         .zip(peak_borders.into_iter())
+        .filter(|(_, (left, right))| *left != 0 && *right != second_derivative.len() + 1)
         .map(|(center, (left, right))| Peak::new(left, center, right))
         .collect()
 }
@@ -28,7 +29,6 @@ fn find_peak_borders(second_derivative: &[f64], peak_centers: &[usize]) -> Vec<(
                 i + find_right_border(&second_derivative[i - 1..]),
             )
         })
-        .filter(|(l, r)| *l != 0 && *r != second_derivative.len() + 1)
         .collect()
 }
 
@@ -65,11 +65,11 @@ mod tests {
         second_derivative = vec![0., 0.5, 0., -1., -0.5, 0.5];
         assert_eq!(find_peak_borders(&second_derivative, &[4]), vec![(2, 5)]);
         second_derivative = vec![1., 1., 1., 1.5, 1.];
-        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![]);
+        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![(0, 4)]);
         second_derivative = vec![1., 1.5, 1., 1., 1.];
-        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![]);
+        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![(2, 6)]);
         second_derivative = vec![1., 1., 1., 1., 1.];
-        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![]);
+        assert_eq!(find_peak_borders(&second_derivative, &[3]), vec![(0, 6)]);
     }
 
     #[test]
