@@ -11,7 +11,11 @@ impl Fitter for FitterAnalytical {
         let reduced_spectrum = ReducedSpectrum::new(spectrum, peaks);
         let mut peak_data = peaks
             .iter()
-            .map(|peak| PeakStencilData::new(spectrum, peak))
+            .map(|peak| {
+                let mut p = PeakStencilData::new(spectrum, peak);
+                p.mirror_shoulder();
+                p
+            })
             .collect::<Vec<_>>();
         let mut lorentzians = peak_data
             .iter()
