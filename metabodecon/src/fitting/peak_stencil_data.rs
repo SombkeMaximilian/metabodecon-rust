@@ -79,10 +79,10 @@ impl PeakStencilData {
     }
 
     pub fn mirror_shoulder(&mut self) {
-        let increasing = self.left_intensity < self.center_intensity
-            && self.center_intensity < self.right_intensity;
-        let decreasing = self.left_intensity > self.center_intensity
-            && self.center_intensity > self.right_intensity;
+        let increasing = self.left_intensity <= self.center_intensity
+            && self.center_intensity <= self.right_intensity;
+        let decreasing = self.left_intensity >= self.center_intensity
+            && self.center_intensity >= self.right_intensity;
         match (increasing, decreasing) {
             (true, _) => {
                 self.right_intensity = self.left_intensity;
