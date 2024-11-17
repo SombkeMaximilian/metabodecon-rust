@@ -1,5 +1,5 @@
-use crate::data::Peak;
-use crate::data::Spectrum;
+use crate::data_structures::Peak;
+use crate::data_structures::Spectrum;
 use crate::peak_selection::detection::detect_peaks;
 use crate::peak_selection::filtering::filter_peaks;
 

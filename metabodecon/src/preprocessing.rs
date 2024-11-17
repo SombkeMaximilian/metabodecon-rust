@@ -1,4 +1,4 @@
-use crate::data::Spectrum;
+use crate::data_structures::Spectrum;
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
 
 pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlgo) {

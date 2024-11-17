@@ -1,4 +1,4 @@
-use crate::data::{Lorentzian, Peak, Spectrum};
+use crate::data_structures::{Lorentzian, Peak, Spectrum};
 use crate::fitting::{Fitter, PeakStencilData, ReducedSpectrum};
 
 #[derive(Clone, Copy, Debug)]

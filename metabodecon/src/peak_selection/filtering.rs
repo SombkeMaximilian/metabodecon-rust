@@ -1,4 +1,4 @@
-use crate::data::Peak;
+use crate::data_structures::Peak;
 
 pub fn filter_peaks(
     mut peaks: Vec<Peak>,

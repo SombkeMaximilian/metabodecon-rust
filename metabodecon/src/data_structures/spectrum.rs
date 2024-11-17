@@ -36,7 +36,7 @@ impl Spectrum {
     pub fn from_hdf5(path: &str, dataset: &str) -> Result<Self, hdf5::Error> {
         let file = hdf5::File::open(path)?;
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
-        let data_group = spectrum_group.group("data")?;
+        let data_group = spectrum_group.group("data_structures")?;
         let meta_group = spectrum_group.group("meta")?;
 
         let chemical_shifts: Vec<f64> = data_group.dataset("chemical_shifts")?.read_1d()?.to_vec();

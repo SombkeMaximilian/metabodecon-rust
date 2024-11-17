@@ -1,4 +1,4 @@
-use crate::data::Lorentzian;
+use crate::data_structures::Lorentzian;
 use crate::{FittingAlgo, SmoothingAlgo};
 
 #[derive(Debug, Clone)]

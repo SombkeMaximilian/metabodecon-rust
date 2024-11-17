@@ -1,4 +1,4 @@
-use crate::data::Peak;
+use crate::data_structures::Peak;
 
 pub fn detect_peaks(second_derivative: &[f64]) -> Vec<Peak> {
     let peak_centers = find_peak_centers(&second_derivative);

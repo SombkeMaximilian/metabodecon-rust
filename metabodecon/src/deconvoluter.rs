@@ -1,4 +1,4 @@
-use crate::data::{Deconvolution, Spectrum};
+use crate::data_structures::{Deconvolution, Spectrum};
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
 use crate::peak_selection::select_peaks;
 use crate::preprocessing::preprocess_spectrum;

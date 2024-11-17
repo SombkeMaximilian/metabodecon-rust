@@ -1,4 +1,4 @@
-use crate::data::{Lorentzian, Peak, Spectrum};
+use crate::data_structures::{Lorentzian, Peak, Spectrum};
 
 #[derive(Clone, Copy, Debug)]
 pub enum FittingAlgo {
