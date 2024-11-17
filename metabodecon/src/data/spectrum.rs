@@ -39,8 +39,8 @@ impl Spectrum {
         let data_group = spectrum_group.group("data")?;
         let meta_group = spectrum_group.group("meta")?;
 
-        let chemical_shifts: Vec<f64> = data_group.dataset("cs")?.read_1d()?.to_vec();
-        let intensities: Vec<f64> = data_group.dataset("si")?.read_1d()?.to_vec();
+        let chemical_shifts: Vec<f64> = data_group.dataset("chemical_shifts")?.read_1d()?.to_vec();
+        let intensities: Vec<f64> = data_group.dataset("signal_intensities")?.read_1d()?.to_vec();
         let intensities_raw: Vec<f64> = intensities.clone();
         let signal_boundaries: Vec<f64> =
             meta_group.dataset("signal_boundaries")?.read_1d()?.to_vec();
