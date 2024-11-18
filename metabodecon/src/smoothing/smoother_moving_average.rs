@@ -1,5 +1,5 @@
-use crate::smoothing::ma_simple::SimpleMA;
-use crate::smoothing::ma_sum_cache::SumCacheMA;
+use crate::smoothing::moving_average_simple::SimpleMA;
+use crate::smoothing::moving_average_sum_cache::SumCacheMA;
 use crate::smoothing::MovingAverage;
 use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};

@@ -1,12 +1,12 @@
 mod circular_buffer;
-mod ma;
-mod ma_simple;
-mod ma_sum_cache;
-mod sm;
-mod sm_ma;
+mod moving_average;
+mod moving_average_simple;
+mod moving_average_sum_cache;
+mod smoother;
+mod smoother_moving_average;
 
-pub use ma::MovingAverage;
-pub use sm::Smoother;
-pub use sm::SmoothingAlgo;
-pub use sm_ma::MovingAverageAlgo;
-pub use sm_ma::MovingAverageSmoother;
+pub use moving_average::MovingAverage;
+pub use smoother::Smoother;
+pub use smoother::SmoothingAlgo;
+pub use smoother_moving_average::MovingAverageAlgo;
+pub use smoother_moving_average::MovingAverageSmoother;

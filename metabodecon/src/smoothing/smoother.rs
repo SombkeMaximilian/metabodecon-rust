@@ -1,4 +1,4 @@
-use crate::smoothing::sm_ma::MovingAverageAlgo;
+use crate::smoothing::smoother_moving_average::MovingAverageAlgo;
 
 #[derive(Clone, Copy, Debug)]
 pub enum SmoothingAlgo {
