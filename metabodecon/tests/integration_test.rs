@@ -1,6 +1,6 @@
+use metabodecon::*;
 use std::fs::File;
 use std::io::Write;
-use metabodecon::*;
 
 #[test]
 fn test_deconvoluter() -> Result<(), std::io::Error> {

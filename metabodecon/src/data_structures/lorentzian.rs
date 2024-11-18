@@ -114,6 +114,9 @@ mod tests {
     #[test]
     fn evaluate_vec() {
         let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
-        assert_eq!(lorentzian.evaluate_vec(&[0.0, 1.0, 2.0]), vec![1.0, 0.5, 0.2]);
+        assert_eq!(
+            lorentzian.evaluate_vec(&[0.0, 1.0, 2.0]),
+            vec![1.0, 0.5, 0.2]
+        );
     }
 }
