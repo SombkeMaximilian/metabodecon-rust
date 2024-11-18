@@ -104,7 +104,29 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mirror_shoulder() {
+    fn accessors() {
+        let peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
+        assert_eq!(peak.x_1(), 1.);
+        assert_eq!(peak.x_2(), 2.);
+        assert_eq!(peak.x_3(), 3.);
+        assert_eq!(peak.y_1(), 1.);
+        assert_eq!(peak.y_2(), 2.);
+        assert_eq!(peak.y_3(), 3.);
+    }
+
+    #[test]
+    fn mutators() {
+        let mut peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
+        peak.set_y_1(3.);
+        peak.set_y_2(2.);
+        peak.set_y_3(1.);
+        assert_eq!(peak.y_1(), 3.);
+        assert_eq!(peak.y_2(), 2.);
+        assert_eq!(peak.y_3(), 1.);
+    }
+
+    #[test]
+    fn mirror_shoulder() {
         let mut peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
         peak.mirror_shoulder();
         assert_eq!(peak.x_1(), 1.);

@@ -42,7 +42,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_from_spectrum_peaks() {
+    fn new() {
         let spectrum = Spectrum::new(
             vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.],
             vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.],
@@ -59,5 +59,15 @@ mod tests {
             reduced.intensities,
             vec![8., 7., 6., 6., 5., 4., 4., 3., 2.]
         );
+    }
+
+    #[test]
+    fn accessors() {
+        let reduced = ReducedSpectrum {
+            chemical_shifts: vec![1., 2., 3.],
+            intensities: vec![4., 5., 6.],
+        };
+        assert_eq!(reduced.chemical_shifts(), vec![1., 2., 3.]);
+        assert_eq!(reduced.intensities(), vec![4., 5., 6.]);
     }
 }
