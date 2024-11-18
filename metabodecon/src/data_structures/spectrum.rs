@@ -56,19 +56,19 @@ impl Spectrum {
         })
     }
 
-    pub fn chemical_shifts(&self) -> &Vec<f64> {
+    pub fn chemical_shifts(&self) -> &[f64] {
         &self.chemical_shifts
     }
 
-    pub fn intensities(&self) -> &Vec<f64> {
+    pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
 
-    pub fn intensities_mut(&mut self) -> &mut Vec<f64> {
+    pub fn intensities_mut(&mut self) -> &mut [f64] {
         &mut self.intensities
     }
 
-    pub fn intensities_raw(&self) -> &Vec<f64> {
+    pub fn intensities_raw(&self) -> &[f64] {
         &self.intensities_raw
     }
 

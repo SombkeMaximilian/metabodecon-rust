@@ -27,7 +27,7 @@ impl Deconvolution {
         }
     }
 
-    pub fn lorenztians(&self) -> &Vec<Lorentzian> {
+    pub fn lorenztians(&self) -> &[Lorentzian] {
         &self.lorentzians
     }
 
