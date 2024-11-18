@@ -28,11 +28,11 @@ impl ReducedSpectrum {
         }
     }
 
-    pub fn chemical_shifts(&self) -> &Vec<f64> {
+    pub fn chemical_shifts(&self) -> &[f64] {
         &self.chemical_shifts
     }
 
-    pub fn intensities(&self) -> &Vec<f64> {
+    pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
 }
