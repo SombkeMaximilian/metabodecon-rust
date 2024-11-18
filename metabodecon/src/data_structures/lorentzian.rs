@@ -73,3 +73,47 @@ impl Lorentzian {
         std::f64::consts::PI * self.sf()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accessors() {
+        let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
+        assert_eq!(lorentzian.sfhw(), 1.0);
+        assert_eq!(lorentzian.hw2(), 1.0);
+        assert_eq!(lorentzian.maxp(), 0.0);
+        assert_eq!(lorentzian.parameters(), (1.0, 1.0, 0.0));
+        assert_eq!(lorentzian.sf(), 1.0);
+        assert_eq!(lorentzian.hw(), 1.0);
+        assert_eq!(lorentzian.retransformed_parameters(), (1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn mutators() {
+        let mut lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
+        lorentzian.set_sfhw(2.0);
+        lorentzian.set_hw2(2.0);
+        lorentzian.set_maxp(1.0);
+        assert_eq!(lorentzian.sfhw(), 2.0);
+        assert_eq!(lorentzian.hw2(), 2.0);
+        assert_eq!(lorentzian.maxp(), 1.0);
+        lorentzian.set_parameters(1.0, 1.0, 0.0);
+        assert_eq!(lorentzian.parameters(), (1.0, 1.0, 0.0));
+    }
+
+    #[test]
+    fn evaluate() {
+        let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
+        assert_eq!(lorentzian.evaluate(0.0), 1.0);
+        assert_eq!(lorentzian.evaluate(1.0), 0.5);
+        assert_eq!(lorentzian.evaluate(2.0), 0.2);
+    }
+
+    #[test]
+    fn evaluate_vec() {
+        let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
+        assert_eq!(lorentzian.evaluate_vec(&[0.0, 1.0, 2.0]), vec![1.0, 0.5, 0.2]);
+    }
+}

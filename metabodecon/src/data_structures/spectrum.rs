@@ -117,6 +117,52 @@ mod tests {
     use assert_approx_eq::assert_approx_eq;
 
     #[test]
+    fn accessors() {
+        let spectrum = Spectrum::new(
+            vec![1.0, 2.0, 3.0],
+            vec![1.0, 2.0, 3.0],
+            (1.0, 3.0),
+            (2.0, 2.5),
+        );
+        assert_eq!(spectrum.chemical_shifts(), &[1.0, 2.0, 3.0]);
+        assert_eq!(spectrum.intensities(), &[1.0, 2.0, 3.0]);
+        assert_eq!(spectrum.intensities_raw(), &[1.0, 2.0, 3.0]);
+        assert_eq!(spectrum.signal_boundaries(), (1.0, 3.0));
+        assert_eq!(spectrum.water_boundaries(), (2.0, 2.5));
+    }
+
+    #[test]
+    fn mutators() {
+        let mut spectrum = Spectrum::new(
+            vec![1.0, 2.0, 3.0],
+            vec![1.0, 2.0, 3.0],
+            (1.0, 3.0),
+            (2.0, 2.5),
+        );
+        spectrum
+            .intensities_mut()
+            .iter_mut()
+            .for_each(|intensity| *intensity = -*intensity);
+        assert_eq!(spectrum.intensities(), &[-1.0, -2.0, -3.0]);
+    }
+
+    #[test]
+    fn properties() {
+        let spectrum = Spectrum::new(
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
+            vec![1.0, 2.0, 3.0, 4.0, 5.0],
+            (1.5, 4.5),
+            (2.5, 3.5),
+        );
+        assert_eq!(spectrum.len(), 5);
+        assert_approx_eq!(spectrum.step(), 1.0);
+        assert_approx_eq!(spectrum.width(), 4.0);
+        assert_approx_eq!(spectrum.center(), 3.0);
+        assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
+        assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
+    }
+
+    #[test]
     fn read_from_hdf5() {
         let spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
         let (signal_start, signal_end) = spectrum.signal_boundaries();

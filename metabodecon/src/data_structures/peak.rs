@@ -26,3 +26,16 @@ impl Peak {
         self.right
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn accessors() {
+        let peak = Peak::new(1, 2, 3);
+        assert_eq!(peak.left(), 1);
+        assert_eq!(peak.center(), 2);
+        assert_eq!(peak.right(), 3);
+    }
+}
