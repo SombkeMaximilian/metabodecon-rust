@@ -51,12 +51,12 @@ fn mean_sd_sfr_scores(
         .map(|peak| score_peak(peak, &abs_second_derivative))
         .collect();
     let mean: f64 = scores_sfr.iter().sum::<f64>() / (left_sfr.len() + right_sfr.len()) as f64;
-    let standard_deviation: f64 = scores_sfr
+    let variance: f64 = scores_sfr
         .iter()
         .map(|score| (score - mean).powi(2))
         .sum::<f64>()
         / (left_sfr.len() + right_sfr.len()) as f64;
-    (mean, standard_deviation)
+    (mean, variance.sqrt())
 }
 
 #[cfg(test)]
