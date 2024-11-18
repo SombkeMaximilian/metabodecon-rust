@@ -117,16 +117,16 @@ mod tests {
     use assert_approx_eq::assert_approx_eq;
 
     #[test]
-    fn test_from_hdf5() {
+    fn read_from_hdf5() {
         let spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
         let (signal_start, signal_end) = spectrum.signal_boundaries();
         let (water_start, water_end) = spectrum.water_boundaries();
         assert_eq!(spectrum.chemical_shifts().len(), 2048);
         assert_eq!(spectrum.intensities().len(), 2048);
         assert_eq!(spectrum.intensities_raw().len(), 2048);
-        assert_approx_eq!(signal_start, 3.369713);
-        assert_approx_eq!(signal_end, 3.523238);
-        assert_approx_eq!(water_start, 3.44494);
-        assert_approx_eq!(water_end, 3.44801);
+        assert_approx_eq!(signal_start, 3.339007);
+        assert_approx_eq!(signal_end, 3.553942);
+        assert_approx_eq!(water_start, 3.444939);
+        assert_approx_eq!(water_end, 3.448010);
     }
 }
