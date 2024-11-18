@@ -61,29 +61,43 @@ fn mean_sd_sfr_scores(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::data_structures::Peak;
 
     #[test]
-    fn test_score_peak() {
+    fn score_peak() {
         let peaks = vec![Peak::new(1, 3, 4), Peak::new(5, 6, 9)];
         let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
         let scores: Vec<f64> = peaks
             .iter()
-            .map(|peak| score_peak(peak, &abs_second_derivative))
+            .map(|peak| super::score_peak(peak, &abs_second_derivative))
             .collect();
         assert_eq!(scores, vec![6., 7.]);
     }
 
     #[test]
-    fn test_peak_region_boundaries() {
+    fn peak_region_boundaries() {
         let signal_region_boundaries: (usize, usize) = (3, 7);
         let peaks: Vec<Peak> = vec![2, 4, 5, 8]
             .into_iter()
             .map(|i| Peak::new(i - 1, i, i + 1))
             .collect();
         assert_eq!(
-            peak_region_boundaries(&peaks, signal_region_boundaries),
+            super::peak_region_boundaries(&peaks, signal_region_boundaries),
             (1, 3)
         );
+    }
+
+    #[test]
+    fn mean_sd_sfr_scores() {
+        let peaks: Vec<Peak> = vec![2, 4, 5, 8]
+            .into_iter()
+            .map(|i| Peak::new(i - 1, i, i + 1))
+            .collect();
+        let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
+        let peak_region_boundaries = (1, 3);
+        let (mean, sd) =
+            super::mean_sd_sfr_scores(&peaks, &abs_second_derivative, peak_region_boundaries);
+        assert_eq!(mean, 4.0);
+        assert_eq!(sd, 1.0);
     }
 }

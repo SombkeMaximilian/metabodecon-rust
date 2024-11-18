@@ -20,12 +20,11 @@ fn second_derivative(intensities: &[f64]) -> Vec<f64> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
-    fn test_second_derivative() {
+    fn second_derivative() {
         let intensities = vec![1., 2., 3., 2., 1.];
         let expected = vec![0., -2., 0.];
-        assert_eq!(second_derivative(&intensities), expected);
+        assert_eq!(super::second_derivative(&intensities), expected);
     }
 }
