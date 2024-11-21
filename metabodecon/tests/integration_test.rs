@@ -4,7 +4,7 @@ use std::io::Write;
 
 #[test]
 fn test_deconvoluter() -> Result<(), std::io::Error> {
-    let mut spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
+    let mut spectrum = Spectrum::from_hdf5("data/blood.h5", "blood_01").unwrap();
     let deconvoluter = Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
             algo: MovingAverageAlgo::Simple,
@@ -17,11 +17,11 @@ fn test_deconvoluter() -> Result<(), std::io::Error> {
     let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum);
 
     let mut file = File::create("deconvolution_results.csv")?;
-    writeln!(file, "sf,hw,maxp")?;
+    writeln!(file, "sfhw,hw2,maxp")?;
 
     for lorentzian in deconvolution.lorenztians() {
-        let (sf, hw, maxp) = lorentzian.retransformed_parameters();
-        writeln!(file, "{},{},{}", sf, hw, maxp)?;
+        let (sfhw, hw2, maxp) = lorentzian.parameters();
+        writeln!(file, "{},{},{}", sfhw, hw2, maxp)?;
     }
 
     Ok(())
