@@ -37,7 +37,7 @@ fn deconvolute_spectrum(c: &mut Criterion) {
 
 fn criterion_config() -> Criterion {
     Criterion::default()
-        .measurement_time(std::time::Duration::from_secs(10))
+        .measurement_time(std::time::Duration::from_secs(20))
 }
 
 criterion_group! {
