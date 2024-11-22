@@ -1,12 +1,15 @@
 use crate::data_structures::Peak;
 use crate::data_structures::Spectrum;
-use crate::peak_selection::detection::detect_peaks;
+use crate::peak_selection::detection::Detector;
 use crate::peak_selection::filtering::filter_peaks;
 
 pub fn select_peaks(spectrum: Spectrum, threshold: f64) -> Vec<Peak> {
     let signal_boundaries = spectrum.signal_boundaries_indices();
     let mut second_derivative = second_derivative(spectrum.intensities());
-    let peaks = detect_peaks(&second_derivative);
+    let peaks = {
+        let detector = Detector::new(&second_derivative);
+        detector.detect_peaks()
+    };
     second_derivative.iter_mut().for_each(|d| *d = d.abs());
     filter_peaks(peaks, &second_derivative, signal_boundaries, threshold)
 }
