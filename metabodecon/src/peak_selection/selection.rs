@@ -1,6 +1,5 @@
-use crate::data_structures::Peak;
-use crate::data_structures::Spectrum;
-use crate::peak_selection::detection::Detector;
+use crate::data_structures::{Peak, Spectrum};
+use crate::peak_selection::detector::Detector;
 use crate::peak_selection::filtering::filter_peaks;
 
 pub fn select_peaks(spectrum: Spectrum, threshold: f64) -> Vec<Peak> {

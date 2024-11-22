@@ -1,4 +1,4 @@
-mod detection;
+mod detector;
 mod filtering;
 mod selection;
 
