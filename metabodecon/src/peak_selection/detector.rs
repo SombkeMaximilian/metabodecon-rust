@@ -1,5 +1,6 @@
 use crate::data_structures::Peak;
 
+#[derive(Debug)]
 pub struct Detector<'a> {
     second_derivative: &'a [f64],
 }
