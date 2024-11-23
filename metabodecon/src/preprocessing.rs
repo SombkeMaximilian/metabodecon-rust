@@ -31,10 +31,8 @@ fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
             iterations,
             window_size,
         } => {
-            let mut smoother = MovingAverageSmoother::<f64>::new(algo, window_size);
-            for _ in 0..iterations {
-                smoother.smooth_values(intensities);
-            }
+            let mut smoother = MovingAverageSmoother::<f64>::new(algo, iterations, window_size);
+            smoother.smooth_values(intensities);
         }
     }
 }
