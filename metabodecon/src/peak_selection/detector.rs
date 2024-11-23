@@ -103,7 +103,6 @@ mod tests {
     #[test]
     fn find_right_border() {
         let mut second_derivative = vec![0., -2., -1., -0.5, 0.5];
-        let detector = Detector::new(&second_derivative);
         assert_eq!(Detector::find_right_border(&second_derivative[2..]), 1);
         second_derivative = vec![0., -2., -1., 0., 0.5, 0.];
         assert_eq!(Detector::find_right_border(&second_derivative[2..]), 2);
@@ -114,7 +113,6 @@ mod tests {
     #[test]
     fn find_left_border() {
         let mut second_derivative = vec![0.5, -0.5, -1., -2., 0.];
-        let detector = Detector::new(&second_derivative);
         assert_eq!(Detector::find_left_border(&second_derivative[0..=2]), 1);
         second_derivative = vec![0., 0.5, 0., -1., -2., 0.];
         assert_eq!(Detector::find_left_border(&second_derivative[0..=3]), 2);
