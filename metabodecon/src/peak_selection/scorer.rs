@@ -4,6 +4,7 @@ pub trait Scorer {
     fn score_peak(&self, peak: &Peak) -> f64;
 }
 
+#[derive(Debug)]
 pub struct ScorerMinimumSum<'a> {
     abs_second_derivative: &'a [f64],
 }
