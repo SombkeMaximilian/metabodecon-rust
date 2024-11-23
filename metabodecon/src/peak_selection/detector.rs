@@ -76,42 +76,27 @@ mod tests {
         let mut second_derivative = vec![0.5, -0.5, -1., 0., 0.5, 0.];
         {
             let detector = Detector::new(&second_derivative);
-            assert_eq!(
-                detector.find_peak_borders(&[3]),
-                vec![(2, 5)]
-            );
+            assert_eq!(detector.find_peak_borders(&[3]), vec![(2, 5)]);
         }
         second_derivative = vec![0., 0.5, 0., -1., -0.5, 0.5];
         {
             let detector = Detector::new(&second_derivative);
-            assert_eq!(
-                detector.find_peak_borders(&[4]),
-                vec![(2, 5)]
-            );
+            assert_eq!(detector.find_peak_borders(&[4]), vec![(2, 5)]);
         }
         second_derivative = vec![1., 1., 1., 1.5, 1.];
         {
             let detector = Detector::new(&second_derivative);
-            assert_eq!(
-                detector.find_peak_borders(&[3]),
-                vec![(0, 4)]
-            );
+            assert_eq!(detector.find_peak_borders(&[3]), vec![(0, 4)]);
         }
         second_derivative = vec![1., 1.5, 1., 1., 1.];
         {
             let detector = Detector::new(&second_derivative);
-            assert_eq!(
-                detector.find_peak_borders(&[3]),
-                vec![(2, 6)]
-            );
+            assert_eq!(detector.find_peak_borders(&[3]), vec![(2, 6)]);
         }
         second_derivative = vec![1., 1., 1., 1., 1.];
         {
             let detector = Detector::new(&second_derivative);
-            assert_eq!(
-                detector.find_peak_borders(&[3]),
-                vec![(0, 6)]
-            );
+            assert_eq!(detector.find_peak_borders(&[3]), vec![(0, 6)]);
         }
     }
 
