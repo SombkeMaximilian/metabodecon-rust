@@ -69,6 +69,16 @@ impl Lorentzian {
         x.iter().map(|&x| self.evaluate(x)).collect()
     }
 
+    pub fn superposition(x: f64, lorentzians: &[Lorentzian]) -> f64 {
+        lorentzians.iter().map(|l| l.evaluate(x)).sum()
+    }
+
+    pub fn superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
+        x.iter()
+            .map(|&x| Self::superposition(x, lorentzians))
+            .collect()
+    }
+
     pub fn integral(&self) -> f64 {
         std::f64::consts::PI * self.sf()
     }
@@ -117,6 +127,29 @@ mod tests {
         assert_eq!(
             lorentzian.evaluate_vec(&[0.0, 1.0, 2.0]),
             vec![1.0, 0.5, 0.2]
+        );
+    }
+
+    #[test]
+    fn superposition() {
+        let lorentzians = vec![
+            Lorentzian::new(1.0, 1.0, 0.0),
+            Lorentzian::new(1.0, 1.0, 2.0),
+        ];
+        assert_eq!(Lorentzian::superposition(0.0, &lorentzians), 1.2);
+        assert_eq!(Lorentzian::superposition(1.0, &lorentzians), 1.0);
+        assert_eq!(Lorentzian::superposition(2.0, &lorentzians), 1.2);
+    }
+
+    #[test]
+    fn superposition_vec() {
+        let lorentzians = vec![
+            Lorentzian::new(1.0, 1.0, 0.0),
+            Lorentzian::new(1.0, 1.0, 2.0),
+        ];
+        assert_eq!(
+            Lorentzian::superposition_vec(&[0.0, 1.0, 2.0], &lorentzians),
+            vec![1.2, 1.0, 1.2]
         );
     }
 }

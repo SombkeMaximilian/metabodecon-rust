@@ -28,18 +28,8 @@ impl Fitter for FitterAnalytical {
             .collect::<Vec<_>>();
 
         for _ in 0..self.iterations {
-            let superposition = lorentzians
-                .iter()
-                .map(|l| l.evaluate_vec(reduced_spectrum.chemical_shifts()))
-                .fold(
-                    vec![0.; reduced_spectrum.chemical_shifts().len()],
-                    |acc, x| {
-                        acc.iter()
-                            .zip(x.iter())
-                            .map(|(a, b)| a + b)
-                            .collect::<Vec<_>>()
-                    },
-                );
+            let superposition =
+                Lorentzian::superposition_vec(reduced_spectrum.chemical_shifts(), &lorentzians);
             let ratios = reduced_spectrum
                 .intensities()
                 .iter()

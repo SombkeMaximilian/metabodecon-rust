@@ -3,6 +3,7 @@ use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
 use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
 use crate::preprocessing::preprocess_spectrum;
 use crate::smoothing::SmoothingAlgo;
+use crate::Lorentzian;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Deconvoluter {
@@ -65,15 +66,7 @@ impl Deconvoluter {
             };
             fitter.fit_lorentzian(spectrum, &peaks)
         };
-        let mse = lorentzians
-            .iter()
-            .map(|l| l.evaluate_vec(spectrum.chemical_shifts()))
-            .fold(vec![0.; spectrum.chemical_shifts().len()], |acc, x| {
-                acc.iter()
-                    .zip(x.iter())
-                    .map(|(a, b)| a + b)
-                    .collect::<Vec<_>>()
-            })
+        let mse = Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians)
             .into_iter()
             .zip(spectrum.intensities_raw().iter())
             .map(|(superposition, raw)| (superposition - raw).powi(2))
