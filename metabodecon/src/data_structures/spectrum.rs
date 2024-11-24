@@ -1,8 +1,8 @@
 #[derive(Debug, Clone)]
 pub struct Spectrum {
-    chemical_shifts: Vec<f64>,
-    intensities: Vec<f64>,
-    intensities_raw: Vec<f64>,
+    chemical_shifts: Box<[f64]>,
+    intensities: Box<[f64]>,
+    intensities_raw: Box<[f64]>,
     signal_boundaries: (f64, f64),
     water_boundaries: (f64, f64),
 }
@@ -25,9 +25,9 @@ impl Spectrum {
         );
 
         Self {
-            chemical_shifts,
-            intensities,
-            intensities_raw,
+            chemical_shifts: chemical_shifts.into_boxed_slice(),
+            intensities: intensities.into_boxed_slice(),
+            intensities_raw: intensities_raw.into_boxed_slice(),
             signal_boundaries: signal_boundaries_sorted,
             water_boundaries: water_boundaries_sorted,
         }
@@ -51,9 +51,9 @@ impl Spectrum {
             meta_group.dataset("water_boundaries")?.read_1d()?.to_vec();
 
         Ok(Self {
-            chemical_shifts,
-            intensities,
-            intensities_raw,
+            chemical_shifts: chemical_shifts.into_boxed_slice(),
+            intensities: intensities.into_boxed_slice(),
+            intensities_raw: intensities_raw.into_boxed_slice(),
             signal_boundaries: (signal_boundaries[0], signal_boundaries[1]),
             water_boundaries: (water_boundaries[0], water_boundaries[1]),
         })
