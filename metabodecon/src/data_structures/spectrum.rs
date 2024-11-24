@@ -61,6 +61,10 @@ impl Spectrum {
         &self.chemical_shifts
     }
 
+    pub fn chemical_shifts_mut(&mut self) -> &mut [f64] {
+        &mut self.chemical_shifts
+    }
+
     pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
@@ -71,6 +75,10 @@ impl Spectrum {
 
     pub fn intensities_raw(&self) -> &[f64] {
         &self.intensities_raw
+    }
+
+    pub fn intensities_raw_mut(&mut self) -> &mut [f64] {
+        &mut self.intensities_raw
     }
 
     pub fn signal_boundaries(&self) -> (f64, f64) {
@@ -85,12 +93,12 @@ impl Spectrum {
         self.chemical_shifts = chemical_shifts.into_boxed_slice();
     }
 
-    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) {
-        self.intensities_raw = intensities_raw.into_boxed_slice();
-    }
-
     pub fn set_intensities(&mut self, intensities: Vec<f64>) {
         self.intensities = intensities.into_boxed_slice();
+    }
+
+    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) {
+        self.intensities_raw = intensities_raw.into_boxed_slice();
     }
 
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
