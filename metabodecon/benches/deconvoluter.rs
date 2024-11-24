@@ -18,30 +18,65 @@ fn deconvolute_spectrum(c: &mut Criterion) {
         FittingAlgo::Analytical { iterations: 10 },
     );
 
-    c.bench_function("deconvolute_sim_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(black_box(&mut sim_spectrum));
-        })
-    });
-    c.bench_function("deconvolute_blood_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(black_box(&mut blood_spectrum));
-        })
-    });
-    c.bench_function("deconvolute_urine_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(black_box(&mut urine_spectrum));
-        })
-    });
+    #[cfg(feature = "sequential")]
+    {
+        c.bench_function("deconvolute_sim_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut sim_spectrum));
+            })
+        });
+        c.bench_function("deconvolute_blood_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut blood_spectrum));
+            })
+        });
+        c.bench_function("deconvolute_urine_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut urine_spectrum));
+            })
+        });
+    }
+
+    #[cfg(feature = "parallel")]
+    {
+        c.bench_function("parallel_deconvolute_sim_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut sim_spectrum));
+            })
+        });
+        c.bench_function("parallel_deconvolute_blood_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut blood_spectrum));
+            })
+        });
+        c.bench_function("parallel_deconvolute_urine_spectrum", |b| {
+            b.iter(|| {
+                deconvoluter.deconvolute_spectrum(black_box(&mut urine_spectrum));
+            })
+        });
+    }
 }
 
 fn criterion_config() -> Criterion {
     Criterion::default().measurement_time(std::time::Duration::from_secs(20))
 }
 
+#[cfg(feature = "sequential")]
 criterion_group! {
-    name = benches;
+    name = sequential_benches;
     config = criterion_config();
     targets = deconvolute_spectrum
 }
-criterion_main!(benches);
+
+#[cfg(feature = "sequential")]
+criterion_main!(sequential_benches);
+
+#[cfg(feature = "parallel")]
+criterion_group! {
+    name = parallel_benches;
+    config = criterion_config();
+    targets = deconvolute_spectrum
+}
+
+#[cfg(feature = "parallel")]
+criterion_main!(parallel_benches);
