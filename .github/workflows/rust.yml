@@ -1,4 +1,4 @@
-name: Rust
+name: Rust CI
 
 on:
   push:
@@ -20,18 +20,60 @@ jobs:
         feature: [ "default", "parallel" ]
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Install HDF5
-      run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
-    - name: Set up Rust
-      run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --features ${{ matrix.feature }} --verbose
-    - name: Upload artifacts
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
+      # Checkout the code
+      - uses: actions/checkout@v4
+
+      # Install HDF5
+      - name: Install HDF5
+        run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
+
+      # Set up Rust
+      - name: Set up Rust
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+
+      # Build the crate
+      - name: Build
+        run: cargo build --verbose
+
+      # Run tests
+      - name: Run tests
+        run: cargo test --features ${{ matrix.feature }} --verbose
+
+      # Upload test artifacts
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
           name: test-artifacts
           path: target/*.csv
+
+  benchmark:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        feature: [ "default", "parallel" ]
+
+    steps:
+      # Checkout the code
+      - uses: actions/checkout@v4
+
+      # Install HDF5
+      - name: Install HDF5
+        run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
+
+      # Set up Rust (stable toolchain)
+      - name: Set up Rust
+        run: rustup update stable && rustup default stable
+
+      # Run benchmarks
+      - name: Run benchmarks
+        run: cargo bench --features ${{ matrix.feature }} --verbose
+
+      # Upload Criterion report
+      - name: Upload benchmark reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: criterion-reports-${{ matrix.feature }}
+          path: target/criterion/ # Adjust this path if your Criterion report is elsewhere
