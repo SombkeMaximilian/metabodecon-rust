@@ -16,10 +16,8 @@ jobs:
 
     strategy:
       matrix:
-        toolchain:
-          - stable
-          - beta
-          - nightly
+        toolchain: [ stable, beta, nightly ]
+        feature: [ "default", "parallel" ]
 
     steps:
     - uses: actions/checkout@v4
@@ -30,4 +28,4 @@ jobs:
     - name: Build
       run: cargo build --verbose
     - name: Run tests
-      run: cargo test --verbose
+      run: cargo test --features ${{ matrix.feature }} --verbose
