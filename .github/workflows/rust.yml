@@ -38,14 +38,6 @@ jobs:
       - name: Run tests
         run: cargo test --features ${{ matrix.feature }} --verbose
 
-      # Upload test artifacts
-      - name: Upload test artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-artifacts-${{ matrix.feature }}-${{ matrix.toolchain }}
-          path: target/*.csv
-
   benchmark:
     runs-on: ubuntu-latest
 
