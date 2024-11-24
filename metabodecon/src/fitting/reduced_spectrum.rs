@@ -43,12 +43,13 @@ mod tests {
 
     #[test]
     fn new() {
-        let spectrum = Spectrum::new(
+        let mut spectrum = Spectrum::new(
             vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.],
             vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.],
             (2., 9.),
             (5.45, 5.55),
         );
+        spectrum.set_intensities(vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.]);
         let peaks = vec![Peak::new(2, 3, 4), Peak::new(4, 5, 6), Peak::new(6, 7, 8)];
         let reduced = ReducedSpectrum::new(&spectrum, &peaks);
         assert_eq!(

@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use metabodecon::*;
 
 fn deconvolute_spectrum(c: &mut Criterion) {
-    let sim_spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
-    let blood_spectrum = Spectrum::from_hdf5("data/blood.h5", "blood_01").unwrap();
-    let urine_spectrum = Spectrum::from_hdf5("data/urine.h5", "urine_1").unwrap();
+    let mut sim_spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
+    let mut blood_spectrum = Spectrum::from_hdf5("data/blood.h5", "blood_01").unwrap();
+    let mut urine_spectrum = Spectrum::from_hdf5("data/urine.h5", "urine_1").unwrap();
     let deconvoluter = Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
             algo: MovingAverageAlgo::Simple,
@@ -20,20 +20,17 @@ fn deconvolute_spectrum(c: &mut Criterion) {
 
     c.bench_function("deconvolute_sim_spectrum", |b| {
         b.iter(|| {
-            let mut spectrum_clone = sim_spectrum.clone();
-            deconvoluter.deconvolute_spectrum(black_box(&mut spectrum_clone));
+            deconvoluter.deconvolute_spectrum(black_box(&mut sim_spectrum));
         })
     });
     c.bench_function("deconvolute_blood_spectrum", |b| {
         b.iter(|| {
-            let mut spectrum_clone = blood_spectrum.clone();
-            deconvoluter.deconvolute_spectrum(black_box(&mut spectrum_clone));
+            deconvoluter.deconvolute_spectrum(black_box(&mut blood_spectrum));
         })
     });
     c.bench_function("deconvolute_urine_spectrum", |b| {
         b.iter(|| {
-            let mut spectrum_clone = urine_spectrum.clone();
-            deconvoluter.deconvolute_spectrum(black_box(&mut spectrum_clone));
+            deconvoluter.deconvolute_spectrum(black_box(&mut urine_spectrum));
         })
     });
 }

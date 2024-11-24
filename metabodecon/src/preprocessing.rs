@@ -3,9 +3,11 @@ use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
 
 pub fn preprocess_spectrum(spectrum: &mut Spectrum, smoothing_algo: SmoothingAlgo) {
     let water_boundaries_indices = spectrum.water_boundaries_indices();
-    remove_water_signal(spectrum.intensities_mut(), water_boundaries_indices);
-    remove_negative_values(spectrum.intensities_mut());
-    smooth_intensities(spectrum.intensities_mut(), smoothing_algo);
+    let mut intensities = spectrum.intensities_raw().to_vec();
+    remove_water_signal(&mut intensities, water_boundaries_indices);
+    remove_negative_values(&mut intensities);
+    smooth_intensities(&mut intensities, smoothing_algo);
+    spectrum.set_intensities(intensities);
 }
 
 fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {

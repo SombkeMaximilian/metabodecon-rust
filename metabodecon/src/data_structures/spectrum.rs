@@ -14,7 +14,6 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> Self {
-        let intensities_raw = intensities.clone();
         let signal_boundaries_sorted = (
             f64::min(signal_boundaries.0, signal_boundaries.1),
             f64::max(signal_boundaries.0, signal_boundaries.1),
@@ -26,8 +25,8 @@ impl Spectrum {
 
         Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
-            intensities: intensities.into_boxed_slice(),
-            intensities_raw: intensities_raw.into_boxed_slice(),
+            intensities: Box::new([]),
+            intensities_raw: intensities.into_boxed_slice(),
             signal_boundaries: signal_boundaries_sorted,
             water_boundaries: water_boundaries_sorted,
         }
@@ -44,7 +43,6 @@ impl Spectrum {
             .dataset("signal_intensities")?
             .read_1d()?
             .to_vec();
-        let intensities_raw: Vec<f64> = intensities.clone();
         let signal_boundaries: Vec<f64> =
             meta_group.dataset("signal_boundaries")?.read_1d()?.to_vec();
         let water_boundaries: Vec<f64> =
@@ -52,8 +50,8 @@ impl Spectrum {
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
-            intensities: intensities.into_boxed_slice(),
-            intensities_raw: intensities_raw.into_boxed_slice(),
+            intensities: Box::new([]),
+            intensities_raw: intensities.into_boxed_slice(),
             signal_boundaries: (signal_boundaries[0], signal_boundaries[1]),
             water_boundaries: (water_boundaries[0], water_boundaries[1]),
         })
@@ -81,6 +79,26 @@ impl Spectrum {
 
     pub fn water_boundaries(&self) -> (f64, f64) {
         self.water_boundaries
+    }
+
+    pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) {
+        self.chemical_shifts = chemical_shifts.into_boxed_slice();
+    }
+
+    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) {
+        self.intensities_raw = intensities_raw.into_boxed_slice();
+    }
+
+    pub fn set_intensities(&mut self, intensities: Vec<f64>) {
+        self.intensities = intensities.into_boxed_slice();
+    }
+
+    pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
+        self.signal_boundaries = signal_boundaries;
+    }
+
+    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) {
+        self.water_boundaries = water_boundaries;
     }
 
     pub fn len(&self) -> usize {
@@ -128,7 +146,7 @@ mod tests {
             (2.0, 2.5),
         );
         assert_eq!(spectrum.chemical_shifts(), &[1.0, 2.0, 3.0]);
-        assert_eq!(spectrum.intensities(), &[1.0, 2.0, 3.0]);
+        assert_eq!(spectrum.intensities(), &[]);
         assert_eq!(spectrum.intensities_raw(), &[1.0, 2.0, 3.0]);
         assert_eq!(spectrum.signal_boundaries(), (1.0, 3.0));
         assert_eq!(spectrum.water_boundaries(), (2.0, 2.5));
@@ -142,11 +160,15 @@ mod tests {
             (1.0, 3.0),
             (2.0, 2.5),
         );
-        spectrum
-            .intensities_mut()
+        spectrum.set_chemical_shifts(vec![1.0, 2.0, 3.0, 4.0]);
+        spectrum.set_intensities_raw(vec![1.0, 2.0, 3.0, 4.0]);
+        spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0]);
+        spectrum.set_signal_boundaries((1.0, 4.0));
+        spectrum.set_water_boundaries((2.5, 3.0));
+        spectrum.intensities_mut()
             .iter_mut()
             .for_each(|intensity| *intensity = -*intensity);
-        assert_eq!(spectrum.intensities(), &[-1.0, -2.0, -3.0]);
+        assert_eq!(spectrum.intensities(), &[-1.0, -2.0, -3.0, -4.0]);
     }
 
     #[test]
@@ -171,7 +193,7 @@ mod tests {
         let (signal_start, signal_end) = spectrum.signal_boundaries();
         let (water_start, water_end) = spectrum.water_boundaries();
         assert_eq!(spectrum.chemical_shifts().len(), 2048);
-        assert_eq!(spectrum.intensities().len(), 2048);
+        assert_eq!(spectrum.intensities().len(), 0);
         assert_eq!(spectrum.intensities_raw().len(), 2048);
         assert_approx_eq!(signal_start, 3.339007);
         assert_approx_eq!(signal_end, 3.553942);
