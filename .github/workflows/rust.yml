@@ -75,4 +75,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: criterion-reports-${{ matrix.feature }}
-          path: target/criterion/ # Adjust this path if your Criterion report is elsewhere
+          path: target/criterion/
