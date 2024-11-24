@@ -59,7 +59,10 @@ jobs:
 
       # Run benchmarks
       - name: Run benchmarks
-        run: cargo bench --features ${{ matrix.feature }} --verbose
+        run: |
+          for features in ${{ matrix.feature }}; do
+            cargo bench --features $features --verbose
+          done
 
       # Upload Criterion report
       - name: Upload benchmark reports
