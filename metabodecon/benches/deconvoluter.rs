@@ -11,7 +11,10 @@ fn deconvolute_spectrum(c: &mut Criterion) {
             iterations: 2,
             window_size: 5,
         },
-        6.4,
+        SelectionAlgo::Default {
+            scoring_algo: ScoringAlgo::MinimumSum,
+            threshold: 6.4,
+        },
         FittingAlgo::Analytical { iterations: 10 },
     );
 

@@ -1,6 +1,8 @@
 mod detector;
-mod filtering;
 mod scorer;
-mod selection;
+mod selector;
+mod selector_default;
 
-pub use selection::select_peaks;
+pub use scorer::ScoringAlgo;
+pub use selector::{SelectionAlgo, Selector};
+pub use selector_default::SelectorDefault;

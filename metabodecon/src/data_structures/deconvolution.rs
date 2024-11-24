@@ -1,11 +1,13 @@
 use crate::data_structures::Lorentzian;
-use crate::{FittingAlgo, SmoothingAlgo};
+use crate::fitting::FittingAlgo;
+use crate::peak_selection::SelectionAlgo;
+use crate::smoothing::SmoothingAlgo;
 
 #[derive(Debug, Clone)]
 pub struct Deconvolution {
     lorentzians: Vec<Lorentzian>,
     smoothing_algo: SmoothingAlgo,
-    noise_threshold: f64,
+    selection_algo: SelectionAlgo,
     fitting_algo: FittingAlgo,
     mse: f64,
 }
@@ -14,14 +16,14 @@ impl Deconvolution {
     pub fn new(
         lorentzians: Vec<Lorentzian>,
         smoothing_algo: SmoothingAlgo,
-        noise_threshold: f64,
+        selection_algo: SelectionAlgo,
         fitting_algo: FittingAlgo,
         mse: f64,
     ) -> Self {
         Self {
             lorentzians,
             smoothing_algo,
-            noise_threshold,
+            selection_algo,
             fitting_algo,
             mse,
         }
@@ -35,8 +37,8 @@ impl Deconvolution {
         &self.smoothing_algo
     }
 
-    pub fn noise_threshold(&self) -> f64 {
-        self.noise_threshold
+    pub fn selection_algo(&self) -> &SelectionAlgo {
+        &self.selection_algo
     }
 
     pub fn fitting_algo(&self) -> &FittingAlgo {

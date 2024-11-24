@@ -1,5 +1,10 @@
 use crate::data_structures::Peak;
 
+#[derive(Clone, Copy, Debug)]
+pub enum ScoringAlgo {
+    MinimumSum,
+}
+
 pub trait Scorer {
     fn score_peak(&self, peak: &Peak) -> f64;
 }

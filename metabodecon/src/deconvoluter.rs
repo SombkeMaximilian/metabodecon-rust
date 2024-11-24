@@ -1,25 +1,25 @@
 use crate::data_structures::{Deconvolution, Spectrum};
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
-use crate::peak_selection::select_peaks;
+use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
 use crate::preprocessing::preprocess_spectrum;
 use crate::smoothing::SmoothingAlgo;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Deconvoluter {
     smoothing_algo: SmoothingAlgo,
-    noise_threshold: f64,
+    selection_algo: SelectionAlgo,
     fitting_algo: FittingAlgo,
 }
 
 impl Deconvoluter {
     pub fn new(
         smoothing_algo: SmoothingAlgo,
-        noise_threshold: f64,
+        selection_algo: SelectionAlgo,
         fitting_algo: FittingAlgo,
     ) -> Deconvoluter {
         Deconvoluter {
             smoothing_algo,
-            noise_threshold,
+            selection_algo,
             fitting_algo,
         }
     }
@@ -28,8 +28,8 @@ impl Deconvoluter {
         &self.smoothing_algo
     }
 
-    pub fn noise_threshold(&self) -> f64 {
-        self.noise_threshold
+    pub fn selection_algo(&self) -> &SelectionAlgo {
+        &self.selection_algo
     }
 
     pub fn fitting_algo(&self) -> &FittingAlgo {
@@ -40,8 +40,8 @@ impl Deconvoluter {
         self.smoothing_algo = smoothing_algo;
     }
 
-    pub fn set_noise_threshold(&mut self, noise_threshold: f64) {
-        self.noise_threshold = noise_threshold;
+    pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) {
+        self.selection_algo = selection_algo;
     }
 
     pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) {
@@ -50,14 +50,20 @@ impl Deconvoluter {
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
         preprocess_spectrum(spectrum, self.smoothing_algo);
-        let peaks = select_peaks(spectrum.clone(), self.noise_threshold);
+        let peaks = {
+            let selector = match self.selection_algo {
+                SelectionAlgo::Default {
+                    threshold,
+                    scoring_algo,
+                } => SelectorDefault::new(scoring_algo, threshold),
+            };
+            selector.select_peaks(spectrum)
+        };
         let lorentzians = {
-            match self.fitting_algo {
-                FittingAlgo::Analytical { iterations } => {
-                    let fitter = FitterAnalytical::new(iterations);
-                    fitter.fit_lorentzian(spectrum, &peaks)
-                }
-            }
+            let fitter = match self.fitting_algo {
+                FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
+            };
+            fitter.fit_lorentzian(spectrum, &peaks)
         };
         let mse = lorentzians
             .iter()
@@ -77,7 +83,7 @@ impl Deconvoluter {
         Deconvolution::new(
             lorentzians,
             self.smoothing_algo,
-            self.noise_threshold,
+            self.selection_algo,
             self.fitting_algo,
             mse,
         )
