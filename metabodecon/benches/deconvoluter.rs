@@ -18,7 +18,7 @@ fn deconvolute_spectrum(c: &mut Criterion) {
         FittingAlgo::Analytical { iterations: 10 },
     );
 
-    #[cfg(feature = "sequential")]
+    #[cfg(not(feature = "parallel"))]
     {
         c.bench_function("deconvolute_sim_spectrum", |b| {
             b.iter(|| {
@@ -61,14 +61,14 @@ fn criterion_config() -> Criterion {
     Criterion::default().measurement_time(std::time::Duration::from_secs(20))
 }
 
-#[cfg(feature = "sequential")]
+#[cfg(not(feature = "parallel"))]
 criterion_group! {
     name = sequential_benches;
     config = criterion_config();
     targets = deconvolute_spectrum
 }
 
-#[cfg(feature = "sequential")]
+#[cfg(not(feature = "parallel"))]
 criterion_main!(sequential_benches);
 
 #[cfg(feature = "parallel")]
