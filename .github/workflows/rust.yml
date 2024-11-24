@@ -60,7 +60,7 @@ jobs:
       # Run benchmarks
       - name: Run benchmarks
         run: |
-          for features in ${{ matrix.feature }}; do
+          for features in ${{ toJson(matrix.feature) }}; do
             cargo bench --features $features --verbose
           done
 
@@ -69,5 +69,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: criterion-reports-${{ matrix.feature }}
+          name: criterion-reports
           path: target/criterion/
