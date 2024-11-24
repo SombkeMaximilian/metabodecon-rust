@@ -19,7 +19,7 @@ fn test_deconvoluter() -> Result<(), std::io::Error> {
     );
     let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum);
 
-    let mut file = File::create("deconvolution_results.csv")?;
+    let mut file = File::create("../target/deconvolution_results.csv")?;
     writeln!(file, "sfhw,hw2,maxp")?;
 
     for lorentzian in deconvolution.lorenztians() {
