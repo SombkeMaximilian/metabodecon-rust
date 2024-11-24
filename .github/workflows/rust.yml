@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -30,20 +30,12 @@ jobs:
       - name: Set up Rust
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
-      # Build the crate
-      - name: Build
-        run: cargo build --verbose
-
       # Run tests
       - name: Run tests
         run: cargo test --features ${{ matrix.feature }} --verbose
 
   benchmark:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        feature: [ "default", "parallel" ]
 
     steps:
       # Checkout the code
@@ -60,7 +52,7 @@ jobs:
       # Run benchmarks
       - name: Run benchmarks
         run: |
-          for features in ${{ toJson(matrix.feature) }}; do
+          for features in "default" "parallel"; do
             cargo bench --features $features --verbose
           done
 
