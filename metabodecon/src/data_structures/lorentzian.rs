@@ -1,3 +1,6 @@
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Lorentzian {
     scale_factor_half_width: f64,
@@ -74,9 +77,18 @@ impl Lorentzian {
     }
 
     pub fn superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
-        x.iter()
-            .map(|&x| Self::superposition(x, lorentzians))
-            .collect()
+        #[cfg(not(feature = "parallel"))]
+        {
+            x.iter()
+                .map(|&x| Self::superposition(x, lorentzians))
+                .collect()
+        }
+        #[cfg(feature = "parallel")]
+        {
+            x.par_iter()
+                .map(|&x| Self::superposition(x, lorentzians))
+                .collect()
+        }
     }
 
     pub fn integral(&self) -> f64 {
