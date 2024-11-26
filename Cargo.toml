@@ -1,3 +1,6 @@
 [workspace]
 resolver = "2"
 members = ["metabodecon", "metabodecon-bindings"]
+
+[profile.release]
+lto = true
