@@ -32,6 +32,10 @@ jobs:
   benchmark:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        toolchain: [ stable, beta, nightly ]
+
     steps:
       - uses: actions/checkout@v4
         with:
