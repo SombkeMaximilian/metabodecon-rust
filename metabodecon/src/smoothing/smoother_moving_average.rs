@@ -21,18 +21,20 @@ pub struct MovingAverageSmoother<Type> {
 
 impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
     fn smooth_values(&mut self, values: &mut [Type]) {
+        let len = values.len();
         for _ in 0..self.iterations {
-            for value in values.iter().take(self.right) {
-                self.algo.add_value(*value);
-            }
-            for i in 0..(values.len() - self.right) {
+            values
+                .iter()
+                .take(self.right)
+                .for_each(|value| self.algo.add_value(*value));
+            for i in 0..(len - self.right) {
                 self.algo.add_value(values[i + self.right]);
                 values[i] = self.algo.compute_average();
             }
-            for i in (values.len() - self.right)..values.len() {
+            values[(len - self.right)..].iter_mut().for_each(|value| {
                 self.algo.pop_last();
-                values[i] = self.algo.compute_average();
-            }
+                *value = self.algo.compute_average();
+            });
             self.algo.clear();
         }
     }
