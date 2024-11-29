@@ -77,18 +77,16 @@ impl Lorentzian {
     }
 
     pub fn superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
-        #[cfg(not(feature = "parallel"))]
-        {
-            x.iter()
-                .map(|&x| Self::superposition(x, lorentzians))
-                .collect()
-        }
-        #[cfg(feature = "parallel")]
-        {
-            x.par_iter()
-                .map(|&x| Self::superposition(x, lorentzians))
-                .collect()
-        }
+        x.iter()
+            .map(|&x| Self::superposition(x, lorentzians))
+            .collect()
+    }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
+        x.par_iter()
+            .map(|&x| Self::superposition(x, lorentzians))
+            .collect()
     }
 
     pub fn integral(&self) -> f64 {

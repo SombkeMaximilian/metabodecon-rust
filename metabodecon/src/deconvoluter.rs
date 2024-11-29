@@ -81,4 +81,38 @@ impl Deconvoluter {
             mse,
         )
     }
+
+    #[cfg(feature = "parallel")]
+    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
+        preprocess_spectrum(spectrum, self.smoothing_algo);
+        let peaks = {
+            let selector = match self.selection_algo {
+                SelectionAlgo::Default {
+                    threshold,
+                    scoring_algo,
+                } => SelectorDefault::new(scoring_algo, threshold),
+            };
+            selector.select_peaks(spectrum)
+        };
+        let lorentzians = {
+            let fitter = match self.fitting_algo {
+                FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
+            };
+            fitter.par_fit_lorentzian(spectrum, &peaks)
+        };
+        let mse = Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians)
+            .into_iter()
+            .zip(spectrum.intensities_raw().iter())
+            .map(|(superposition, raw)| (superposition - raw).powi(2))
+            .sum::<f64>()
+            / spectrum.intensities_raw().len() as f64;
+
+        Deconvolution::new(
+            lorentzians,
+            self.smoothing_algo,
+            self.selection_algo,
+            self.fitting_algo,
+            mse,
+        )
+    }
 }

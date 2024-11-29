@@ -7,4 +7,7 @@ pub enum FittingAlgo {
 
 pub trait Fitter {
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian>;
+
+    #[cfg(feature = "parallel")]
+    fn par_fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian>;
 }
