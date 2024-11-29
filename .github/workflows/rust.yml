@@ -16,67 +16,48 @@ jobs:
     strategy:
       matrix:
         toolchain: [ stable, beta, nightly ]
-        feature: [ "default", "parallel" ]
 
     steps:
-      # Checkout the code
       - uses: actions/checkout@v4
 
-      # Install HDF5
       - name: Install HDF5
         run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
 
-      # Set up Rust
       - name: Set up Rust
         run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
-      # Run tests
       - name: Run tests
-        run: cargo test --features ${{ matrix.feature }} --verbose
+        run: cargo test --verbose
 
   benchmark:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the code
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      # Install HDF5
       - name: Install HDF5
         run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
 
-      # Set up Rust (stable toolchain)
       - name: Set up Rust
         run: rustup update stable && rustup default stable
 
-      # Checkout code before the push
       - name: Checkout state before the push
         run: git checkout ${{ github.event.before }}
 
-      # Run benchmarks
       - name: Run benchmarks before the push
-        run: |
-          for features in "default" "parallel"; do
-            cargo bench --features $features --verbose
-          done
+        run: cargo bench --profile release --verbose
 
-      # Checkout code after the push
       - name: Checkout state after the push
         run: git checkout ${{ github.sha }}
 
-      # Run benchmarks
       - name: Run benchmarks after the push
-        run: |
-          for features in "default" "parallel"; do
-              cargo bench --features $features --verbose
-          done
+        run: cargo bench --profile release --verbose
 
-      # Upload Criterion report
       - name: Upload benchmark reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: criterion-reports
+          name: criterion-report
           path: target/criterion/
