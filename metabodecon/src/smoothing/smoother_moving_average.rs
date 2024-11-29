@@ -22,8 +22,8 @@ pub struct MovingAverageSmoother<Type> {
 impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
     fn smooth_values(&mut self, values: &mut [Type]) {
         for _ in 0..self.iterations {
-            for i in 0..self.right {
-                self.algo.add_value(values[i]);
+            for value in values.iter().take(self.right) {
+                self.algo.add_value(*value);
             }
             for i in 0..(values.len() - self.right) {
                 self.algo.add_value(values[i + self.right]);

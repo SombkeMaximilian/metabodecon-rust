@@ -15,7 +15,7 @@ impl<'a> Detector<'a> {
         let peak_borders = self.find_peak_borders(&peak_centers);
         peak_centers
             .into_iter()
-            .zip(peak_borders.into_iter())
+            .zip(peak_borders)
             .filter(|(_, (left, right))| *left != 0 && *right != self.second_derivative.len() + 1)
             .map(|(center, (left, right))| Peak::new(left, center, right))
             .collect()

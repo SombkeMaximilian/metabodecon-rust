@@ -115,6 +115,12 @@ impl Spectrum {
         self.chemical_shifts.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.chemical_shifts.is_empty()
+            || self.intensities.is_empty()
+            || self.intensities_raw.is_empty()
+    }
+
     pub fn step(&self) -> f64 {
         self.chemical_shifts[1] - self.chemical_shifts[0]
     }
@@ -183,8 +189,8 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
     use crate::MovingAverageAlgo;
+    use assert_approx_eq::assert_approx_eq;
 
     #[test]
     fn accessors() {
@@ -223,13 +229,16 @@ mod tests {
 
     #[test]
     fn properties() {
-        let spectrum = Spectrum::new(
+        let mut spectrum = Spectrum::new(
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             (1.5, 4.5),
             (2.5, 3.5),
         );
         assert_eq!(spectrum.len(), 5);
+        assert!(spectrum.is_empty());
+        spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+        assert!(!spectrum.is_empty());
         assert_approx_eq!(spectrum.step(), 1.0);
         assert_approx_eq!(spectrum.width(), 4.0);
         assert_approx_eq!(spectrum.center(), 3.0);
