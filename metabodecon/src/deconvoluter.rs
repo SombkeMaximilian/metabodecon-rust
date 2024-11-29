@@ -1,7 +1,6 @@
 use crate::data_structures::{Deconvolution, Spectrum};
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
 use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
-use crate::preprocessing::preprocess_spectrum;
 use crate::smoothing::SmoothingAlgo;
 use crate::Lorentzian;
 
@@ -50,7 +49,7 @@ impl Deconvoluter {
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
-        preprocess_spectrum(spectrum, self.smoothing_algo);
+        spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::Default {
@@ -84,7 +83,7 @@ impl Deconvoluter {
 
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
-        preprocess_spectrum(spectrum, self.smoothing_algo);
+        spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::Default {

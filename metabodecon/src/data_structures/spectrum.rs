@@ -1,3 +1,5 @@
+use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+
 #[derive(Debug, Clone)]
 pub struct Spectrum {
     chemical_shifts: Box<[f64]>,
@@ -138,12 +140,51 @@ impl Spectrum {
             ((self.water_boundaries.1 - self.chemical_shifts[0]) / self.step()).ceil() as usize,
         )
     }
+
+    pub fn apply_preprocessing(&mut self, smoothing_algo: SmoothingAlgo) {
+        let water_boundaries_indices = self.water_boundaries_indices();
+        let mut intensities = self.intensities_raw().to_vec();
+        Self::remove_water_signal(&mut intensities, water_boundaries_indices);
+        Self::remove_negative_values(&mut intensities);
+        Self::smooth_intensities(&mut intensities, smoothing_algo);
+        self.set_intensities(intensities);
+    }
+
+    fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
+        let min_intensity = *intensities
+            .iter()
+            .min_by(|a, b| a.total_cmp(b))
+            .unwrap_or(&0.);
+        let water_region = &mut intensities[boundary_indices.0..boundary_indices.1];
+        water_region.fill(min_intensity);
+    }
+
+    fn remove_negative_values(intensities: &mut [f64]) {
+        intensities
+            .iter_mut()
+            .filter(|intensity| **intensity < 0.0)
+            .for_each(|intensity| *intensity = -*intensity);
+    }
+
+    fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
+        match algorithm {
+            SmoothingAlgo::MovingAverage {
+                algo,
+                iterations,
+                window_size,
+            } => {
+                let mut smoother = MovingAverageSmoother::<f64>::new(algo, iterations, window_size);
+                smoother.smooth_values(intensities);
+            }
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use assert_approx_eq::assert_approx_eq;
+    use crate::MovingAverageAlgo;
 
     #[test]
     fn accessors() {
@@ -208,5 +249,32 @@ mod tests {
         assert_approx_eq!(signal_end, 3.553942);
         assert_approx_eq!(water_start, 3.444939);
         assert_approx_eq!(water_end, 3.448010);
+    }
+
+    #[test]
+    fn remove_water_signal() {
+        let mut intensities = vec![1.0, 2.0, 3.0, 4.0, 5.0];
+        let water_boundaries_indices = (1, 4);
+        Spectrum::remove_water_signal(&mut intensities, water_boundaries_indices);
+        assert_eq!(intensities, vec![1.0, 1.0, 1.0, 1.0, 5.0]);
+    }
+
+    #[test]
+    fn remove_negative_values() {
+        let mut intensities = vec![1.0, -2.0, 3.0, -4.0, 5.0];
+        Spectrum::remove_negative_values(&mut intensities);
+        assert_eq!(intensities, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+    }
+
+    #[test]
+    fn smooth_intensities() {
+        let mut intensities = vec![1.25, 1.75, 1.5, 2.0, 1.75];
+        let algorithm = SmoothingAlgo::MovingAverage {
+            algo: MovingAverageAlgo::Simple,
+            iterations: 1,
+            window_size: 3,
+        };
+        Spectrum::smooth_intensities(&mut intensities, algorithm);
+        assert_eq!(intensities, vec![1.5, 1.5, 1.75, 1.75, 1.875]);
     }
 }

@@ -2,7 +2,6 @@ mod data_structures;
 mod deconvoluter;
 mod fitting;
 mod peak_selection;
-mod preprocessing;
 mod smoothing;
 
 pub use data_structures::{Deconvolution, Lorentzian, Spectrum};
