@@ -8,6 +8,7 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
 
 jobs:
   test:
@@ -45,18 +46,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
 
       - name: Set up Rust
-        run: rustup update stable && rustup default stable
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
-      - name: Checkout state before the push
-        run: git checkout ${{ github.event.before }}
-
-      - name: Run benchmarks before the push
-        run: cargo bench --profile release --verbose
-
-      - name: Checkout state after the push
-        run: git checkout ${{ github.sha }}
-
-      - name: Run benchmarks after the push
+      - name: Run benchmarks
         run: cargo bench --profile release --verbose
 
       - name: Upload benchmark reports
@@ -65,3 +57,27 @@ jobs:
         with:
           name: criterion-report
           path: target/criterion/
+
+  clippy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: rustup update stable && rustup default stable
+
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  fmt:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: rustup update stable && rustup default stable
+
+      - name: Run fmt
+        run: cargo fmt --all -- --check
