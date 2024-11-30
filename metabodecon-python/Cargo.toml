@@ -8,4 +8,6 @@ name = "metabodecon_python"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.23.2"
+metabodecon = { path = "../metabodecon" }
+numpy = "0.23.0"
+pyo3 = { version = "0.23.2", features = ["extension-module"] }
