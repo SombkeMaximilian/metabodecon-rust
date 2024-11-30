@@ -60,7 +60,8 @@ impl MdSpectrum {
 
     #[setter]
     pub fn set_intensities<'py>(&mut self, intensities: PyReadonlyArray1<'py, f64>) {
-        self.inner.set_intensities(intensities.as_slice().unwrap().to_vec());
+        self.inner
+            .set_intensities(intensities.as_slice().unwrap().to_vec());
     }
 
     #[setter]
