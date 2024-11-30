@@ -1,5 +1,6 @@
 use metabodecon::Spectrum;
 use numpy::{Ix1, PyArray, PyArray1, PyReadonlyArray1};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -24,6 +25,14 @@ impl MdSpectrum {
                 signal_boundaries,
                 water_boundaries,
             ),
+        }
+    }
+
+    #[staticmethod]
+    pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
+        match Spectrum::from_hdf5(path, dataset) {
+            Ok(spectrum) => Ok(MdSpectrum { inner: spectrum }),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
 
