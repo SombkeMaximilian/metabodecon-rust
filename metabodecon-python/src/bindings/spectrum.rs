@@ -38,17 +38,17 @@ impl MdSpectrum {
 
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
-        PyArray1::from_slice(py, &self.inner.chemical_shifts())
+        PyArray1::from_slice(py, self.inner.chemical_shifts())
     }
 
     #[getter]
     pub fn intensities<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
-        PyArray1::from_slice(py, &self.inner.intensities())
+        PyArray1::from_slice(py, self.inner.intensities())
     }
 
     #[getter]
     pub fn intensities_raw<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
-        PyArray1::from_slice(py, &self.inner.intensities_raw())
+        PyArray1::from_slice(py, self.inner.intensities_raw())
     }
 
     #[getter]
@@ -62,19 +62,19 @@ impl MdSpectrum {
     }
 
     #[setter]
-    pub fn set_chemical_shifts<'py>(&mut self, chemical_shifts: PyReadonlyArray1<'py, f64>) {
+    pub fn set_chemical_shifts(&mut self, chemical_shifts: PyReadonlyArray1<'_, f64>) {
         self.inner
             .set_chemical_shifts(chemical_shifts.as_slice().unwrap().to_vec());
     }
 
     #[setter]
-    pub fn set_intensities<'py>(&mut self, intensities: PyReadonlyArray1<'py, f64>) {
+    pub fn set_intensities(&mut self, intensities: PyReadonlyArray1<'_, f64>) {
         self.inner
             .set_intensities(intensities.as_slice().unwrap().to_vec());
     }
 
     #[setter]
-    pub fn set_intensities_raw<'py>(&mut self, intensities_raw: PyReadonlyArray1<'py, f64>) {
+    pub fn set_intensities_raw(&mut self, intensities_raw: PyReadonlyArray1<'_, f64>) {
         self.inner
             .set_intensities_raw(intensities_raw.as_slice().unwrap().to_vec());
     }
