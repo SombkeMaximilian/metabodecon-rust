@@ -16,6 +16,13 @@ def main():
     print(spectrum.signal_boundaries)
     print(spectrum.water_boundaries)
 
+    blood = md.MdSpectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
+    print(blood.chemical_shifts[:5])
+    print(blood.intensities[:5])
+    print(blood.intensities_raw[:5])
+    print(blood.signal_boundaries)
+    print(blood.water_boundaries)
+
 
 if __name__ == "__main__":
     main()
