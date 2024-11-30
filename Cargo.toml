@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["metabodecon"]
+members = ["metabodecon", "metabodecon-python"]
 
 [profile.release]
 lto = true
