@@ -1,14 +1,11 @@
 use pyo3::prelude::*;
 
-/// Formats the sum of two numbers as string.
-#[pyfunction]
-fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
-    Ok((a + b).to_string())
-}
+mod bindings;
 
-/// A Python module implemented in Rust.
+use bindings::MdSpectrum;
+
 #[pymodule]
-fn metabodecon_python(m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(sum_as_string, m)?)?;
+fn metabodecon_python(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
+    m.add_class::<MdSpectrum>()?;
     Ok(())
 }
