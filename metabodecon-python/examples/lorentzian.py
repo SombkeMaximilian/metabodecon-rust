@@ -22,6 +22,7 @@ def main():
     lorentzian.parameters = (3.0, 2.0, 0.0)
     x = np.linspace(-10, 10, 10000)
     y = lorentzian.evaluate_vec(x)
+    plt.figure(figsize = (8, 6), dpi = 300)
     plt.plot(x, y)
     plt.show()
 
@@ -31,6 +32,7 @@ def main():
     lorentzians = [md.Lorentzian(sf = sf[i], hw = hw[i], maxp = maxp[i]) for i in range(3)]
     x = np.linspace(0, 10, 100000)
     y = md.Lorentzian.par_superposition_vec(x, lorentzians)
+    plt.figure(figsize = (8, 6), dpi = 300)
     plt.plot(x, y)
     plt.show()
 
