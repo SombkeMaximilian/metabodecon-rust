@@ -63,6 +63,21 @@ impl Lorentzian {
         (self.sf(), self.hw(), self.maxp())
     }
 
+    pub fn set_sf(&mut self, sf: f64) {
+        self.scale_factor_half_width = sf * self.hw();
+    }
+
+    pub fn set_hw(&mut self, hw: f64) {
+        self.scale_factor_half_width = self.sf() * hw;
+        self.half_width_squared = hw.powi(2);
+    }
+
+    pub fn set_retransformed_parameters(&mut self, sf: f64, hw: f64, maxp: f64) {
+        self.scale_factor_half_width = sf * hw;
+        self.half_width_squared = hw.powi(2);
+        self.maximum_position = maxp;
+    }
+
     pub fn evaluate(&self, x: f64) -> f64 {
         self.scale_factor_half_width
             / (self.half_width_squared + (x - self.maximum_position).powi(2))
