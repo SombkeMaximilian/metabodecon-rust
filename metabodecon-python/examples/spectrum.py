@@ -9,6 +9,7 @@ def main():
         signal_boundaries = (1.5, 2.5),
         water_boundaries = (1.75, 2.25)
     )
+
     print(spectrum.chemical_shifts)
     spectrum.intensities = np.array([100.0, 200.0, 300.0])
     print(spectrum.intensities)
