@@ -1,16 +1,15 @@
-use metabodecon::Spectrum;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
 #[derive(Debug, Clone)]
-pub struct MdSpectrum {
-    inner: Spectrum,
+pub struct Spectrum {
+    inner: metabodecon::Spectrum,
 }
 
 #[pymethods]
-impl MdSpectrum {
+impl Spectrum {
     #[new]
     pub fn new(
         chemical_shifts: Vec<f64>,
@@ -18,8 +17,8 @@ impl MdSpectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> Self {
-        MdSpectrum {
-            inner: Spectrum::new(
+        Spectrum {
+            inner: metabodecon::Spectrum::new(
                 chemical_shifts,
                 intensities,
                 signal_boundaries,
@@ -30,8 +29,8 @@ impl MdSpectrum {
 
     #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        match Spectrum::from_hdf5(path, dataset) {
-            Ok(spectrum) => Ok(MdSpectrum { inner: spectrum }),
+        match metabodecon::Spectrum::from_hdf5(path, dataset) {
+            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }

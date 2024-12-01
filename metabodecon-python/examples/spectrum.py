@@ -3,7 +3,7 @@ import metabodecon_python as md
 
 
 def main():
-    spectrum = md.MdSpectrum(
+    spectrum = md.Spectrum(
         chemical_shifts = np.array([1.0, 2.0, 3.0]),
         intensities = np.array([10.0, 20.0, 30.0]),
         signal_boundaries = (1.5, 2.5),
@@ -17,7 +17,7 @@ def main():
     print(spectrum.signal_boundaries)
     print(spectrum.water_boundaries)
 
-    blood = md.MdSpectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
+    blood = md.Spectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
     print(blood.chemical_shifts[:5])
     print(blood.intensities[:5])
     print(blood.intensities_raw[:5])

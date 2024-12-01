@@ -1,26 +1,25 @@
-use metabodecon::Lorentzian;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 
 #[pyclass]
 #[derive(Debug, Clone, Copy)]
-pub struct MdLorentzian {
-    inner: Lorentzian,
+pub struct Lorentzian {
+    inner: metabodecon::Lorentzian,
 }
 
 #[pymethods]
-impl MdLorentzian {
+impl Lorentzian {
     #[new]
     pub fn new(sf: f64, hw: f64, maxp: f64) -> Self {
-        MdLorentzian {
-            inner: Lorentzian::new(sf * hw, hw.powi(2), maxp),
+        Lorentzian {
+            inner: metabodecon::Lorentzian::new(sf * hw, hw.powi(2), maxp),
         }
     }
 
     #[staticmethod]
     pub fn from_transformed(sfhw: f64, hw2: f64, maxp: f64) -> Self {
-        MdLorentzian {
-            inner: Lorentzian::new(sfhw, hw2, maxp),
+        Lorentzian {
+            inner: metabodecon::Lorentzian::new(sfhw, hw2, maxp),
         }
     }
 
@@ -78,21 +77,21 @@ impl MdLorentzian {
     }
 
     #[staticmethod]
-    pub fn superposition(x: f64, lorentzians: Vec<MdLorentzian>) -> f64 {
+    pub fn superposition(x: f64, lorentzians: Vec<Lorentzian>) -> f64 {
         let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
-        Lorentzian::superposition(x, &lorentzians)
+        metabodecon::Lorentzian::superposition(x, &lorentzians)
     }
 
     #[staticmethod]
     pub fn superposition_vec<'py>(
         py: Python<'py>,
         x: PyReadonlyArray1<'_, f64>,
-        lorentzians: Vec<MdLorentzian>,
+        lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
         let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
-            &Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
+            &metabodecon::Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
         )
     }
 
@@ -100,12 +99,12 @@ impl MdLorentzian {
     pub fn par_superposition_vec<'py>(
         py: Python<'py>,
         x: PyReadonlyArray1<'_, f64>,
-        lorentzians: Vec<MdLorentzian>,
+        lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
         let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
-            &Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),
+            &metabodecon::Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),
         )
     }
 }
