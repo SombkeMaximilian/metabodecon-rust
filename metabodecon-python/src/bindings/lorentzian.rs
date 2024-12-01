@@ -7,6 +7,12 @@ pub struct Lorentzian {
     inner: metabodecon::Lorentzian,
 }
 
+impl Lorentzian {
+    pub fn from_inner(inner: metabodecon::Lorentzian) -> Self {
+        Lorentzian { inner }
+    }
+}
+
 #[pymethods]
 impl Lorentzian {
     #[new]
