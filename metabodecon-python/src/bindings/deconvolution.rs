@@ -24,7 +24,7 @@ impl Deconvolution {
             self.inner
                 .lorentzians()
                 .iter()
-                .map(|l| Lorentzian::from_inner(l.clone()))
+                .map(|l| Lorentzian::from_inner(*l))
                 .collect::<Vec<_>>(),
         )
     }
@@ -35,7 +35,7 @@ impl Deconvolution {
     }
 
     pub fn superposition(&self, chemical_shift: f64) -> f64 {
-        metabodecon::Lorentzian::superposition(chemical_shift, &self.inner.lorentzians())
+        metabodecon::Lorentzian::superposition(chemical_shift, self.inner.lorentzians())
     }
 
     pub fn superposition_vec<'py>(
@@ -47,7 +47,7 @@ impl Deconvolution {
             py,
             &metabodecon::Lorentzian::superposition_vec(
                 chemical_shifts.as_slice().unwrap(),
-                &self.inner.lorentzians(),
+                self.inner.lorentzians(),
             ),
         )
     }
@@ -61,7 +61,7 @@ impl Deconvolution {
             py,
             &metabodecon::Lorentzian::par_superposition_vec(
                 chemical_shifts.as_slice().unwrap(),
-                &self.inner.lorentzians(),
+                self.inner.lorentzians(),
             ),
         )
     }
