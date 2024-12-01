@@ -8,6 +8,12 @@ pub struct Spectrum {
     inner: metabodecon::Spectrum,
 }
 
+impl Spectrum {
+    pub fn inner_mut(&mut self) -> &mut metabodecon::Spectrum {
+        &mut self.inner
+    }
+}
+
 #[pymethods]
 impl Spectrum {
     #[new]
