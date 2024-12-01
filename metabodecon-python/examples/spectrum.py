@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import metabodecon_python as md
 
 
@@ -18,11 +19,9 @@ def main():
     print(spectrum.water_boundaries)
 
     blood = md.Spectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
-    print(blood.chemical_shifts[:5])
-    print(blood.intensities[:5])
-    print(blood.intensities_raw[:5])
-    print(blood.signal_boundaries)
-    print(blood.water_boundaries)
+    plt.figure(figsize = (12, 8), dpi = 300)
+    plt.plot(blood.chemical_shifts, blood.intensities_raw)
+    plt.show()
 
 
 if __name__ == "__main__":
