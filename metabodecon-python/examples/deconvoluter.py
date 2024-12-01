@@ -12,7 +12,6 @@ def main():
     print(t2 - t1)
     plt.figure(figsize = (12, 8), dpi = 300)
     plt.plot(blood.chemical_shifts, deconvolution.par_superposition_vec(blood.chemical_shifts))
-    plt.savefig("deconvolution_plot.pdf")
     plt.show()
 
 
