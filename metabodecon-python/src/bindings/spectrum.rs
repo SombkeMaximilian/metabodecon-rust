@@ -1,5 +1,5 @@
 use metabodecon::Spectrum;
-use numpy::{Ix1, PyArray, PyArray1, PyReadonlyArray1};
+use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
@@ -37,17 +37,17 @@ impl MdSpectrum {
     }
 
     #[getter]
-    pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
+    pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())
     }
 
     #[getter]
-    pub fn intensities<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
+    pub fn intensities<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.intensities())
     }
 
     #[getter]
-    pub fn intensities_raw<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray<f64, Ix1>> {
+    pub fn intensities_raw<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.intensities_raw())
     }
 
