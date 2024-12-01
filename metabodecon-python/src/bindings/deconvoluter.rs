@@ -20,12 +20,10 @@ impl Deconvoluter {
                 },
                 metabodecon::SelectionAlgo::Default {
                     scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
-                    threshold: delta
+                    threshold: delta,
                 },
-                metabodecon::FittingAlgo::Analytical {
-                    iterations: nfit
-                }
-            )
+                metabodecon::FittingAlgo::Analytical { iterations: nfit },
+            ),
         }
     }
 
