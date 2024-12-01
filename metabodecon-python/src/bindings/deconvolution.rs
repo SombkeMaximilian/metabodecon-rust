@@ -1,4 +1,4 @@
-use crate::Lorentzian;
+use crate::bindings::Lorentzian;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use pyo3::types::PyList;
