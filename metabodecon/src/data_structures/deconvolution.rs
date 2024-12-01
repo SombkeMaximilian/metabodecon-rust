@@ -29,7 +29,7 @@ impl Deconvolution {
         }
     }
 
-    pub fn lorenztians(&self) -> &[Lorentzian] {
+    pub fn lorentzians(&self) -> &[Lorentzian] {
         &self.lorentzians
     }
 
