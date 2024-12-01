@@ -31,3 +31,22 @@ cargo bench -p metabodecon --profile release
 
 This will compile the project in release mode and run all the benchmarks defined in the `benches` directory.
 The results can be found in the `target/criterion` directory.
+
+## Python Bindings
+
+To build the Python bindings for this project locally, follow these steps:
+
+1. Ensure you have Rust and Cargo installed. You can install them from [rustup.rs](https://rustup.rs/).
+2. Ensure you have maturin installed. You can install it using, for example, pipx:
+
+    ```sh
+    pipx install maturin
+    ```
+
+3. Navigate to the `metabodecon-python` directory.
+4. Activate the Python virtual environment where you want to install the bindings.
+5. Run the following command:
+
+   ```sh
+   maturin develop --release
+   ```
