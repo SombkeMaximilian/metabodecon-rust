@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct MdSpectrum {
-    pub inner: Spectrum,
+    inner: Spectrum,
 }
 
 #[pymethods]
