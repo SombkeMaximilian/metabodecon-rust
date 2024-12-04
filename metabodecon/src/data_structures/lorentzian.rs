@@ -87,18 +87,18 @@ impl Lorentzian {
         x.iter().map(|&x| self.evaluate(x)).collect()
     }
 
-    pub fn superposition(x: f64, lorentzians: &[Lorentzian]) -> f64 {
+    pub fn superposition(x: f64, lorentzians: &[Self]) -> f64 {
         lorentzians.iter().map(|l| l.evaluate(x)).sum()
     }
 
-    pub fn superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
+    pub fn superposition_vec(x: &[f64], lorentzians: &[Self]) -> Vec<f64> {
         x.iter()
             .map(|&x| Self::superposition(x, lorentzians))
             .collect()
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_superposition_vec(x: &[f64], lorentzians: &[Lorentzian]) -> Vec<f64> {
+    pub fn par_superposition_vec(x: &[f64], lorentzians: &[Self]) -> Vec<f64> {
         x.par_iter()
             .map(|&x| Self::superposition(x, lorentzians))
             .collect()

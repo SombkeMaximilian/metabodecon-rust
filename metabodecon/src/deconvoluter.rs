@@ -16,8 +16,8 @@ impl Deconvoluter {
         smoothing_algo: SmoothingAlgo,
         selection_algo: SelectionAlgo,
         fitting_algo: FittingAlgo,
-    ) -> Deconvoluter {
-        Deconvoluter {
+    ) -> Self {
+        Self {
             smoothing_algo,
             selection_algo,
             fitting_algo,

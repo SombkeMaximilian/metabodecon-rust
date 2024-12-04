@@ -7,7 +7,7 @@ pub struct Peak {
 
 impl Peak {
     pub fn new(left: usize, center: usize, right: usize) -> Self {
-        Peak {
+        Self {
             left,
             center,
             right,
