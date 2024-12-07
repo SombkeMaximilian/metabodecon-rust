@@ -35,6 +35,22 @@ impl Spectrum {
         }
     }
 
+    pub fn from_bruker<P: AsRef<Path>>(
+        _path: P,
+        _signal_boundaries: (f64, f64),
+        _water_boundaries: (f64, f64),
+    ) -> Result<Self, std::io::Error> {
+        unimplemented!("Reading Bruker files is not yet implemented");
+    }
+
+    pub fn from_jcampdx<P: AsRef<Path>>(
+        _path: P,
+        _signal_boundaries: (f64, f64),
+        _water_boundaries: (f64, f64),
+    ) -> Result<Self, std::io::Error> {
+        unimplemented!("Reading JCAMP-DX files is not yet implemented");
+    }
+
     pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Self, hdf5::Error> {
         let file = hdf5::File::open(path.as_ref())?;
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
@@ -245,6 +261,18 @@ mod tests {
         assert_approx_eq!(spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
         assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
+    }
+
+    #[test]
+    #[should_panic(expected = "Reading Bruker files is not yet implemented")]
+    fn read_from_bruker() {
+        unimplemented!("Reading Bruker files is not yet implemented");
+    }
+
+    #[test]
+    #[should_panic(expected = "Reading JCAMP-DX files is not yet implemented")]
+    fn read_from_jcampdx() {
+        unimplemented!("Reading JCAMP-DX files is not yet implemented");
     }
 
     #[test]
