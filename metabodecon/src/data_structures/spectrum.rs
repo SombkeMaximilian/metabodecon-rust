@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn read_from_hdf5() {
-        let spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
+        let spectrum = Spectrum::from_hdf5("../data/sim.h5", "sim_01").unwrap();
         let (signal_start, signal_end) = spectrum.signal_boundaries();
         let (water_start, water_end) = spectrum.water_boundaries();
         assert_eq!(spectrum.chemical_shifts().len(), 2048);

@@ -2,9 +2,9 @@ use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use metabodecon::*;
 
 fn deconvolute_spectrum(c: &mut Criterion) {
-    let mut sim_spectrum = Spectrum::from_hdf5("data/sim.h5", "sim_01").unwrap();
-    let mut blood_spectrum = Spectrum::from_hdf5("data/blood.h5", "blood_01").unwrap();
-    let mut urine_spectrum = Spectrum::from_hdf5("data/urine.h5", "urine_1").unwrap();
+    let mut sim_spectrum = Spectrum::from_hdf5("../data/sim.h5", "sim_01").unwrap();
+    let mut blood_spectrum = Spectrum::from_hdf5("../data/blood.h5", "blood_01").unwrap();
+    let mut urine_spectrum = Spectrum::from_hdf5("../data/urine.h5", "urine_1").unwrap();
     let deconvoluter = Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
             algo: MovingAverageAlgo::Simple,
