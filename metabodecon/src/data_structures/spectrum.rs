@@ -1,4 +1,5 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+use std::path::Path;
 
 #[derive(Debug, Clone)]
 pub struct Spectrum {
@@ -34,8 +35,8 @@ impl Spectrum {
         }
     }
 
-    pub fn from_hdf5(path: &str, dataset: &str) -> Result<Self, hdf5::Error> {
-        let file = hdf5::File::open(path)?;
+    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Self, hdf5::Error> {
+        let file = hdf5::File::open(path.as_ref())?;
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;
         let meta_group = spectrum_group.group("meta")?;
