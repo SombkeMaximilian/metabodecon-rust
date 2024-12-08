@@ -24,7 +24,7 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Deconvolution {
 #[cfg(feature = "parallel")]
 #[test]
 fn sim() {
-    let path = "../data/sim.h5";
+    let path = "../data/hdf5/sim.h5";
     let dataset = "sim_01";
     let deconvolution = run_par_deconvolution(path, dataset);
     store_deconvolution(deconvolution, "../target/sim_par_deconvolution.csv");
@@ -33,7 +33,7 @@ fn sim() {
 #[cfg(feature = "parallel")]
 #[test]
 fn blood() {
-    let path = "../data/blood.h5";
+    let path = "../data/hdf5/blood.h5";
     let dataset = "blood_01";
     let deconvolution = run_par_deconvolution(path, dataset);
     store_deconvolution(deconvolution, "../target/blood_par_deconvolution.csv");
@@ -42,7 +42,7 @@ fn blood() {
 #[cfg(feature = "parallel")]
 #[test]
 fn urine() {
-    let path = "../data/urine.h5";
+    let path = "../data/hdf5/urine.h5";
     let dataset = "urine_1";
     let deconvolution = run_par_deconvolution(path, dataset);
     store_deconvolution(deconvolution, "../target/urine_par_deconvolution.csv");
