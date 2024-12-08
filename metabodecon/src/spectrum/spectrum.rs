@@ -1,4 +1,5 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+use std::io::{self};
 use std::path::Path;
 
 #[derive(Debug, Clone)]
@@ -39,7 +40,7 @@ impl Spectrum {
         _path: P,
         _signal_boundaries: (f64, f64),
         _water_boundaries: (f64, f64),
-    ) -> Result<Self, std::io::Error> {
+    ) -> io::Result<Self> {
         unimplemented!("Reading Bruker files is not yet implemented");
     }
 
@@ -47,11 +48,11 @@ impl Spectrum {
         _path: P,
         _signal_boundaries: (f64, f64),
         _water_boundaries: (f64, f64),
-    ) -> Result<Self, std::io::Error> {
+    ) -> io::Result<Self> {
         unimplemented!("Reading JCAMP-DX files is not yet implemented");
     }
 
-    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Self, hdf5::Error> {
+    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> hdf5::Result<Self> {
         let file = hdf5::File::open(path.as_ref())?;
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;
