@@ -1,5 +1,6 @@
-use crate::data_structures::{Peak, Spectrum};
+use crate::data_structures::Spectrum;
 use crate::peak_selection::detector::Detector;
+use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
 

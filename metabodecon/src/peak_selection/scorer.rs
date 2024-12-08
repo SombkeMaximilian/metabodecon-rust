@@ -1,4 +1,4 @@
-use crate::data_structures::Peak;
+use crate::peak_selection::peak::Peak;
 
 #[derive(Clone, Copy, Debug)]
 pub enum ScoringAlgo {
@@ -38,7 +38,7 @@ impl<'a> ScorerMinimumSum<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::data_structures::Peak;
+    use crate::peak_selection::Peak;
 
     #[test]
     fn minimum_sum() {

@@ -1,4 +1,5 @@
-use crate::data_structures::{Peak, Spectrum};
+use crate::data_structures::Spectrum;
+use crate::peak_selection::Peak;
 
 #[derive(Clone, Copy, Debug)]
 pub struct PeakStencilData {

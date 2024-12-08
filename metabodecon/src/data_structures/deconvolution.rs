@@ -1,5 +1,4 @@
-use crate::data_structures::Lorentzian;
-use crate::fitting::FittingAlgo;
+use crate::fitting::{FittingAlgo, Lorentzian};
 use crate::peak_selection::SelectionAlgo;
 use crate::smoothing::SmoothingAlgo;
 

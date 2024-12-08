@@ -1,4 +1,4 @@
-use crate::data_structures::Peak;
+use crate::peak_selection::peak::Peak;
 
 #[derive(Debug)]
 pub struct Detector<'a> {

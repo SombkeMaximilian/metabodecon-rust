@@ -1,5 +1,5 @@
-use crate::data_structures::Peak;
 use crate::data_structures::Spectrum;
+use crate::peak_selection::Peak;
 
 #[derive(Debug, Clone)]
 pub struct ReducedSpectrum {
