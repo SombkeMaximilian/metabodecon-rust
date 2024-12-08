@@ -18,6 +18,9 @@ rayon = { version = "1.10.0", optional = true }
 assert_approx_eq = "1.1.0"
 criterion = "0.5.1"
 
+[lints]
+workspace = true
+
 [[bench]]
 name = "deconvoluter"
 harness = false
