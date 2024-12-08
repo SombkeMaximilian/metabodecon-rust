@@ -106,7 +106,8 @@ impl<P: AsRef<Path>> BrukerReader<P> {
                 }
         ];
         one_r.read_exact(&mut buffer)?;
-        let intensities = match procs.data_type {
+
+        match procs.data_type {
             Type::I32 => {
                 let mut temp = vec![0i32; procs.data_size];
                 match procs.endian {
@@ -128,8 +129,6 @@ impl<P: AsRef<Path>> BrukerReader<P> {
                 temp.reverse();
                 Ok(temp)
             }
-        };
-
-        intensities
+        }
     }
 }
