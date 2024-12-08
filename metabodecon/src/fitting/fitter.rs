@@ -1,6 +1,6 @@
-use crate::spectrum::Spectrum;
 use crate::fitting::lorentzian::Lorentzian;
 use crate::peak_selection::Peak;
+use crate::spectrum::Spectrum;
 
 #[derive(Clone, Copy, Debug)]
 pub enum FittingAlgo {

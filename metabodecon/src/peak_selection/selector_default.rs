@@ -1,8 +1,8 @@
-use crate::spectrum::Spectrum;
 use crate::peak_selection::detector::Detector;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
+use crate::spectrum::Spectrum;
 
 #[derive(Clone, Copy, Debug)]
 pub struct SelectorDefault {

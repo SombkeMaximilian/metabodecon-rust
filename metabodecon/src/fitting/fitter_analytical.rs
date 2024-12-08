@@ -1,6 +1,6 @@
-use crate::spectrum::Spectrum;
 use crate::fitting::{Fitter, Lorentzian, PeakStencilData, ReducedSpectrum};
 use crate::peak_selection::Peak;
+use crate::spectrum::Spectrum;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;

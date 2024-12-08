@@ -1,6 +1,6 @@
-use crate::spectrum::Spectrum;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
+use crate::spectrum::Spectrum;
 
 #[derive(Debug, Clone, Copy)]
 pub enum SelectionAlgo {
