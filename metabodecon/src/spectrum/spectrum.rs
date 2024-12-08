@@ -1,4 +1,5 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+use crate::spectrum::bruker_reader::BrukerReader;
 use std::io::{self};
 use std::path::Path;
 
@@ -37,11 +38,16 @@ impl Spectrum {
     }
 
     pub fn from_bruker<P: AsRef<Path>>(
-        _path: P,
-        _signal_boundaries: (f64, f64),
-        _water_boundaries: (f64, f64),
+        path: P,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
     ) -> io::Result<Self> {
-        unimplemented!("Reading Bruker files is not yet implemented");
+        let reader = BrukerReader::new(path);
+        let mut spectrum = reader.read_spectrum()?;
+        spectrum.set_signal_boundaries(signal_boundaries);
+        spectrum.set_water_boundaries(water_boundaries);
+
+        Ok(spectrum)
     }
 
     pub fn from_jcampdx<P: AsRef<Path>>(
