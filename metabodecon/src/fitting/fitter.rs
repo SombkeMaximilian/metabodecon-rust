@@ -1,4 +1,4 @@
-use crate::data_structures::Spectrum;
+use crate::spectrum::Spectrum;
 use crate::fitting::lorentzian::Lorentzian;
 use crate::peak_selection::Peak;
 

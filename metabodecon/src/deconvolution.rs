@@ -1,5 +1,5 @@
+mod deconvoluter;
 mod deconvolution;
-mod spectrum;
 
+pub use deconvoluter::Deconvoluter;
 pub use deconvolution::Deconvolution;
-pub use spectrum::Spectrum;

@@ -1,4 +1,4 @@
-use crate::data_structures::Spectrum;
+use crate::spectrum::Spectrum;
 use crate::fitting::{Fitter, Lorentzian, PeakStencilData, ReducedSpectrum};
 use crate::peak_selection::Peak;
 

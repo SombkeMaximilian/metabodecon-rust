@@ -1,11 +1,11 @@
-mod data_structures;
-mod deconvoluter;
+mod spectrum;
+mod deconvolution;
 mod fitting;
 mod peak_selection;
 mod smoothing;
 
-pub use data_structures::{Deconvolution, Spectrum};
-pub use deconvoluter::Deconvoluter;
+pub use spectrum::Spectrum;
+pub use deconvolution::{Deconvoluter, Deconvolution};
 pub use fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
 pub use peak_selection::{ScoringAlgo, SelectionAlgo, Selector, SelectorDefault};
 pub use smoothing::{MovingAverageAlgo, SmoothingAlgo};

@@ -1,4 +1,4 @@
-use crate::data_structures::Spectrum;
+use crate::spectrum::Spectrum;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 
