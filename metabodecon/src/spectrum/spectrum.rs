@@ -271,9 +271,19 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "Reading Bruker files is not yet implemented")]
     fn read_from_bruker() {
-        unimplemented!("Reading Bruker files is not yet implemented");
+        let bruker_path = "../data/bruker/sim/sim_01";
+        let spectrum =
+            Spectrum::from_bruker(bruker_path, (3.339007, 3.553942), (3.444939, 3.448010)).unwrap();
+        let (signal_start, signal_end) = spectrum.signal_boundaries();
+        let (water_start, water_end) = spectrum.water_boundaries();
+        assert_eq!(spectrum.chemical_shifts().len(), 2048);
+        assert_eq!(spectrum.intensities().len(), 0);
+        assert_eq!(spectrum.intensities_raw().len(), 2048);
+        assert_approx_eq!(signal_start, 3.339007);
+        assert_approx_eq!(signal_end, 3.553942);
+        assert_approx_eq!(water_start, 3.444939);
+        assert_approx_eq!(water_end, 3.448010);
     }
 
     #[test]
@@ -284,7 +294,8 @@ mod tests {
 
     #[test]
     fn read_from_hdf5() {
-        let spectrum = Spectrum::from_hdf5("../data/hdf5/sim.h5", "sim_01").unwrap();
+        let hdf5_path = "../data/hdf5/sim.h5";
+        let spectrum = Spectrum::from_hdf5(hdf5_path, "sim_01").unwrap();
         let (signal_start, signal_end) = spectrum.signal_boundaries();
         let (water_start, water_end) = spectrum.water_boundaries();
         assert_eq!(spectrum.chemical_shifts().len(), 2048);
