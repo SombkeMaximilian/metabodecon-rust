@@ -42,7 +42,10 @@ impl<P: AsRef<Path>> BrukerReader<P> {
     }
 
     pub fn read_spectrum(&self, experiment: u32, processing: u32) -> io::Result<Spectrum> {
-        let acqus_path = self.path.as_ref().join(format!("{}/acqus", experiment));
+        let acqus_path = self
+            .path
+            .as_ref()
+            .join(format!("{}/acqus", experiment));
         let procs_path = self
             .path
             .as_ref()
@@ -117,8 +120,12 @@ impl<P: AsRef<Path>> BrukerReader<P> {
             Type::I32 => {
                 let mut temp = vec![0i32; procs.data_size];
                 match procs.endian {
-                    Endian::Little => buffer.as_slice().read_i32_into::<LittleEndian>(&mut temp)?,
-                    Endian::Big => buffer.as_slice().read_i32_into::<BigEndian>(&mut temp)?,
+                    Endian::Little => buffer
+                        .as_slice()
+                        .read_i32_into::<LittleEndian>(&mut temp)?,
+                    Endian::Big => buffer
+                        .as_slice()
+                        .read_i32_into::<BigEndian>(&mut temp)?,
                 }
                 temp.reverse();
                 Ok(temp
@@ -129,8 +136,12 @@ impl<P: AsRef<Path>> BrukerReader<P> {
             Type::F64 => {
                 let mut temp = vec![0f64; procs.data_size];
                 match procs.endian {
-                    Endian::Little => buffer.as_slice().read_f64_into::<LittleEndian>(&mut temp)?,
-                    Endian::Big => buffer.as_slice().read_f64_into::<BigEndian>(&mut temp)?,
+                    Endian::Little => buffer
+                        .as_slice()
+                        .read_f64_into::<LittleEndian>(&mut temp)?,
+                    Endian::Big => buffer
+                        .as_slice()
+                        .read_f64_into::<BigEndian>(&mut temp)?,
                 }
                 temp.reverse();
                 Ok(temp)

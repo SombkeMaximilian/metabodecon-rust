@@ -18,7 +18,9 @@ impl Selector for SelectorDefault {
             let detector = Detector::new(&second_derivative);
             detector.detect_peaks()
         };
-        second_derivative.iter_mut().for_each(|d| *d = d.abs());
+        second_derivative
+            .iter_mut()
+            .for_each(|d| *d = d.abs());
         self.filter_peaks(peaks, &second_derivative, signal_boundaries)
     }
 }

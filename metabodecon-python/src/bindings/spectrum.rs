@@ -106,7 +106,8 @@ impl Spectrum {
 
     #[setter]
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
-        self.inner.set_signal_boundaries(signal_boundaries);
+        self.inner
+            .set_signal_boundaries(signal_boundaries);
     }
 
     #[setter]

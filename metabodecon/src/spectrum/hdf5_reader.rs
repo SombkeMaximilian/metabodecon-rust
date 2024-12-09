@@ -17,13 +17,22 @@ impl<P: AsRef<Path>> Hdf5Reader<P> {
         let data_group = spectrum_group.group("data")?;
         let meta_group = spectrum_group.group("meta")?;
 
-        let chemical_shifts = data_group.dataset("chemical_shifts")?.read_1d()?.to_vec();
+        let chemical_shifts = data_group
+            .dataset("chemical_shifts")?
+            .read_1d()?
+            .to_vec();
         let intensities = data_group
             .dataset("signal_intensities")?
             .read_1d()?
             .to_vec();
-        let signal_boundaries = meta_group.dataset("signal_boundaries")?.read_1d()?.to_vec();
-        let water_boundaries = meta_group.dataset("water_boundaries")?.read_1d()?.to_vec();
+        let signal_boundaries = meta_group
+            .dataset("signal_boundaries")?
+            .read_1d()?
+            .to_vec();
+        let water_boundaries = meta_group
+            .dataset("water_boundaries")?
+            .read_1d()?
+            .to_vec();
 
         Ok(Spectrum::new(
             chemical_shifts,

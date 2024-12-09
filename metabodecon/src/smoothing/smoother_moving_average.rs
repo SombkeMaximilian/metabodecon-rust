@@ -31,10 +31,12 @@ impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
                 self.algo.add_value(values[i + self.right]);
                 values[i] = self.algo.compute_average();
             }
-            values[(len - self.right)..].iter_mut().for_each(|value| {
-                self.algo.pop_last();
-                *value = self.algo.compute_average();
-            });
+            values[(len - self.right)..]
+                .iter_mut()
+                .for_each(|value| {
+                    self.algo.pop_last();
+                    *value = self.algo.compute_average();
+                });
             self.algo.clear();
         }
     }

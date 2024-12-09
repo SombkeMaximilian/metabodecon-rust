@@ -84,7 +84,10 @@ impl Lorentzian {
 
     #[staticmethod]
     pub fn superposition(x: f64, lorentzians: Vec<Lorentzian>) -> f64 {
-        let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
+        let lorentzians = lorentzians
+            .iter()
+            .map(|l| l.inner)
+            .collect::<Vec<_>>();
         metabodecon::Lorentzian::superposition(x, &lorentzians)
     }
 
@@ -94,7 +97,10 @@ impl Lorentzian {
         x: PyReadonlyArray1<'_, f64>,
         lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
-        let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
+        let lorentzians = lorentzians
+            .iter()
+            .map(|l| l.inner)
+            .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
             &metabodecon::Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
@@ -107,7 +113,10 @@ impl Lorentzian {
         x: PyReadonlyArray1<'_, f64>,
         lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
-        let lorentzians = lorentzians.iter().map(|l| l.inner).collect::<Vec<_>>();
+        let lorentzians = lorentzians
+            .iter()
+            .map(|l| l.inner)
+            .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
             &metabodecon::Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),
