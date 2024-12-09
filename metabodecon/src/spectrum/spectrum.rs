@@ -1,5 +1,7 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
-use crate::spectrum::{bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader};
+use crate::spectrum::{
+    bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader, jdx_reader::JdxReader,
+};
 use std::io::{self};
 use std::path::Path;
 
@@ -51,11 +53,16 @@ impl Spectrum {
     }
 
     pub fn from_jcampdx<P: AsRef<Path>>(
-        _path: P,
-        _signal_boundaries: (f64, f64),
-        _water_boundaries: (f64, f64),
+        path: P,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
     ) -> io::Result<Self> {
-        unimplemented!("Reading JCAMP-DX files is not yet implemented");
+        let reader = JdxReader::new(path);
+        let mut spectrum = reader.read_spectrum()?;
+        spectrum.set_signal_boundaries(signal_boundaries);
+        spectrum.set_water_boundaries(water_boundaries);
+
+        Ok(spectrum)
     }
 
     pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> hdf5::Result<Self> {
