@@ -41,11 +41,13 @@ impl Spectrum {
 
     pub fn from_bruker<P: AsRef<Path>>(
         path: P,
+        experiment: u32,
+        processing: u32,
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> io::Result<Self> {
         let reader = BrukerReader::new(path);
-        let mut spectrum = reader.read_spectrum()?;
+        let mut spectrum = reader.read_spectrum(experiment, processing)?;
         spectrum.set_signal_boundaries(signal_boundaries);
         spectrum.set_water_boundaries(water_boundaries);
 
@@ -260,8 +262,14 @@ mod tests {
     #[test]
     fn read_from_bruker() {
         let bruker_path = "../data/bruker/sim/sim_01";
-        let spectrum =
-            Spectrum::from_bruker(bruker_path, (3.339007, 3.553942), (3.444939, 3.448010)).unwrap();
+        let spectrum = Spectrum::from_bruker(
+            bruker_path,
+            10,
+            10,
+            (3.339007, 3.553942),
+            (3.444939, 3.448010),
+        )
+        .unwrap();
         let (signal_start, signal_end) = spectrum.signal_boundaries();
         let (water_start, water_end) = spectrum.water_boundaries();
         assert_eq!(spectrum.chemical_shifts().len(), 2048);

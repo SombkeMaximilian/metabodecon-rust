@@ -3,7 +3,7 @@ use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{read_to_string, File};
 use std::io::{self, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Copy)]
 enum Endian {
@@ -41,16 +41,25 @@ impl<P: AsRef<Path>> BrukerReader<P> {
         BrukerReader { path }
     }
 
-    pub fn read_spectrum(&self) -> io::Result<Spectrum> {
-        let acqus = self.read_acquisition_parameters()?;
-        let procs = self.read_processing_parameters()?;
+    pub fn read_spectrum(&self, experiment: u32, processing: u32) -> io::Result<Spectrum> {
+        let acqus_path = self.path.as_ref().join(format!("{}/acqus", experiment));
+        let procs_path = self
+            .path
+            .as_ref()
+            .join(format!("{}/pdata/{}/procs", experiment, processing));
+        let one_r_path = self
+            .path
+            .as_ref()
+            .join(format!("{}/pdata/{}/1r", experiment, processing));
+        let acqus = self.read_acquisition_parameters(acqus_path)?;
+        let procs = self.read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
             .map(|i| {
                 procs.spectrum_maximum - acqus.spectrum_width
                     + (i as f64) * acqus.spectrum_width / (procs.data_size as f64)
             })
             .collect::<Vec<f64>>();
-        let intensities = self.read_one_r(procs)?;
+        let intensities = self.read_one_r(one_r_path, procs)?;
 
         Ok(Spectrum::new(
             chemical_shifts,
@@ -60,9 +69,8 @@ impl<P: AsRef<Path>> BrukerReader<P> {
         ))
     }
 
-    fn read_acquisition_parameters(&self) -> io::Result<AcquisitionParameters> {
-        let acqus_path = self.path.as_ref().join("10/acqus");
-        let acqus = read_to_string(acqus_path)?;
+    fn read_acquisition_parameters(&self, path: PathBuf) -> io::Result<AcquisitionParameters> {
+        let acqus = read_to_string(path)?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
 
         Ok(AcquisitionParameters {
@@ -70,9 +78,8 @@ impl<P: AsRef<Path>> BrukerReader<P> {
         })
     }
 
-    fn read_processing_parameters(&self) -> io::Result<ProcessingParameters> {
-        let procs_path = self.path.as_ref().join("10/pData/10/procs");
-        let procs = read_to_string(procs_path)?;
+    fn read_processing_parameters(&self, path: PathBuf) -> io::Result<ProcessingParameters> {
+        let procs = read_to_string(path)?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
         let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
@@ -94,9 +101,8 @@ impl<P: AsRef<Path>> BrukerReader<P> {
         })
     }
 
-    fn read_one_r(&self, procs: ProcessingParameters) -> io::Result<Vec<f64>> {
-        let one_r_path = self.path.as_ref().join("10/pData/10/1r");
-        let mut one_r = File::open(one_r_path)?;
+    fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> io::Result<Vec<f64>> {
+        let mut one_r = File::open(path)?;
         let mut buffer = vec![
             0;
             procs.data_size
