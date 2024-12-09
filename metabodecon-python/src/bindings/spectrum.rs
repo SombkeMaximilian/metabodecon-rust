@@ -34,20 +34,28 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        match metabodecon::Spectrum::from_hdf5(path, dataset) {
+    pub fn from_bruker(
+        path: &str,
+        experiment: u32,
+        processing: u32,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> PyResult<Self> {
+        match metabodecon::Spectrum::from_bruker(
+            path,
+            experiment,
+            processing,
+            signal_boundaries,
+            water_boundaries,
+        ) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
 
     #[staticmethod]
-    pub fn from_bruker(
-        path: &str,
-        signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
-    ) -> PyResult<Self> {
-        match metabodecon::Spectrum::from_bruker(path, signal_boundaries, water_boundaries) {
+    pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
+        match metabodecon::Spectrum::from_hdf5(path, dataset) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
