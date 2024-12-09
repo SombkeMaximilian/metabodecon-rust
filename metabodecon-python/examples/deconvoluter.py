@@ -4,7 +4,7 @@ import time
 
 
 def main():
-    blood = md.Spectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
+    blood = md.Spectrum.from_hdf5("../../data/hdf5/blood.h5", "blood_01")
     blood.signal_boundaries = (-2.208611, 11.807918)
     blood.water_boundaries = (4.699535, 4.899771)
     deconvoluter = md.Deconvoluter(nfit = 10, sm_iter = 2, sm_ws = 5, delta = 6.4)

@@ -18,9 +18,14 @@ def main():
     print(spectrum.signal_boundaries)
     print(spectrum.water_boundaries)
 
-    blood = md.Spectrum.from_hdf5("../../metabodecon/data/blood.h5", "blood_01")
+    blood = md.Spectrum.from_hdf5("../../data/hdf5/blood.h5", "blood_01")
     plt.figure(figsize = (12, 8), dpi = 300)
     plt.plot(blood.chemical_shifts, blood.intensities_raw)
+    plt.show()
+
+    sim = md.Spectrum.from_bruker("../../data/bruker/sim/sim_01", (3.339007, 3.553942), (3.444939, 3.448010))
+    plt.figure(figsize = (12, 8), dpi = 300)
+    plt.plot(sim.chemical_shifts, sim.intensities_raw)
     plt.show()
 
 
