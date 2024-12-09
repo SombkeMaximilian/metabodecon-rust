@@ -28,6 +28,14 @@ impl<P: AsRef<Path>> JdxReader<P> {
         JdxReader { path }
     }
 
+    pub fn path(&self) -> &Path {
+        self.path.as_ref()
+    }
+
+    pub fn set_path(&mut self, path: P) {
+        self.path = path;
+    }
+
     pub fn read_spectrum(&self) -> io::Result<Spectrum> {
         let _meta = self.read_meta_data()?;
 

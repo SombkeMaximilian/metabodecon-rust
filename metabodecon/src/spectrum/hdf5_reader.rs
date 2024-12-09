@@ -11,6 +11,14 @@ impl<P: AsRef<Path>> Hdf5Reader<P> {
         Hdf5Reader { path }
     }
 
+    pub fn path(&self) -> &Path {
+        self.path.as_ref()
+    }
+
+    pub fn set_path(&mut self, path: P) {
+        self.path = path;
+    }
+
     pub fn read_spectrum(&self, dataset: &str) -> hdf5::Result<Spectrum> {
         let file = hdf5::File::open(self.path.as_ref())?;
         let spectrum_group = file.group(dataset)?.group("spectrum")?;

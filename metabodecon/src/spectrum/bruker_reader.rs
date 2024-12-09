@@ -41,6 +41,14 @@ impl<P: AsRef<Path>> BrukerReader<P> {
         BrukerReader { path }
     }
 
+    pub fn path(&self) -> &Path {
+        self.path.as_ref()
+    }
+
+    pub fn set_path(&mut self, path: P) {
+        self.path = path;
+    }
+
     pub fn read_spectrum(&self, experiment: u32, processing: u32) -> io::Result<Spectrum> {
         let spectrum_root = self.path.as_ref();
         let acqus_path = spectrum_root.join(format!("{}/acqus", experiment));
