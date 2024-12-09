@@ -1,5 +1,5 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
-use crate::spectrum::bruker_reader::BrukerReader;
+use crate::spectrum::{bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader};
 use std::io::{self};
 use std::path::Path;
 
@@ -59,28 +59,8 @@ impl Spectrum {
     }
 
     pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> hdf5::Result<Self> {
-        let file = hdf5::File::open(path.as_ref())?;
-        let spectrum_group = file.group(dataset)?.group("spectrum")?;
-        let data_group = spectrum_group.group("data")?;
-        let meta_group = spectrum_group.group("meta")?;
-
-        let chemical_shifts: Vec<f64> = data_group.dataset("chemical_shifts")?.read_1d()?.to_vec();
-        let intensities: Vec<f64> = data_group
-            .dataset("signal_intensities")?
-            .read_1d()?
-            .to_vec();
-        let signal_boundaries: Vec<f64> =
-            meta_group.dataset("signal_boundaries")?.read_1d()?.to_vec();
-        let water_boundaries: Vec<f64> =
-            meta_group.dataset("water_boundaries")?.read_1d()?.to_vec();
-
-        Ok(Self {
-            chemical_shifts: chemical_shifts.into_boxed_slice(),
-            intensities: Box::new([]),
-            intensities_raw: intensities.into_boxed_slice(),
-            signal_boundaries: (signal_boundaries[0], signal_boundaries[1]),
-            water_boundaries: (water_boundaries[0], water_boundaries[1]),
-        })
+        let reader = Hdf5Reader::new(path);
+        reader.read_spectrum(dataset)
     }
 
     pub fn chemical_shifts(&self) -> &[f64] {
