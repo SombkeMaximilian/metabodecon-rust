@@ -42,18 +42,10 @@ impl<P: AsRef<Path>> BrukerReader<P> {
     }
 
     pub fn read_spectrum(&self, experiment: u32, processing: u32) -> io::Result<Spectrum> {
-        let acqus_path = self
-            .path
-            .as_ref()
-            .join(format!("{}/acqus", experiment));
-        let procs_path = self
-            .path
-            .as_ref()
-            .join(format!("{}/pdata/{}/procs", experiment, processing));
-        let one_r_path = self
-            .path
-            .as_ref()
-            .join(format!("{}/pdata/{}/1r", experiment, processing));
+        let spectrum_root = self.path.as_ref();
+        let acqus_path = spectrum_root.join(format!("{}/acqus", experiment));
+        let procs_path = spectrum_root.join(format!("{}/pdata/{}/procs", experiment, processing));
+        let one_r_path = spectrum_root.join(format!("{}/pdata/{}/1r", experiment, processing));
         let acqus = self.read_acquisition_parameters(acqus_path)?;
         let procs = self.read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
