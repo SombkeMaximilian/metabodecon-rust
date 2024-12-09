@@ -41,6 +41,18 @@ impl Spectrum {
         }
     }
 
+    #[staticmethod]
+    pub fn from_bruker(
+        path: &str,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> PyResult<Self> {
+        match metabodecon::Spectrum::from_bruker(path, signal_boundaries, water_boundaries) {
+            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())
