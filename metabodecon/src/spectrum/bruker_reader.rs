@@ -71,6 +71,27 @@ impl BrukerReader {
         ))
     }
 
+    pub fn read_spectra<P: AsRef<Path>>(
+        &self,
+        path: P,
+        experiment: u32,
+        processing: u32,
+    ) -> io::Result<Vec<Spectrum>> {
+        let spectra_roots = path
+            .as_ref()
+            .read_dir()?
+            .filter(|entry| entry.is_ok())
+            .filter(|entry| entry.as_ref().unwrap().path().is_dir())
+            .map(|entry| entry.unwrap().path())
+            .collect::<Vec<PathBuf>>();
+        let spectra = spectra_roots
+            .into_iter()
+            .map(|root| self.read_spectrum(root, experiment, processing))
+            .collect::<io::Result<Vec<Spectrum>>>()?;
+
+        Ok(spectra)
+    }
+
     fn read_acquisition_parameters(&self, path: PathBuf) -> io::Result<AcquisitionParameters> {
         let acqus = read_to_string(path)?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();

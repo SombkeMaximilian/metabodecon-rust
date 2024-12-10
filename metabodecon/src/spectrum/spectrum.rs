@@ -54,6 +54,23 @@ impl Spectrum {
         Ok(spectrum)
     }
 
+    pub fn from_bruker_set<P: AsRef<Path>>(
+        path: P,
+        experiment: u32,
+        processing: u32,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> io::Result<Vec<Self>> {
+        let reader = BrukerReader::new();
+        let mut spectra = reader.read_spectra(path, experiment, processing)?;
+        spectra.iter_mut().for_each(|spectrum| {
+            spectrum.set_signal_boundaries(signal_boundaries);
+            spectrum.set_water_boundaries(water_boundaries);
+        });
+
+        Ok(spectra)
+    }
+
     pub fn from_jcampdx<P: AsRef<Path>>(
         path: P,
         signal_boundaries: (f64, f64),
