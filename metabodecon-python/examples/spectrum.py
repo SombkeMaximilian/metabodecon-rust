@@ -23,6 +23,14 @@ def main():
     plt.plot(blood.chemical_shifts, blood.intensities_raw)
     plt.show()
 
+    sim_set = md.Spectrum.from_hdf5_set("../../data/hdf5/sim.h5")
+    for spectrum in sim_set:
+        print(spectrum.chemical_shifts[0:10])
+        print(spectrum.intensities_raw[0:10])
+        plt.figure(figsize = (12, 8), dpi = 300)
+        plt.plot(spectrum.chemical_shifts, spectrum.intensities_raw)
+        plt.show()
+
     sim = md.Spectrum.from_bruker("../../data/bruker/sim/sim_01", 10, 10, (3.339007, 3.553942), (3.444939, 3.448010))
     plt.figure(figsize = (12, 8), dpi = 300)
     plt.plot(sim.chemical_shifts, sim.intensities_raw)

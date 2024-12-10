@@ -61,6 +61,17 @@ impl Spectrum {
         }
     }
 
+    #[staticmethod]
+    pub fn from_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
+        match metabodecon::Spectrum::from_hdf5_set(path) {
+            Ok(spectra) => Ok(spectra
+                .into_iter()
+                .map(|spectrum| Spectrum { inner: spectrum })
+                .collect()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())
