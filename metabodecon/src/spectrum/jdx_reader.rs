@@ -50,3 +50,9 @@ impl JdxReader {
         })
     }
 }
+
+impl Default for JdxReader {
+    fn default() -> Self {
+        Self::new()
+    }
+}

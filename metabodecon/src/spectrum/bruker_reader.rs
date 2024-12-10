@@ -169,3 +169,9 @@ impl BrukerReader {
         }
     }
 }
+
+impl Default for BrukerReader {
+    fn default() -> Self {
+        Self::new()
+    }
+}

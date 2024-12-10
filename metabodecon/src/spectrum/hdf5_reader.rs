@@ -55,3 +55,9 @@ impl Hdf5Reader {
         ))
     }
 }
+
+impl Default for Hdf5Reader {
+    fn default() -> Self {
+        Self::new()
+    }
+}
