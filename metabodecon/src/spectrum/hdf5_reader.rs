@@ -2,30 +2,20 @@ use crate::spectrum::Spectrum;
 use std::path::Path;
 
 #[derive(Debug, Clone, Copy)]
-pub struct Hdf5Reader<P: AsRef<Path>> {
-    path: P,
-}
+pub struct Hdf5Reader;
 
-impl<P: AsRef<Path>> Hdf5Reader<P> {
-    pub fn new(path: P) -> Self {
-        Hdf5Reader { path }
+impl Hdf5Reader {
+    pub fn new() -> Self {
+        Hdf5Reader
     }
 
-    pub fn path(&self) -> &Path {
-        self.path.as_ref()
-    }
-
-    pub fn set_path(&mut self, path: P) {
-        self.path = path;
-    }
-
-    pub fn read_spectrum(&self, dataset: &str) -> hdf5::Result<Spectrum> {
-        let file = hdf5::File::open(self.path.as_ref())?;
+    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> hdf5::Result<Spectrum> {
+        let file = hdf5::File::open(path.as_ref())?;
         Self::read_from_file(&file, dataset)
     }
 
-    pub fn read_spectra(&self) -> hdf5::Result<Vec<Spectrum>> {
-        let file = hdf5::File::open(self.path.as_ref())?;
+    pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> hdf5::Result<Vec<Spectrum>> {
+        let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
         let spectra = datasets
             .into_iter()

@@ -19,31 +19,21 @@ struct MetaData {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct JdxReader<P: AsRef<Path>> {
-    path: P,
-}
+pub struct JdxReader;
 
-impl<P: AsRef<Path>> JdxReader<P> {
-    pub fn new(path: P) -> Self {
-        JdxReader { path }
+impl JdxReader {
+    pub fn new() -> Self {
+        JdxReader
     }
 
-    pub fn path(&self) -> &Path {
-        self.path.as_ref()
-    }
-
-    pub fn set_path(&mut self, path: P) {
-        self.path = path;
-    }
-
-    pub fn read_spectrum(&self) -> io::Result<Spectrum> {
-        let _meta = self.read_meta_data()?;
+    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P) -> io::Result<Spectrum> {
+        let _meta = self.read_meta_data(path.as_ref())?;
 
         Ok(Spectrum::new(Vec::new(), Vec::new(), (0., 0.), (0., 0.)))
     }
 
-    fn read_meta_data(&self) -> io::Result<MetaData> {
-        let meta = read_to_string(self.path.as_ref())?;
+    fn read_meta_data<P: AsRef<Path>>(&self, path: P) -> io::Result<MetaData> {
+        let meta = read_to_string(path)?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();

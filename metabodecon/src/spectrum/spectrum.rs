@@ -46,8 +46,8 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> io::Result<Self> {
-        let reader = BrukerReader::new(path);
-        let mut spectrum = reader.read_spectrum(experiment, processing)?;
+        let reader = BrukerReader::new();
+        let mut spectrum = reader.read_spectrum(path, experiment, processing)?;
         spectrum.set_signal_boundaries(signal_boundaries);
         spectrum.set_water_boundaries(water_boundaries);
 
@@ -59,8 +59,8 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> io::Result<Self> {
-        let reader = JdxReader::new(path);
-        let mut spectrum = reader.read_spectrum()?;
+        let reader = JdxReader::new();
+        let mut spectrum = reader.read_spectrum(path)?;
         spectrum.set_signal_boundaries(signal_boundaries);
         spectrum.set_water_boundaries(water_boundaries);
 
@@ -68,13 +68,13 @@ impl Spectrum {
     }
 
     pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> hdf5::Result<Self> {
-        let reader = Hdf5Reader::new(path);
-        reader.read_spectrum(dataset)
+        let reader = Hdf5Reader::new();
+        reader.read_spectrum(path, dataset)
     }
 
     pub fn from_hdf5_set<P: AsRef<Path>>(path: P) -> hdf5::Result<Vec<Self>> {
-        let reader = Hdf5Reader::new(path);
-        reader.read_spectra()
+        let reader = Hdf5Reader::new();
+        reader.read_spectra(path)
     }
 
     pub fn chemical_shifts(&self) -> &[f64] {

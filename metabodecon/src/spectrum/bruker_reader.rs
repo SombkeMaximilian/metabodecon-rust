@@ -31,29 +31,28 @@ struct ProcessingParameters {
     pub data_size: usize,
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct BrukerReader<P: AsRef<Path>> {
-    path: P,
-}
+pub struct BrukerReader;
 
-impl<P: AsRef<Path>> BrukerReader<P> {
-    pub fn new(path: P) -> Self {
-        BrukerReader { path }
+impl BrukerReader {
+    pub fn new() -> Self {
+        BrukerReader
     }
 
-    pub fn path(&self) -> &Path {
-        self.path.as_ref()
-    }
-
-    pub fn set_path(&mut self, path: P) {
-        self.path = path;
-    }
-
-    pub fn read_spectrum(&self, experiment: u32, processing: u32) -> io::Result<Spectrum> {
-        let spectrum_root = self.path.as_ref();
-        let acqus_path = spectrum_root.join(format!("{}/acqus", experiment));
-        let procs_path = spectrum_root.join(format!("{}/pdata/{}/procs", experiment, processing));
-        let one_r_path = spectrum_root.join(format!("{}/pdata/{}/1r", experiment, processing));
+    pub fn read_spectrum<P: AsRef<Path>>(
+        &self,
+        path: P,
+        experiment: u32,
+        processing: u32,
+    ) -> io::Result<Spectrum> {
+        let acqus_path = path
+            .as_ref()
+            .join(format!("{}/acqus", experiment));
+        let procs_path = path
+            .as_ref()
+            .join(format!("{}/pdata/{}/procs", experiment, processing));
+        let one_r_path = path
+            .as_ref()
+            .join(format!("{}/pdata/{}/1r", experiment, processing));
         let acqus = self.read_acquisition_parameters(acqus_path)?;
         let procs = self.read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
