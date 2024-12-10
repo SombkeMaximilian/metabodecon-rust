@@ -54,6 +54,29 @@ impl Spectrum {
     }
 
     #[staticmethod]
+    pub fn from_bruker_set(
+        path: &str,
+        experiment: u32,
+        processing: u32,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> PyResult<Vec<Self>> {
+        match metabodecon::Spectrum::from_bruker_set(
+            path,
+            experiment,
+            processing,
+            signal_boundaries,
+            water_boundaries,
+        ) {
+            Ok(spectra) => Ok(spectra
+                .into_iter()
+                .map(|spectrum| Spectrum { inner: spectrum })
+                .collect()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
+    #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
         match metabodecon::Spectrum::from_hdf5(path, dataset) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
