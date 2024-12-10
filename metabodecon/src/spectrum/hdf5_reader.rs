@@ -26,10 +26,7 @@ impl<P: AsRef<Path>> Hdf5Reader<P> {
 
     pub fn read_spectra(&self) -> hdf5::Result<Vec<Spectrum>> {
         let file = hdf5::File::open(self.path.as_ref())?;
-        let datasets: Vec<String> = file
-                .member_names()?
-                .into_iter()
-                .collect();
+        let datasets: Vec<String> = file.member_names()?.into_iter().collect();
         let spectra = datasets
             .into_iter()
             .map(|dataset| Self::read_from_file(&file, &dataset))
