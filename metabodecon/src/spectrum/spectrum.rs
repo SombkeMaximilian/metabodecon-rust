@@ -72,6 +72,11 @@ impl Spectrum {
         reader.read_spectrum(dataset)
     }
 
+    pub fn from_hdf5_set<P: AsRef<Path>>(path: P) -> hdf5::Result<Vec<Self>> {
+        let reader = Hdf5Reader::new(path);
+        reader.read_spectra()
+    }
+
     pub fn chemical_shifts(&self) -> &[f64] {
         &self.chemical_shifts
     }
@@ -300,6 +305,24 @@ mod tests {
         assert_approx_eq!(signal_end, 3.553942);
         assert_approx_eq!(water_start, 3.444939);
         assert_approx_eq!(water_end, 3.448010);
+    }
+
+    #[test]
+    fn read_from_hdf5_set() {
+        let hdf5_path = "../data/hdf5/sim.h5";
+        let spectra = Spectrum::from_hdf5_set(hdf5_path).unwrap();
+        assert_eq!(spectra.len(), 16);
+        spectra.iter().for_each(|spectrum| {
+            let (signal_start, signal_end) = spectrum.signal_boundaries();
+            let (water_start, water_end) = spectrum.water_boundaries();
+            assert_eq!(spectrum.chemical_shifts().len(), 2048);
+            assert_eq!(spectrum.intensities().len(), 0);
+            assert_eq!(spectrum.intensities_raw().len(), 2048);
+            assert_approx_eq!(signal_start, 3.339007);
+            assert_approx_eq!(signal_end, 3.553942);
+            assert_approx_eq!(water_start, 3.444939);
+            assert_approx_eq!(water_end, 3.448010);
+        });
     }
 
     #[test]
