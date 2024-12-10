@@ -227,6 +227,18 @@ mod tests {
     use crate::MovingAverageAlgo;
     use assert_approx_eq::assert_approx_eq;
 
+    macro_rules! check_sim_spectrum {
+        ($spectrum:expr) => {
+            assert_eq!($spectrum.chemical_shifts().len(), 2048);
+            assert_eq!($spectrum.intensities().len(), 0);
+            assert_eq!($spectrum.intensities_raw().len(), 2048);
+            assert_approx_eq!($spectrum.signal_boundaries.0, 3.339007);
+            assert_approx_eq!($spectrum.signal_boundaries.1, 3.553942);
+            assert_approx_eq!($spectrum.water_boundaries.0, 3.444939);
+            assert_approx_eq!($spectrum.water_boundaries.1, 3.448010);
+        };
+    }
+
     #[test]
     fn accessors() {
         let spectrum = Spectrum::new(
@@ -292,15 +304,24 @@ mod tests {
             (3.444939, 3.448010),
         )
         .unwrap();
-        let (signal_start, signal_end) = spectrum.signal_boundaries();
-        let (water_start, water_end) = spectrum.water_boundaries();
-        assert_eq!(spectrum.chemical_shifts().len(), 2048);
-        assert_eq!(spectrum.intensities().len(), 0);
-        assert_eq!(spectrum.intensities_raw().len(), 2048);
-        assert_approx_eq!(signal_start, 3.339007);
-        assert_approx_eq!(signal_end, 3.553942);
-        assert_approx_eq!(water_start, 3.444939);
-        assert_approx_eq!(water_end, 3.448010);
+        check_sim_spectrum!(spectrum);
+    }
+
+    #[test]
+    fn read_from_bruker_set() {
+        let bruker_path = "../data/bruker/sim";
+        let spectra = Spectrum::from_bruker_set(
+            bruker_path,
+            10,
+            10,
+            (3.339007, 3.553942),
+            (3.444939, 3.448010),
+        )
+        .unwrap();
+        assert_eq!(spectra.len(), 16);
+        spectra.iter().for_each(|spectrum| {
+            check_sim_spectrum!(spectrum);
+        });
     }
 
     #[test]
@@ -313,15 +334,7 @@ mod tests {
     fn read_from_hdf5() {
         let hdf5_path = "../data/hdf5/sim.h5";
         let spectrum = Spectrum::from_hdf5(hdf5_path, "sim_01").unwrap();
-        let (signal_start, signal_end) = spectrum.signal_boundaries();
-        let (water_start, water_end) = spectrum.water_boundaries();
-        assert_eq!(spectrum.chemical_shifts().len(), 2048);
-        assert_eq!(spectrum.intensities().len(), 0);
-        assert_eq!(spectrum.intensities_raw().len(), 2048);
-        assert_approx_eq!(signal_start, 3.339007);
-        assert_approx_eq!(signal_end, 3.553942);
-        assert_approx_eq!(water_start, 3.444939);
-        assert_approx_eq!(water_end, 3.448010);
+        check_sim_spectrum!(spectrum);
     }
 
     #[test]
@@ -330,15 +343,7 @@ mod tests {
         let spectra = Spectrum::from_hdf5_set(hdf5_path).unwrap();
         assert_eq!(spectra.len(), 16);
         spectra.iter().for_each(|spectrum| {
-            let (signal_start, signal_end) = spectrum.signal_boundaries();
-            let (water_start, water_end) = spectrum.water_boundaries();
-            assert_eq!(spectrum.chemical_shifts().len(), 2048);
-            assert_eq!(spectrum.intensities().len(), 0);
-            assert_eq!(spectrum.intensities_raw().len(), 2048);
-            assert_approx_eq!(signal_start, 3.339007);
-            assert_approx_eq!(signal_end, 3.553942);
-            assert_approx_eq!(water_start, 3.444939);
-            assert_approx_eq!(water_end, 3.448010);
+            check_sim_spectrum!(spectrum);
         });
     }
 
