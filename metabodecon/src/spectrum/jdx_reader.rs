@@ -23,7 +23,7 @@ pub struct JdxReader;
 
 impl JdxReader {
     pub fn new() -> Self {
-        JdxReader
+        Self
     }
 
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P) -> io::Result<Spectrum> {

@@ -35,7 +35,7 @@ pub struct BrukerReader;
 
 impl BrukerReader {
     pub fn new() -> Self {
-        BrukerReader
+        Self
     }
 
     pub fn read_spectrum<P: AsRef<Path>>(

@@ -6,7 +6,7 @@ pub struct Hdf5Reader;
 
 impl Hdf5Reader {
     pub fn new() -> Self {
-        Hdf5Reader
+        Self
     }
 
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> hdf5::Result<Spectrum> {
