@@ -5,24 +5,24 @@ use std::fs::{read_to_string, File};
 use std::io::{self, Read};
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 enum Endian {
     Little,
     Big,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 enum Type {
     I32,
     F64,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct AcquisitionParameters {
     pub spectrum_width: f64,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct ProcessingParameters {
     pub spectrum_maximum: f64,
     pub scaling_exponent: i32,
@@ -31,6 +31,7 @@ struct ProcessingParameters {
     pub data_size: usize,
 }
 
+#[derive(Default)]
 pub struct BrukerReader;
 
 impl BrukerReader {
@@ -167,11 +168,5 @@ impl BrukerReader {
                 Ok(temp)
             }
         }
-    }
-}
-
-impl Default for BrukerReader {
-    fn default() -> Self {
-        Self::new()
     }
 }

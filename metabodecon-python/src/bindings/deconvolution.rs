@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::types::PyList;
 
 #[pyclass]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Deconvolution {
     inner: metabodecon::Deconvolution,
 }

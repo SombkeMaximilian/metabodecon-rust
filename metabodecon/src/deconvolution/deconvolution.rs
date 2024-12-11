@@ -2,7 +2,7 @@ use crate::fitting::{FittingAlgo, Lorentzian};
 use crate::peak_selection::SelectionAlgo;
 use crate::smoothing::SmoothingAlgo;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct Deconvolution {
     lorentzians: Vec<Lorentzian>,
     smoothing_algo: SmoothingAlgo,

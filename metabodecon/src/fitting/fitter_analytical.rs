@@ -5,7 +5,7 @@ use crate::spectrum::Spectrum;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct FitterAnalytical {
     iterations: usize,
 }

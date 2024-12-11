@@ -5,7 +5,7 @@ use crate::spectrum::{
 use std::io::{self};
 use std::path::Path;
 
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct Spectrum {
     chemical_shifts: Box<[f64]>,
     intensities: Box<[f64]>,

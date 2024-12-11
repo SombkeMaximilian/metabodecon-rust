@@ -1,7 +1,7 @@
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Lorentzian {
     scale_factor_half_width: f64,
     half_width_squared: f64,

@@ -1,7 +1,7 @@
 use crate::spectrum::Spectrum;
 use std::path::Path;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct Hdf5Reader;
 
 impl Hdf5Reader {
@@ -53,11 +53,5 @@ impl Hdf5Reader {
             (signal_boundaries[0], signal_boundaries[1]),
             (water_boundaries[0], water_boundaries[1]),
         ))
-    }
-}
-
-impl Default for Hdf5Reader {
-    fn default() -> Self {
-        Self::new()
     }
 }

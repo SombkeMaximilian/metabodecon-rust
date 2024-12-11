@@ -1,6 +1,6 @@
 use crate::peak_selection::peak::Peak;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum ScoringAlgo {
     MinimumSum,
 }

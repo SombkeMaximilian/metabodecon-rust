@@ -2,7 +2,7 @@ use crate::bindings::{Deconvolution, Spectrum};
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug)]
 pub struct Deconvoluter {
     inner: metabodecon::Deconvoluter,
 }

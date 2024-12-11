@@ -2,7 +2,7 @@ use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Lorentzian {
     inner: metabodecon::Lorentzian,
 }

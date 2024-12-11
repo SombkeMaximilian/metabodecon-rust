@@ -1,6 +1,6 @@
 use crate::smoothing::smoother_moving_average::MovingAverageAlgo;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum SmoothingAlgo {
     MovingAverage {
         algo: MovingAverageAlgo,

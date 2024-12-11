@@ -4,13 +4,13 @@ use std::fs::read_to_string;
 use std::io::{self};
 use std::path::Path;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 enum Type {
     I32,
     F64,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug)]
 struct MetaData {
     pub spectrum_width: f64,
     pub spectrum_maximum: f64,
@@ -18,7 +18,7 @@ struct MetaData {
     pub data_type: Type,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Default)]
 pub struct JdxReader;
 
 impl JdxReader {
@@ -48,11 +48,5 @@ impl JdxReader {
                 _ => Type::F64,
             },
         })
-    }
-}
-
-impl Default for JdxReader {
-    fn default() -> Self {
-        Self::new()
     }
 }

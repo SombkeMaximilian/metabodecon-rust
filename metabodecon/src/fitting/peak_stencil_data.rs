@@ -1,7 +1,7 @@
 use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct PeakStencilData {
     left_chemical_shift: f64,
     center_chemical_shift: f64,

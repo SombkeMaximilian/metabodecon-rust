@@ -1,7 +1,7 @@
 use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct ReducedSpectrum {
     chemical_shifts: Vec<f64>,
     intensities: Vec<f64>,

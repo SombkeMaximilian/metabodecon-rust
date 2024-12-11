@@ -5,7 +5,7 @@ use crate::smoothing::SmoothingAlgo;
 use crate::spectrum::Spectrum;
 use crate::Lorentzian;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Copy, Clone, Debug)]
 pub struct Deconvoluter {
     smoothing_algo: SmoothingAlgo,
     selection_algo: SelectionAlgo,

@@ -1,4 +1,4 @@
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug)]
 pub struct Peak {
     left: usize,
     center: usize,

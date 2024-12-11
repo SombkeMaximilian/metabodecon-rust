@@ -4,7 +4,7 @@ use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
 use crate::spectrum::Spectrum;
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct SelectorDefault {
     scoring_algo: ScoringAlgo,
     threshold: f64,

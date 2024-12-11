@@ -3,7 +3,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug, Default)]
 pub struct Spectrum {
     inner: metabodecon::Spectrum,
 }

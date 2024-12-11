@@ -6,7 +6,7 @@ use num_traits::{FromPrimitive, Zero};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum MovingAverageAlgo {
     Simple,
     SumCache,

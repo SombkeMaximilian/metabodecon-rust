@@ -1,6 +1,6 @@
 use num_traits::Zero;
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct CircularBuffer<Type> {
     buffer: Box<[Type]>,
     index: usize,
