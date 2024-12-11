@@ -122,14 +122,6 @@ impl FitterAnalytical {
         Self { iterations }
     }
 
-    pub fn iterations(&self) -> usize {
-        self.iterations
-    }
-
-    pub fn set_iterations(&mut self, iterations: usize) {
-        self.iterations = iterations;
-    }
-
     fn maximum_position(p: &PeakStencilData) -> f64 {
         let numerator = p.x_1().powi(2) * p.y_1() * (p.y_2() - p.y_3())
             + p.x_2().powi(2) * p.y_2() * (p.y_3() - p.y_1())
