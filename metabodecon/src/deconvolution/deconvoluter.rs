@@ -25,16 +25,16 @@ impl Deconvoluter {
         }
     }
 
-    pub fn smoothing_algo(&self) -> &SmoothingAlgo {
-        &self.smoothing_algo
+    pub fn smoothing_algo(&self) -> SmoothingAlgo {
+        self.smoothing_algo
     }
 
-    pub fn selection_algo(&self) -> &SelectionAlgo {
-        &self.selection_algo
+    pub fn selection_algo(&self) -> SelectionAlgo {
+        self.selection_algo
     }
 
-    pub fn fitting_algo(&self) -> &FittingAlgo {
-        &self.fitting_algo
+    pub fn fitting_algo(&self) -> FittingAlgo {
+        self.fitting_algo
     }
 
     pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) {
