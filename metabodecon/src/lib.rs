@@ -1,3 +1,9 @@
+/*!
+An implementation of the algorithm proposed by [Koh et al.] for the deconvolution of 1D NMR spectra.
+
+[Koh et al.]: https://pubmed.ncbi.nlm.nih.gov/19804999
+*/
+
 mod deconvolution;
 mod fitting;
 mod peak_selection;
