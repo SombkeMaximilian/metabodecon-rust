@@ -6,6 +6,7 @@ An implementation of the algorithm proposed by [Koh et al.] for the deconvolutio
 
 mod deconvolution;
 mod fitting;
+#[allow(dead_code, unused_imports)] mod parameter_optimization;
 mod peak_selection;
 mod smoothing;
 mod spectrum;
