@@ -10,21 +10,47 @@ pub struct Deconvoluter {
 #[pymethods]
 impl Deconvoluter {
     #[new]
-    pub fn new(nfit: usize, sm_iter: usize, sm_ws: usize, delta: f64) -> Self {
-        Deconvoluter {
+    #[allow(clippy::new_without_default)]
+    pub fn new() -> Self {
+        Self {
             inner: metabodecon::Deconvoluter::new(
                 metabodecon::SmoothingAlgo::MovingAverage {
                     algo: metabodecon::MovingAverageAlgo::SumCache,
-                    iterations: sm_iter,
-                    window_size: sm_ws,
+                    iterations: 0,
+                    window_size: 0,
                 },
                 metabodecon::SelectionAlgo::Default {
                     scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
-                    threshold: delta,
+                    threshold: 0.0,
                 },
-                metabodecon::FittingAlgo::Analytical { iterations: nfit },
+                metabodecon::FittingAlgo::Analytical { iterations: 0 },
             ),
         }
+    }
+
+    pub fn with_ma_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
+        self.inner
+            .set_smoothing_algo(metabodecon::SmoothingAlgo::MovingAverage {
+                algo: metabodecon::MovingAverageAlgo::SumCache,
+                iterations,
+                window_size,
+            });
+        *self
+    }
+
+    pub fn with_def_selector(&mut self, threshold: f64) -> Self {
+        self.inner
+            .set_selection_algo(metabodecon::SelectionAlgo::Default {
+                scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
+                threshold,
+            });
+        *self
+    }
+
+    pub fn with_analytical_fitter(&mut self, iterations: usize) -> Self {
+        self.inner
+            .set_fitting_algo(metabodecon::FittingAlgo::Analytical { iterations });
+        *self
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
