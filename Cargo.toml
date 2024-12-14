@@ -1,6 +1,12 @@
 [workspace]
 resolver = "2"
-members = ["metabodecon", "metabodecon-python"]
+members = [
+    "metabodecon",
+    "metabodecon-python",
+
+    # Internal crates
+    "benches",
+]
 
 [profile.release]
 lto = true
