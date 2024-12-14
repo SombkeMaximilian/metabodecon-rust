@@ -16,3 +16,13 @@ workspace = true
 name = "deconvoluter"
 path = "deconvoluter.rs"
 harness = false
+
+[[bench]]
+name = "read_bruker"
+path = "read_bruker.rs"
+harness = false
+
+[[bench]]
+name = "read_hdf5"
+path = "read_hdf5.rs"
+harness = false
