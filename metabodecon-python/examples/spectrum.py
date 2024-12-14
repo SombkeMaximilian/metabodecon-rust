@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import metabodecon_python as md
+import metabodecon as md
 
 
 def main():
