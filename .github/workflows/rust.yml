@@ -39,8 +39,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Install HDF5
         run: sudo apt-get update && sudo apt-get install -y libhdf5-dev
@@ -84,3 +82,21 @@ jobs:
 
       - name: Run fmt
         run: cargo fmt --all -- --check
+
+  doc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        run: rustup update stable && rustup default stable
+
+      - name: Run doc
+        run: cargo doc -p metabodecon --document-private-items --no-deps
+
+      - name: Upload doc
+        uses: actions/upload-artifact@v4
+        with:
+          name: doc
+          path: target/doc/
