@@ -23,6 +23,7 @@ categories = [
 
 [features]
 default = ["parallel"]
+full = ["parallel"]
 parallel = ["rayon"]
 
 [dependencies]
