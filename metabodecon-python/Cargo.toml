@@ -21,6 +21,7 @@ categories = [
     "mathematics",
     "data-structures",
 ]
+publish = false
 
 [lib]
 name = "metabodecon"
