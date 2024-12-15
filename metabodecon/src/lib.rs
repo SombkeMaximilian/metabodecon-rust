@@ -18,7 +18,6 @@ own work, that have been implemented in Rust.
 
 mod deconvolution;
 mod fitting;
-#[rustfmt::skip] #[allow(dead_code, unused_imports)] mod parameter_optimization;
 mod peak_selection;
 mod smoothing;
 mod spectrum;
