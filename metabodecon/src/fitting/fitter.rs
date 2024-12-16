@@ -2,6 +2,7 @@ use crate::fitting::lorentzian::Lorentzian;
 use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
+#[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 pub enum FittingAlgo {
     Analytical { iterations: usize },
