@@ -17,12 +17,8 @@ impl Monotonicity {
         match first.partial_cmp(&second) {
             Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
             Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
-            Some(std::cmp::Ordering::Equal) => Err(Error::new(Kind::NonUniformlySpacedData {
+            _ => Err(Error::new(Kind::NonUniformlySpacedData {
                 positions: (0, 1),
-            })),
-            None => Err(Error::new(Kind::NaNData {
-                chemical_shifts: 0,
-                intensities: 0,
             })),
         }
     }

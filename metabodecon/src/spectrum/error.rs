@@ -14,10 +14,6 @@ pub enum Kind {
         chemical_shifts: usize,
         intensities: usize,
     },
-    NaNData {
-        chemical_shifts: usize,
-        intensities: usize,
-    },
     LengthMismatchedData {
         chemical_shifts: usize,
         intensities: usize,
