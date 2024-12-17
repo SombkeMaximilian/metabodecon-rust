@@ -1,11 +1,13 @@
 use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
+use std::sync::Arc;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub struct Error {
     kind: Kind,
+    source: Option<Arc<dyn std::error::Error>>,
 }
 
 #[non_exhaustive]
@@ -45,28 +47,23 @@ pub enum Kind {
         regex: String,
     },
 
-    IoError {
-        message: String,
-    },
-    Hdf5Error {
-        message: String,
-    },
+    IoError,
+    Hdf5Error,
 }
 
 impl std::error::Error for Error {}
 
 impl From<Kind> for Error {
     fn from(kind: Kind) -> Self {
-        Self { kind }
+        Self { kind, source: None }
     }
 }
 
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Self {
-            kind: Kind::IoError {
-                message: error.to_string(),
-            },
+            kind: Kind::IoError,
+            source: Some(Arc::new(error)),
         }
     }
 }
@@ -74,9 +71,8 @@ impl From<std::io::Error> for Error {
 impl From<hdf5::Error> for Error {
     fn from(error: hdf5::Error) -> Self {
         Self {
-            kind: Kind::Hdf5Error {
-                message: error.to_string(),
-            },
+            kind: Kind::Hdf5Error,
+            source: Some(Arc::new(error)),
         }
     }
 }
@@ -145,8 +141,8 @@ impl core::fmt::Display for Error {
                  step size at indices ({}, {}) differs from previous step",
                 positions.0, positions.1
             ),
-            IoError { message } => format!("I/O error: {}", message),
-            Hdf5Error { message } => format!("HDF5 error: {}", message),
+            IoError => format!("I/O error: {}", self.source.as_ref().unwrap()),
+            Hdf5Error => format!("HDF5 error: {}", self.source.as_ref().unwrap()),
         };
         write!(f, "{description}")
     }
