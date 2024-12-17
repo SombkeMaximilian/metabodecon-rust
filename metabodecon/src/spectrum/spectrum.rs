@@ -12,6 +12,22 @@ pub enum Monotonicity {
     Decreasing,
 }
 
+impl Monotonicity {
+    pub fn from_f64s(first: f64, second: f64) -> Result<Self> {
+        match first.partial_cmp(&second) {
+            Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
+            Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
+            Some(std::cmp::Ordering::Equal) => Err(Error::new(Kind::NonUniformlySpacedData {
+                positions: (0, 1),
+            })),
+            None => Err(Error::new(Kind::NaNData {
+                chemical_shifts: 0,
+                intensities: 0,
+            })),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Spectrum {
     chemical_shifts: Box<[f64]>,
