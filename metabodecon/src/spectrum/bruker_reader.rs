@@ -1,4 +1,4 @@
-use crate::spectrum::{Result, Spectrum};
+use crate::spectrum::{Error, Kind, Result, Spectrum};
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{read_to_string, File};
@@ -50,12 +50,22 @@ impl BrukerReader {
         let acqus_path = path
             .as_ref()
             .join(format!("{}/acqus", experiment));
+        if !acqus_path.is_file() {
+            return Err(Error::new(Kind::MissingAcqusFile { path: acqus_path }));
+        }
         let procs_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/procs", experiment, processing));
+        if !procs_path.is_file() {
+            return Err(Error::new(Kind::MissingProcsFile { path: procs_path }));
+        }
         let one_r_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/1r", experiment, processing));
+        if !one_r_path.is_file() {
+            return Err(Error::new(Kind::Missing1rFile { path: one_r_path }));
+        }
+
         let acqus = self.read_acquisition_parameters(acqus_path)?;
         let procs = self.read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
@@ -106,35 +116,44 @@ impl BrukerReader {
         Ok(spectra)
     }
 
-    fn read_acquisition_parameters(&self, path: PathBuf) -> Result<AcquisitionParameters> {
-        let acqus = read_to_string(path)?;
+    fn read_acquisition_parameters<P: AsRef<Path>>(
+        &self,
+        path: P,
+    ) -> Result<AcquisitionParameters> {
+        let acqus = read_to_string(path.as_ref())?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
 
-        Ok(AcquisitionParameters {
-            spectrum_width: extract_capture!(width_re, &acqus, width),
-        })
+        let spectrum_width = extract_capture!(width_re, &acqus, "width", path);
+
+        Ok(AcquisitionParameters { spectrum_width })
     }
 
-    fn read_processing_parameters(&self, path: PathBuf) -> Result<ProcessingParameters> {
-        let procs = read_to_string(path)?;
+    fn read_processing_parameters<P: AsRef<Path>>(&self, path: P) -> Result<ProcessingParameters> {
+        let procs = read_to_string(path.as_ref())?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
         let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
         let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
         let data_size_re = Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap();
 
+        let spectrum_maximum = extract_capture!(maximum_re, &procs, "maximum", path);
+        let scaling_exponent = extract_capture!(exponent_re, &procs, "exponent", path);
+        let endian = match extract_capture!(endian_re, &procs, "endian", path) {
+            0 => Endian::Little,
+            _ => Endian::Big,
+        };
+        let data_type = match extract_capture!(data_type_re, &procs, "data_type", path) {
+            0 => Type::I32,
+            _ => Type::F64,
+        };
+        let data_size = extract_capture!(data_size_re, &procs, "data_size", path);
+
         Ok(ProcessingParameters {
-            spectrum_maximum: extract_capture!(maximum_re, &procs, maximum),
-            scaling_exponent: extract_capture!(exponent_re, &procs, exponent),
-            endian: match extract_capture!(endian_re, &procs, endian) {
-                0 => Endian::Little,
-                _ => Endian::Big,
-            },
-            data_type: match extract_capture!(data_type_re, &procs, data_type) {
-                0 => Type::I32,
-                _ => Type::F64,
-            },
-            data_size: extract_capture!(data_size_re, &procs, data_size),
+            spectrum_maximum,
+            scaling_exponent,
+            endian,
+            data_type,
+            data_size,
         })
     }
 

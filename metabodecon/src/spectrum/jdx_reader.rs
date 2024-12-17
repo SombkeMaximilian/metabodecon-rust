@@ -1,4 +1,4 @@
-use crate::spectrum::{Result, Spectrum};
+use crate::spectrum::{Error, Kind, Result, Spectrum};
 use regex::Regex;
 use std::fs::read_to_string;
 use std::path::Path;
@@ -38,20 +38,25 @@ impl JdxReader {
     }
 
     fn read_meta_data<P: AsRef<Path>>(&self, path: P) -> Result<MetaData> {
-        let meta = read_to_string(path)?;
+        let meta = read_to_string(path.as_ref())?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
         let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
 
+        let spectrum_width = extract_capture!(width_re, &meta, "width", path);
+        let spectrum_maximum = extract_capture!(maximum_re, &meta, "maximum", path);
+        let scaling_exponent = extract_capture!(exponent_re, &meta, "exponent", path);
+        let data_type = match extract_capture!(data_type_re, &meta, "data_type", path) {
+            0 => Type::I32,
+            _ => Type::F64,
+        };
+
         Ok(MetaData {
-            spectrum_width: extract_capture!(width_re, &meta, width),
-            spectrum_maximum: extract_capture!(maximum_re, &meta, maximum),
-            scaling_exponent: extract_capture!(exponent_re, &meta, exponent),
-            data_type: match extract_capture!(data_type_re, &meta, data_type) {
-                0 => Type::I32,
-                _ => Type::F64,
-            },
+            spectrum_width,
+            spectrum_maximum,
+            scaling_exponent,
+            data_type,
         })
     }
 }
