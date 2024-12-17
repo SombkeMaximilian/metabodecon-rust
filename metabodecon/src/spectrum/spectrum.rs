@@ -1,8 +1,8 @@
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+use crate::spectrum::error::{Error, Kind, Result};
 use crate::spectrum::{
     bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader, jdx_reader::JdxReader,
 };
-use std::io::{self};
 use std::path::Path;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
@@ -35,6 +35,7 @@ pub struct Spectrum {
     intensities_raw: Box<[f64]>,
     signal_boundaries: (f64, f64),
     water_boundaries: (f64, f64),
+    monotonicity: Monotonicity,
 }
 
 impl Spectrum {
@@ -43,23 +44,67 @@ impl Spectrum {
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
-    ) -> Self {
-        let signal_boundaries_sorted = (
-            f64::min(signal_boundaries.0, signal_boundaries.1),
-            f64::max(signal_boundaries.0, signal_boundaries.1),
-        );
-        let water_boundaries_sorted = (
-            f64::min(water_boundaries.0, water_boundaries.1),
-            f64::max(water_boundaries.0, water_boundaries.1),
-        );
+    ) -> Result<Self> {
+        if chemical_shifts.is_empty() && intensities.is_empty() {
+            return Err(Error::new(Kind::EmptyData {
+                chemical_shifts: chemical_shifts.len(),
+                intensities: intensities.len(),
+            }));
+        }
 
-        Self {
+        if chemical_shifts.len() != intensities.len() {
+            return Err(Error::new(Kind::LengthMismatchedData {
+                chemical_shifts: chemical_shifts.len(),
+                intensities: intensities.len(),
+            }));
+        }
+
+        let step_size = chemical_shifts[1] - chemical_shifts[0];
+        if step_size.abs() < f64::EPSILON {
+            return Err(Error::new(Kind::NonUniformlySpacedData {
+                positions: (0, 1),
+            }));
+        }
+
+        if let Some(position) = chemical_shifts
+            .windows(2)
+            .position(|w| (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON)
+        {
+            let _values = (chemical_shifts[position], chemical_shifts[position + 1]);
+            let _diff = (chemical_shifts[position + 1] - chemical_shifts[position]).abs();
+            return Err(Error::new(Kind::NonUniformlySpacedData {
+                positions: (position, position + 1),
+            }));
+        }
+
+        let monotonicity = {
+            let chemical_shifts_monotonicity =
+                Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])?;
+            let signal_boundaries_monotonicity =
+                Monotonicity::from_f64s(signal_boundaries.0, signal_boundaries.1)?;
+            let water_boundaries_monotonicity =
+                Monotonicity::from_f64s(water_boundaries.0, water_boundaries.1)?;
+
+            if chemical_shifts_monotonicity != signal_boundaries_monotonicity
+                || chemical_shifts_monotonicity != water_boundaries_monotonicity
+            {
+                return Err(Error::new(Kind::MonotonicityMismatch {
+                    chemical_shifts: chemical_shifts_monotonicity,
+                    signal_boundaries: signal_boundaries_monotonicity,
+                    water_boundaries: water_boundaries_monotonicity,
+                }));
+            }
+            chemical_shifts_monotonicity
+        };
+
+        Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
             intensities: Box::new([]),
             intensities_raw: intensities.into_boxed_slice(),
-            signal_boundaries: signal_boundaries_sorted,
-            water_boundaries: water_boundaries_sorted,
-        }
+            signal_boundaries,
+            water_boundaries,
+            monotonicity,
+        })
     }
 
     pub fn from_bruker<P: AsRef<Path>>(
@@ -68,11 +113,15 @@ impl Spectrum {
         processing: u32,
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
-    ) -> io::Result<Self> {
+    ) -> Result<Self> {
         let reader = BrukerReader::new();
-        let mut spectrum = reader.read_spectrum(path, experiment, processing)?;
-        spectrum.set_signal_boundaries(signal_boundaries);
-        spectrum.set_water_boundaries(water_boundaries);
+        let spectrum = reader.read_spectrum(
+            path,
+            experiment,
+            processing,
+            signal_boundaries,
+            water_boundaries,
+        )?;
 
         Ok(spectrum)
     }
@@ -83,13 +132,15 @@ impl Spectrum {
         processing: u32,
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
-    ) -> io::Result<Vec<Self>> {
+    ) -> Result<Vec<Self>> {
         let reader = BrukerReader::new();
-        let mut spectra = reader.read_spectra(path, experiment, processing)?;
-        spectra.iter_mut().for_each(|spectrum| {
-            spectrum.set_signal_boundaries(signal_boundaries);
-            spectrum.set_water_boundaries(water_boundaries);
-        });
+        let spectra = reader.read_spectra(
+            path,
+            experiment,
+            processing,
+            signal_boundaries,
+            water_boundaries,
+        )?;
 
         Ok(spectra)
     }
@@ -98,21 +149,21 @@ impl Spectrum {
         path: P,
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
-    ) -> io::Result<Self> {
+    ) -> Result<Self> {
         let reader = JdxReader::new();
-        let mut spectrum = reader.read_spectrum(path)?;
+        let mut spectrum = reader.read_spectrum(path, signal_boundaries, water_boundaries)?;
         spectrum.set_signal_boundaries(signal_boundaries);
         spectrum.set_water_boundaries(water_boundaries);
 
         Ok(spectrum)
     }
 
-    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> hdf5::Result<Self> {
+    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Self> {
         let reader = Hdf5Reader::new();
         reader.read_spectrum(path, dataset)
     }
 
-    pub fn from_hdf5_set<P: AsRef<Path>>(path: P) -> hdf5::Result<Vec<Self>> {
+    pub fn from_hdf5_set<P: AsRef<Path>>(path: P) -> Result<Vec<Self>> {
         let reader = Hdf5Reader::new();
         reader.read_spectra(path)
     }
@@ -147,6 +198,10 @@ impl Spectrum {
 
     pub fn water_boundaries(&self) -> (f64, f64) {
         self.water_boundaries
+    }
+
+    pub fn monotonicity(&self) -> Monotonicity {
+        self.monotonicity
     }
 
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) {
@@ -269,7 +324,8 @@ mod tests {
             vec![1.0, 2.0, 3.0],
             (1.0, 3.0),
             (2.0, 2.5),
-        );
+        )
+        .unwrap();
         assert_eq!(spectrum.chemical_shifts(), &[1.0, 2.0, 3.0]);
         assert_eq!(spectrum.intensities(), &[]);
         assert_eq!(spectrum.intensities_raw(), &[1.0, 2.0, 3.0]);
@@ -284,7 +340,8 @@ mod tests {
             vec![1.0, 2.0, 3.0],
             (1.0, 3.0),
             (2.0, 2.5),
-        );
+        )
+        .unwrap();
         spectrum.set_chemical_shifts(vec![1.0, 2.0, 3.0, 4.0]);
         spectrum.set_intensities_raw(vec![1.0, 2.0, 3.0, 4.0]);
         spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0]);
@@ -304,7 +361,8 @@ mod tests {
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             (1.5, 4.5),
             (2.5, 3.5),
-        );
+        )
+        .unwrap();
         assert_eq!(spectrum.len(), 5);
         assert!(spectrum.is_empty());
         spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0]);

@@ -1,8 +1,8 @@
-use crate::spectrum::Spectrum;
+use crate::spectrum::{Result, Spectrum};
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{read_to_string, File};
-use std::io::{self, Read};
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -44,7 +44,9 @@ impl BrukerReader {
         path: P,
         experiment: u32,
         processing: u32,
-    ) -> io::Result<Spectrum> {
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> Result<Spectrum> {
         let acqus_path = path
             .as_ref()
             .join(format!("{}/acqus", experiment));
@@ -63,13 +65,14 @@ impl BrukerReader {
             })
             .collect::<Vec<f64>>();
         let intensities = self.read_one_r(one_r_path, procs)?;
-
-        Ok(Spectrum::new(
+        let spectrum = Spectrum::new(
             chemical_shifts,
             intensities,
-            (0., 0.),
-            (0., 0.),
-        ))
+            signal_boundaries,
+            water_boundaries,
+        )?;
+
+        Ok(spectrum)
     }
 
     pub fn read_spectra<P: AsRef<Path>>(
@@ -77,7 +80,9 @@ impl BrukerReader {
         path: P,
         experiment: u32,
         processing: u32,
-    ) -> io::Result<Vec<Spectrum>> {
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> Result<Vec<Spectrum>> {
         let spectra_roots = path
             .as_ref()
             .read_dir()?
@@ -87,13 +92,21 @@ impl BrukerReader {
             .collect::<Vec<PathBuf>>();
         let spectra = spectra_roots
             .into_iter()
-            .map(|root| self.read_spectrum(root, experiment, processing))
-            .collect::<io::Result<Vec<Spectrum>>>()?;
+            .map(|root| {
+                self.read_spectrum(
+                    root,
+                    experiment,
+                    processing,
+                    signal_boundaries,
+                    water_boundaries,
+                )
+            })
+            .collect::<Result<Vec<Spectrum>>>()?;
 
         Ok(spectra)
     }
 
-    fn read_acquisition_parameters(&self, path: PathBuf) -> io::Result<AcquisitionParameters> {
+    fn read_acquisition_parameters(&self, path: PathBuf) -> Result<AcquisitionParameters> {
         let acqus = read_to_string(path)?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
 
@@ -102,7 +115,7 @@ impl BrukerReader {
         })
     }
 
-    fn read_processing_parameters(&self, path: PathBuf) -> io::Result<ProcessingParameters> {
+    fn read_processing_parameters(&self, path: PathBuf) -> Result<ProcessingParameters> {
         let procs = read_to_string(path)?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
@@ -125,7 +138,7 @@ impl BrukerReader {
         })
     }
 
-    fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> io::Result<Vec<f64>> {
+    fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
         let mut one_r = File::open(path)?;
         let mut buffer = vec![
             0;

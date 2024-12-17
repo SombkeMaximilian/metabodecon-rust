@@ -1,4 +1,4 @@
-use crate::spectrum::Spectrum;
+use crate::spectrum::{Result, Spectrum};
 use std::path::Path;
 
 #[derive(Default)]
@@ -9,23 +9,23 @@ impl Hdf5Reader {
         Self
     }
 
-    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> hdf5::Result<Spectrum> {
+    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
         Self::read_from_file(&file, dataset)
     }
 
-    pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> hdf5::Result<Vec<Spectrum>> {
+    pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
         let spectra = datasets
             .into_iter()
             .map(|dataset| Self::read_from_file(&file, &dataset))
-            .collect::<hdf5::Result<Vec<Spectrum>>>()?;
+            .collect::<Result<Vec<Spectrum>>>()?;
 
         Ok(spectra)
     }
 
-    fn read_from_file(file: &hdf5::File, dataset: &str) -> hdf5::Result<Spectrum> {
+    fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;
         let meta_group = spectrum_group.group("meta")?;
@@ -46,12 +46,13 @@ impl Hdf5Reader {
             .dataset("water_boundaries")?
             .read_1d()?
             .to_vec();
-
-        Ok(Spectrum::new(
+        let spectrum = Spectrum::new(
             chemical_shifts,
             intensities,
             (signal_boundaries[0], signal_boundaries[1]),
             (water_boundaries[0], water_boundaries[1]),
-        ))
+        )?;
+
+        Ok(spectrum)
     }
 }

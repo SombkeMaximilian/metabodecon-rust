@@ -3,23 +3,27 @@ use metabodecon::BrukerReader;
 
 fn read_spectrum(c: &mut Criterion) {
     let reader = BrukerReader::new();
+    let sim_path = "data/bruker/sim/sim_01";
+    let blood_path = "data/bruker/blood/blood_01";
 
     c.bench_function("read_bruker_sim_spectrum", |b| {
-        b.iter(|| reader.read_spectrum("data/bruker/sim/sim_01", 10, 10))
+        b.iter(|| reader.read_spectrum(sim_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
     });
     c.bench_function("read_bruker_blood_spectrum", |b| {
-        b.iter(|| reader.read_spectrum("data/bruker/blood/blood_01", 10, 10))
+        b.iter(|| reader.read_spectrum(blood_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
     });
 }
 
 fn read_spectra(c: &mut Criterion) {
     let reader = BrukerReader::new();
+    let sim_path = "data/bruker/sim";
+    let blood_path = "data/bruker/blood";
 
     c.bench_function("read_bruker_sim_spectra", |b| {
-        b.iter(|| reader.read_spectra("data/bruker/sim", 10, 10))
+        b.iter(|| reader.read_spectra(sim_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
     });
     c.bench_function("read_bruker_blood_spectra", |b| {
-        b.iter(|| reader.read_spectra("data/bruker/blood", 10, 10))
+        b.iter(|| reader.read_spectra(blood_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
     });
 }
 

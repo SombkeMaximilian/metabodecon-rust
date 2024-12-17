@@ -1,7 +1,6 @@
-use crate::spectrum::Spectrum;
+use crate::spectrum::{Result, Spectrum};
 use regex::Regex;
 use std::fs::read_to_string;
-use std::io::{self};
 use std::path::Path;
 
 #[derive(Debug)]
@@ -26,13 +25,19 @@ impl JdxReader {
         Self
     }
 
-    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P) -> io::Result<Spectrum> {
+    pub fn read_spectrum<P: AsRef<Path>>(
+        &self,
+        path: P,
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64)
+    ) -> Result<Spectrum> {
         let _meta = self.read_meta_data(path.as_ref())?;
+        let spectrum = Spectrum::new(Vec::new(), Vec::new(), signal_boundaries, water_boundaries)?;
 
-        Ok(Spectrum::new(Vec::new(), Vec::new(), (0., 0.), (0., 0.)))
+        Ok(spectrum)
     }
 
-    fn read_meta_data<P: AsRef<Path>>(&self, path: P) -> io::Result<MetaData> {
+    fn read_meta_data<P: AsRef<Path>>(&self, path: P) -> Result<MetaData> {
         let meta = read_to_string(path)?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
