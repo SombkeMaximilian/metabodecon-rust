@@ -37,6 +37,9 @@ pub enum Kind {
     Missing1rFile {
         path: PathBuf,
     },
+    MissingJdxFile {
+        path: PathBuf
+    },
     MissingMetaData {
         path: PathBuf,
         regex: String,
@@ -123,6 +126,11 @@ impl core::fmt::Display for Error {
             ),
             Missing1rFile { path } => format!(
                 "missing 1r file \
+                 expected at {:?}",
+                path
+            ),
+            MissingJdxFile { path } => format!(
+                "missing jdx file \
                  expected at {:?}",
                 path
             ),
