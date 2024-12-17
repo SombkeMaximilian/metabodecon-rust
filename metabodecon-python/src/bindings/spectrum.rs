@@ -29,7 +29,8 @@ impl Spectrum {
                 intensities,
                 signal_boundaries,
                 water_boundaries,
-            ),
+            )
+            .unwrap(),
         }
     }
 
