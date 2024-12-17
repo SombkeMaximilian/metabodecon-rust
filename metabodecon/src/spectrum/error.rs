@@ -1,4 +1,5 @@
 use crate::spectrum::Monotonicity;
+use std::path::PathBuf;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -26,6 +27,21 @@ pub enum Kind {
     NonUniformlySpacedData {
         positions: (usize, usize),
     },
+
+    MissingAcqusFile {
+        path: PathBuf,
+    },
+    MissingProcsFile {
+        path: PathBuf,
+    },
+    Missing1rFile {
+        path: PathBuf,
+    },
+    MissingMetaData {
+        path: PathBuf,
+        regex: String,
+    },
+
     IoError {
         message: String,
     },
@@ -70,7 +86,7 @@ impl core::fmt::Display for Error {
                 chemical_shifts,
                 intensities,
             } => format!(
-                "input data is empty: \
+                "input data is empty \
                  chemical shifts has {} elements, \
                  intensities has {} elements",
                 chemical_shifts, intensities
@@ -79,7 +95,7 @@ impl core::fmt::Display for Error {
                 chemical_shifts,
                 intensities,
             } => format!(
-                "input data lengths are mismatched: \
+                "input data lengths are mismatched \
                  chemical shifts has {} elements, \
                  intensities has {} elements",
                 chemical_shifts, intensities
@@ -89,14 +105,35 @@ impl core::fmt::Display for Error {
                 signal_boundaries,
                 water_boundaries,
             } => format!(
-                "input data is not monotonic (intensities may be incorrect): \
-                 chemical shifts is {:?},\
+                "input data is not monotonic (intensities may be incorrect) \
+                 chemical shifts is {:?}, \
                  signal boundaries is {:?}, \
                  water boundaries is {:?}",
                 chemical_shifts, signal_boundaries, water_boundaries
             ),
+            MissingAcqusFile { path } => format!(
+                "missing acqus file \
+                 expected at {:?}",
+                path
+            ),
+            MissingProcsFile { path } => format!(
+                "missing procs file \
+                 expected at {:?}",
+                path
+            ),
+            Missing1rFile { path } => format!(
+                "missing 1r file \
+                 expected at {:?}",
+                path
+            ),
+            MissingMetaData { path, regex } => format!(
+                "missing metadata \
+                 expected in file at {:?} \
+                 with regex {}",
+                path, regex
+            ),
             NonUniformlySpacedData { positions } => format!(
-                "input data is not uniformly spaced: \
+                "chemical shifts are not uniformly spaced \
                  step size at indices ({}, {}) differs from previous step",
                 positions.0, positions.1
             ),
