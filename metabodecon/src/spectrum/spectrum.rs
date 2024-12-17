@@ -84,7 +84,7 @@ impl Spectrum {
             if chemical_shifts_monotonicity != signal_boundaries_monotonicity
                 || chemical_shifts_monotonicity != water_boundaries_monotonicity
             {
-                return Err(Error::new(Kind::MonotonicityMismatch {
+                return Err(Error::new(Kind::MismatchedMonotonicity {
                     chemical_shifts: chemical_shifts_monotonicity,
                     signal_boundaries: signal_boundaries_monotonicity,
                     water_boundaries: water_boundaries_monotonicity,

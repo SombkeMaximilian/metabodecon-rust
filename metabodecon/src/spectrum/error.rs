@@ -19,7 +19,7 @@ pub enum Kind {
         chemical_shifts: usize,
         intensities: usize,
     },
-    MonotonicityMismatch {
+    MismatchedMonotonicity {
         chemical_shifts: Monotonicity,
         signal_boundaries: Monotonicity,
         water_boundaries: Monotonicity,
@@ -103,7 +103,7 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
-            MonotonicityMismatch {
+            MismatchedMonotonicity {
                 chemical_shifts,
                 signal_boundaries,
                 water_boundaries,
