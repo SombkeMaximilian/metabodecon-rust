@@ -5,6 +5,13 @@ use crate::spectrum::{
 use std::io::{self};
 use std::path::Path;
 
+#[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
+pub enum Monotonicity {
+    #[default]
+    Increasing,
+    Decreasing,
+}
+
 #[derive(Clone, Debug, Default)]
 pub struct Spectrum {
     chemical_shifts: Box<[f64]>,
