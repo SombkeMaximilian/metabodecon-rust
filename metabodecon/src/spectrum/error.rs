@@ -38,7 +38,7 @@ pub enum Kind {
         path: PathBuf,
     },
     MissingJdxFile {
-        path: PathBuf
+        path: PathBuf,
     },
     MissingMetaData {
         path: PathBuf,
