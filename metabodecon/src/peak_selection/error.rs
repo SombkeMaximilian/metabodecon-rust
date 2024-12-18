@@ -12,9 +12,9 @@ pub struct Error {
 #[derive(Clone, Eq, PartialEq, Debug)]
 pub enum Kind {
     NoPeaksDetected,
-    NoPeaksInSignalRegion,
-    NoPeaksInSignalFreeRegion,
-    NoPeaksInWaterRegion,
+    EmptySignalRegion,
+    EmptySignalFreeRegion,
+    EmptyWaterRegion,
 }
 
 impl std::error::Error for Error {}
