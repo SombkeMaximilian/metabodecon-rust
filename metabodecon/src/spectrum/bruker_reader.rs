@@ -51,19 +51,19 @@ impl BrukerReader {
             .as_ref()
             .join(format!("{}/acqus", experiment));
         if !acqus_path.is_file() {
-            return Err(Error::new(Kind::MissingAcqusFile { path: acqus_path }));
+            return Err(Error::new(Kind::MissingAcqus { path: acqus_path }));
         }
         let procs_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/procs", experiment, processing));
         if !procs_path.is_file() {
-            return Err(Error::new(Kind::MissingProcsFile { path: procs_path }));
+            return Err(Error::new(Kind::MissingProcs { path: procs_path }));
         }
         let one_r_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/1r", experiment, processing));
         if !one_r_path.is_file() {
-            return Err(Error::new(Kind::Missing1rFile { path: one_r_path }));
+            return Err(Error::new(Kind::Missing1r { path: one_r_path }));
         }
 
         let acqus = self.read_acquisition_parameters(acqus_path)?;

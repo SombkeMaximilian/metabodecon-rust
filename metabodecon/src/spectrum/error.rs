@@ -17,32 +17,32 @@ pub enum Kind {
         chemical_shifts: usize,
         intensities: usize,
     },
-    LengthMismatchedData {
+    DataLengthMismatch {
         chemical_shifts: usize,
         intensities: usize,
     },
-    MismatchedMonotonicity {
+    MonotonicityMismatch {
         chemical_shifts: Monotonicity,
         signal_boundaries: Monotonicity,
         water_boundaries: Monotonicity,
     },
-    NonUniformlySpacedData {
+    NonUniformSpacing {
         positions: (usize, usize),
     },
 
-    MissingAcqusFile {
+    MissingAcqus {
         path: PathBuf,
     },
-    MissingProcsFile {
+    MissingProcs {
         path: PathBuf,
     },
-    Missing1rFile {
+    Missing1r {
         path: PathBuf,
     },
-    MissingJdxFile {
+    MissingJdx {
         path: PathBuf,
     },
-    MissingMetaData {
+    MissingMetadata {
         path: PathBuf,
         regex: String,
     },
@@ -94,7 +94,7 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
-            LengthMismatchedData {
+            DataLengthMismatch {
                 chemical_shifts,
                 intensities,
             } => format!(
@@ -103,7 +103,7 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
-            MismatchedMonotonicity {
+            MonotonicityMismatch {
                 chemical_shifts,
                 signal_boundaries,
                 water_boundaries,
@@ -114,33 +114,33 @@ impl core::fmt::Display for Error {
                  water boundaries is {:?}",
                 chemical_shifts, signal_boundaries, water_boundaries
             ),
-            MissingAcqusFile { path } => format!(
+            MissingAcqus { path } => format!(
                 "missing acqus file \
                  expected at {:?}",
                 path
             ),
-            MissingProcsFile { path } => format!(
+            MissingProcs { path } => format!(
                 "missing procs file \
                  expected at {:?}",
                 path
             ),
-            Missing1rFile { path } => format!(
+            Missing1r { path } => format!(
                 "missing 1r file \
                  expected at {:?}",
                 path
             ),
-            MissingJdxFile { path } => format!(
+            MissingJdx { path } => format!(
                 "missing jdx file \
                  expected at {:?}",
                 path
             ),
-            MissingMetaData { path, regex } => format!(
+            MissingMetadata { path, regex } => format!(
                 "missing metadata \
                  expected in file at {:?} \
                  with regex {}",
                 path, regex
             ),
-            NonUniformlySpacedData { positions } => format!(
+            NonUniformSpacing { positions } => format!(
                 "chemical shifts are not uniformly spaced \
                  step size at indices ({}, {}) differs from previous step",
                 positions.0, positions.1

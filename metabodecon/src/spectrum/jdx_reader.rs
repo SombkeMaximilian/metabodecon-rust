@@ -32,7 +32,7 @@ impl JdxReader {
         water_boundaries: (f64, f64)
     ) -> Result<Spectrum> {
         if !path.as_ref().is_file() {
-            return Err(Error::new(Kind::MissingJdxFile { path: path.as_ref().to_path_buf() }));
+            return Err(Error::new(Kind::MissingJdx { path: path.as_ref().to_path_buf() }));
         }
         let _meta = self.read_meta_data(path.as_ref())?;
         let spectrum = Spectrum::new(Vec::new(), Vec::new(), signal_boundaries, water_boundaries)?;

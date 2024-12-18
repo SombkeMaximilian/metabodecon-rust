@@ -17,9 +17,7 @@ impl Monotonicity {
         match first.partial_cmp(&second) {
             Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
             Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
-            _ => Err(Error::new(Kind::NonUniformlySpacedData {
-                positions: (0, 1),
-            })),
+            _ => Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) })),
         }
     }
 }
@@ -49,7 +47,7 @@ impl Spectrum {
         }
 
         if chemical_shifts.len() != intensities.len() {
-            return Err(Error::new(Kind::LengthMismatchedData {
+            return Err(Error::new(Kind::DataLengthMismatch {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
             }));
@@ -57,9 +55,7 @@ impl Spectrum {
 
         let step_size = chemical_shifts[1] - chemical_shifts[0];
         if step_size.abs() < f64::EPSILON {
-            return Err(Error::new(Kind::NonUniformlySpacedData {
-                positions: (0, 1),
-            }));
+            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }));
         }
 
         if let Some(position) = chemical_shifts
@@ -68,7 +64,7 @@ impl Spectrum {
         {
             let _values = (chemical_shifts[position], chemical_shifts[position + 1]);
             let _diff = (chemical_shifts[position + 1] - chemical_shifts[position]).abs();
-            return Err(Error::new(Kind::NonUniformlySpacedData {
+            return Err(Error::new(Kind::NonUniformSpacing {
                 positions: (position, position + 1),
             }));
         }
@@ -84,7 +80,7 @@ impl Spectrum {
             if chemical_shifts_monotonicity != signal_boundaries_monotonicity
                 || chemical_shifts_monotonicity != water_boundaries_monotonicity
             {
-                return Err(Error::new(Kind::MismatchedMonotonicity {
+                return Err(Error::new(Kind::MonotonicityMismatch {
                     chemical_shifts: chemical_shifts_monotonicity,
                     signal_boundaries: signal_boundaries_monotonicity,
                     water_boundaries: water_boundaries_monotonicity,
