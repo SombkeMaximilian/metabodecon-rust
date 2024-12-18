@@ -1,4 +1,5 @@
 mod detector;
+mod error;
 mod peak;
 mod scorer;
 mod selector;
