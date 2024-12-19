@@ -28,19 +28,13 @@ fn deconvolute_spectrum(c: &mut Criterion) {
     let deconvoluter = d();
 
     c.bench_function("deconvolute_sim_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(&mut sim_spectrum);
-        })
+        b.iter(|| deconvoluter.deconvolute_spectrum(&mut sim_spectrum))
     });
     c.bench_function("deconvolute_blood_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(&mut blood_spectrum);
-        })
+        b.iter(|| deconvoluter.deconvolute_spectrum(&mut blood_spectrum))
     });
     c.bench_function("deconvolute_urine_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.deconvolute_spectrum(&mut urine_spectrum);
-        })
+        b.iter(|| deconvoluter.deconvolute_spectrum(&mut urine_spectrum))
     });
 }
 
@@ -49,19 +43,13 @@ fn par_deconvolute_spectrum(c: &mut Criterion) {
     let deconvoluter = d();
 
     c.bench_function("parallel_deconvolute_sim_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.par_deconvolute_spectrum(&mut sim_spectrum);
-        })
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut sim_spectrum))
     });
     c.bench_function("parallel_deconvolute_blood_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.par_deconvolute_spectrum(&mut blood_spectrum);
-        })
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut blood_spectrum))
     });
     c.bench_function("parallel_deconvolute_urine_spectrum", |b| {
-        b.iter(|| {
-            deconvoluter.par_deconvolute_spectrum(&mut urine_spectrum);
-        })
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut urine_spectrum))
     });
 }
 
