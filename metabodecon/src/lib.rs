@@ -17,12 +17,14 @@ own work, that have been implemented in Rust.
 */
 
 mod deconvolution;
+mod error;
 mod fitting;
 mod peak_selection;
 mod smoothing;
 mod spectrum;
 
 pub use deconvolution::{Deconvoluter, Deconvolution};
+pub use error::Error;
 pub use fitting::{FittingAlgo, Lorentzian};
 pub use peak_selection::{ScoringAlgo, SelectionAlgo};
 pub use smoothing::{MovingAverageAlgo, SmoothingAlgo};
