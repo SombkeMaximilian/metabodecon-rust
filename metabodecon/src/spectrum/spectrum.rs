@@ -1,5 +1,6 @@
+use crate::error::Result;
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
-use crate::spectrum::error::{Error, Kind, Result};
+use crate::spectrum::error::{Error, Kind};
 use crate::spectrum::{
     bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader, jdx_reader::JdxReader,
 };
@@ -17,7 +18,7 @@ impl Monotonicity {
         match first.partial_cmp(&second) {
             Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
             Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
-            _ => Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) })),
+            _ => Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into()),
         }
     }
 }
@@ -43,19 +44,19 @@ impl Spectrum {
             return Err(Error::new(Kind::EmptyData {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
-            }));
+            }).into());
         }
 
         if chemical_shifts.len() != intensities.len() {
             return Err(Error::new(Kind::DataLengthMismatch {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
-            }));
+            }).into());
         }
 
         let step_size = chemical_shifts[1] - chemical_shifts[0];
         if step_size.abs() < f64::EPSILON {
-            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }));
+            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into());
         }
 
         if let Some(position) = chemical_shifts
@@ -66,7 +67,7 @@ impl Spectrum {
             let _diff = (chemical_shifts[position + 1] - chemical_shifts[position]).abs();
             return Err(Error::new(Kind::NonUniformSpacing {
                 positions: (position, position + 1),
-            }));
+            }).into());
         }
 
         let monotonicity = {
@@ -84,7 +85,7 @@ impl Spectrum {
                     chemical_shifts: chemical_shifts_monotonicity,
                     signal_boundaries: signal_boundaries_monotonicity,
                     water_boundaries: water_boundaries_monotonicity,
-                }));
+                }).into());
             }
             chemical_shifts_monotonicity
         };

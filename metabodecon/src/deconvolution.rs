@@ -4,4 +4,4 @@ mod error;
 
 pub use deconvoluter::Deconvoluter;
 pub use deconvolution::Deconvolution;
-pub use error::{Error, Kind, Result};
+pub use error::{Error, Kind};

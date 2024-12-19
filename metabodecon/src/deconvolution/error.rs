@@ -1,7 +1,5 @@
 use std::sync::Arc;
 
-pub type Result<T> = std::result::Result<T, Error>;
-
 #[derive(Clone, Debug)]
 pub struct Error {
     kind: Kind,

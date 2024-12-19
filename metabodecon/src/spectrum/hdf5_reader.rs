@@ -1,4 +1,5 @@
-use crate::spectrum::{Result, Spectrum};
+use crate::error::Result;
+use crate::spectrum::Spectrum;
 use std::path::Path;
 
 #[derive(Default)]

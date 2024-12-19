@@ -1,4 +1,5 @@
-use crate::deconvolution::{Error, Kind, Result};
+use crate::error::Result;
+use crate::deconvolution::{Error, Kind};
 use crate::peak_selection::peak::Peak;
 
 #[derive(Debug)]
@@ -21,7 +22,7 @@ impl<'a> Detector<'a> {
             .map(|(center, (left, right))| Peak::new(left, center, right))
             .collect();
         if peaks.is_empty() {
-            return Err(Error::new(Kind::NoPeaksDetected));
+            return Err(Error::new(Kind::NoPeaksDetected).into());
         }
 
         Ok(peaks)

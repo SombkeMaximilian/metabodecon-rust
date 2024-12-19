@@ -1,4 +1,5 @@
-use crate::spectrum::{Error, Kind, Result, Spectrum};
+use crate::error::Result;
+use crate::spectrum::{Error, Kind, Spectrum};
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{read_to_string, File};
@@ -51,19 +52,19 @@ impl BrukerReader {
             .as_ref()
             .join(format!("{}/acqus", experiment));
         if !acqus_path.is_file() {
-            return Err(Error::new(Kind::MissingAcqus { path: acqus_path }));
+            return Err(Error::new(Kind::MissingAcqus { path: acqus_path }).into());
         }
         let procs_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/procs", experiment, processing));
         if !procs_path.is_file() {
-            return Err(Error::new(Kind::MissingProcs { path: procs_path }));
+            return Err(Error::new(Kind::MissingProcs { path: procs_path }).into());
         }
         let one_r_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/1r", experiment, processing));
         if !one_r_path.is_file() {
-            return Err(Error::new(Kind::Missing1r { path: one_r_path }));
+            return Err(Error::new(Kind::Missing1r { path: one_r_path }).into());
         }
 
         let acqus = self.read_acquisition_parameters(acqus_path)?;

@@ -1,4 +1,5 @@
-use crate::deconvolution::{Error, Kind, Result};
+use crate::error::Result;
+use crate::deconvolution::{Error, Kind};
 use crate::peak_selection::detector::Detector;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
@@ -53,10 +54,10 @@ impl SelectorDefault {
         };
         let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries);
         if peaks[..boundaries.0].is_empty() && peaks[boundaries.1..].is_empty() {
-            return Err(Error::new(Kind::EmptySignalFreeRegion));
+            return Err(Error::new(Kind::EmptySignalFreeRegion).into());
         }
         if peaks[boundaries.0..boundaries.1].is_empty() {
-            return Err(Error::new(Kind::EmptySignalRegion));
+            return Err(Error::new(Kind::EmptySignalRegion).into());
         }
 
         let scores_sfr: Vec<f64> = peaks[0..boundaries.0]

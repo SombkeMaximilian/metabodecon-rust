@@ -24,7 +24,7 @@ mod smoothing;
 mod spectrum;
 
 pub use deconvolution::{Deconvoluter, Deconvolution};
-pub use error::Error;
+pub use error::{Error, Result};
 pub use fitting::{FittingAlgo, Lorentzian};
 pub use peak_selection::{ScoringAlgo, SelectionAlgo};
 pub use smoothing::{MovingAverageAlgo, SmoothingAlgo};

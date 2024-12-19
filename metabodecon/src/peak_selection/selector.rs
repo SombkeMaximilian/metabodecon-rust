@@ -1,4 +1,4 @@
-use crate::deconvolution::Result;
+use crate::error::Result;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 use crate::spectrum::Spectrum;
