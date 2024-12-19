@@ -17,7 +17,9 @@ pub fn run_deconvolution(path: &str, dataset: &str) -> Deconvolution {
         },
         FittingAlgo::Analytical { iterations: 10 },
     );
-    deconvoluter.deconvolute_spectrum(&mut spectrum).unwrap()
+    deconvoluter
+        .deconvolute_spectrum(&mut spectrum)
+        .unwrap()
 }
 
 #[test]

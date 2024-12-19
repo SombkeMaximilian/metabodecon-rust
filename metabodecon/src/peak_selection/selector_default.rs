@@ -1,5 +1,5 @@
-use crate::error::Result;
 use crate::deconvolution::{Error, Kind};
+use crate::error::Result;
 use crate::peak_selection::detector::Detector;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};

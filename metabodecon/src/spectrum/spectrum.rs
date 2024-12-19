@@ -44,14 +44,16 @@ impl Spectrum {
             return Err(Error::new(Kind::EmptyData {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
-            }).into());
+            })
+            .into());
         }
 
         if chemical_shifts.len() != intensities.len() {
             return Err(Error::new(Kind::DataLengthMismatch {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
-            }).into());
+            })
+            .into());
         }
 
         let step_size = chemical_shifts[1] - chemical_shifts[0];
@@ -67,7 +69,8 @@ impl Spectrum {
             let _diff = (chemical_shifts[position + 1] - chemical_shifts[position]).abs();
             return Err(Error::new(Kind::NonUniformSpacing {
                 positions: (position, position + 1),
-            }).into());
+            })
+            .into());
         }
 
         let monotonicity = {
@@ -85,7 +88,8 @@ impl Spectrum {
                     chemical_shifts: chemical_shifts_monotonicity,
                     signal_boundaries: signal_boundaries_monotonicity,
                     water_boundaries: water_boundaries_monotonicity,
-                }).into());
+                })
+                .into());
             }
             chemical_shifts_monotonicity
         };

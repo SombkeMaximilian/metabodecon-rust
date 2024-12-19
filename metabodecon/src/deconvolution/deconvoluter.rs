@@ -1,5 +1,5 @@
-use crate::error::Result;
 use crate::deconvolution::Deconvolution;
+use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
 use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
 use crate::smoothing::SmoothingAlgo;
