@@ -1,4 +1,5 @@
 use crate::peak_selection::detector::Detector;
+use crate::peak_selection::error::{Error, Kind, Result};
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
@@ -11,17 +12,18 @@ pub struct SelectorDefault {
 }
 
 impl Selector for SelectorDefault {
-    fn select_peaks(&self, spectrum: &Spectrum) -> Vec<Peak> {
+    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
         let signal_boundaries = spectrum.signal_boundaries_indices();
         let mut second_derivative = Self::second_derivative(spectrum.intensities());
         let peaks = {
             let detector = Detector::new(&second_derivative);
-            detector.detect_peaks()
+            detector.detect_peaks()?
         };
         second_derivative
             .iter_mut()
             .for_each(|d| *d = d.abs());
-        self.filter_peaks(peaks, &second_derivative, signal_boundaries)
+
+        Ok(self.filter_peaks(peaks, &second_derivative, signal_boundaries)?)
     }
 }
 
@@ -45,21 +47,28 @@ impl SelectorDefault {
         mut peaks: Vec<Peak>,
         abs_second_derivative: &[f64],
         signal_boundaries: (usize, usize),
-    ) -> Vec<Peak> {
+    ) -> Result<Vec<Peak>> {
         let scorer = match self.scoring_algo {
             ScoringAlgo::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
         };
         let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries);
+        if peaks[..boundaries.0].is_empty() && peaks[boundaries.1..].is_empty() {
+            return Err(Error::new(Kind::EmptySignalFreeRegion));
+        }
+        if peaks[boundaries.0..boundaries.1].is_empty() {
+            return Err(Error::new(Kind::EmptySignalRegion));
+        }
+
         let scores_sfr: Vec<f64> = peaks[0..boundaries.0]
             .iter()
             .chain(peaks[boundaries.1..].iter())
             .map(|peak| scorer.score_peak(peak))
             .collect();
         let (mean, sd) = Self::mean_sd_scores(scores_sfr);
-        peaks
+        Ok(peaks
             .drain(boundaries.0..boundaries.1)
             .filter(|peak| scorer.score_peak(peak) >= mean + self.threshold * sd)
-            .collect()
+            .collect())
     }
 
     fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> (usize, usize) {

@@ -1,3 +1,4 @@
+use crate::peak_selection::error::Result;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 use crate::spectrum::Spectrum;
@@ -12,5 +13,5 @@ pub enum SelectionAlgo {
 }
 
 pub trait Selector {
-    fn select_peaks(&self, spectrum: &Spectrum) -> Vec<Peak>;
+    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>>;
 }

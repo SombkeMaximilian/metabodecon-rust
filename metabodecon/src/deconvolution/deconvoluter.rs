@@ -58,7 +58,7 @@ impl Deconvoluter {
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum)
+            selector.select_peaks(spectrum).unwrap()
         };
         let lorentzians = {
             let fitter = match self.fitting_algo {
@@ -92,7 +92,7 @@ impl Deconvoluter {
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum)
+            selector.select_peaks(spectrum).unwrap()
         };
         let lorentzians = {
             let fitter = match self.fitting_algo {
