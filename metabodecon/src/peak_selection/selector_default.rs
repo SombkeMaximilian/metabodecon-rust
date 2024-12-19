@@ -23,7 +23,7 @@ impl Selector for SelectorDefault {
             .iter_mut()
             .for_each(|d| *d = d.abs());
 
-        Ok(self.filter_peaks(peaks, &second_derivative, signal_boundaries)?)
+        self.filter_peaks(peaks, &second_derivative, signal_boundaries)
     }
 }
 
