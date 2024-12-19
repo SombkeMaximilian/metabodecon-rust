@@ -14,7 +14,7 @@ pub enum Monotonicity {
 }
 
 impl Monotonicity {
-    pub fn from_f64s(first: f64, second: f64) -> Result<Self> {
+    pub(crate) fn from_f64s(first: f64, second: f64) -> Result<Self> {
         match first.partial_cmp(&second) {
             Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
             Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
