@@ -79,7 +79,8 @@ mod tests {
 
     #[test]
     fn find_peak_borders() {
-        // indices are offset by 1, as second derivative is computed for central points only
+        // indices are offset by 1, as second derivative is computed for central points
+        // only
         let mut second_derivative = vec![0.5, -0.5, -1., 0., 0.5, 0.];
         {
             let detector = Detector::new(&second_derivative);
