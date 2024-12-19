@@ -6,7 +6,7 @@ use crate::spectrum::{
 };
 use std::path::Path;
 
-/// `Monotonicity` represents the ordering of the 1D NMR spectrum data.
+/// Represents the ordering of 1D NMR spectrum data.
 ///
 /// Typically, 1D NMR data is ordered in [`Decreasing`] order of chemical
 /// shifts, but this is not always the case. Additionally, it is often simpler
