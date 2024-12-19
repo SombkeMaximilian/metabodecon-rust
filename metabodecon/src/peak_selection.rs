@@ -1,5 +1,4 @@
 mod detector;
-#[rustfmt::skip] #[allow(dead_code)] mod error;
 mod peak;
 mod scorer;
 mod selector;

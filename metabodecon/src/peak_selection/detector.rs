@@ -1,4 +1,4 @@
-use crate::peak_selection::error::{Error, Kind, Result};
+use crate::deconvolution::{Error, Kind, Result};
 use crate::peak_selection::peak::Peak;
 
 #[derive(Debug)]
