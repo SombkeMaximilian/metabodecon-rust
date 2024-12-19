@@ -1,3 +1,4 @@
+use crate::error::Result;
 use crate::deconvolution::Deconvolution;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
 use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
@@ -49,7 +50,7 @@ impl Deconvoluter {
         self.fitting_algo = fitting_algo;
     }
 
-    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
+    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
         spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
@@ -58,7 +59,7 @@ impl Deconvoluter {
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum).unwrap()
+            selector.select_peaks(spectrum)?
         };
         let lorentzians = {
             let fitter = match self.fitting_algo {
@@ -73,17 +74,17 @@ impl Deconvoluter {
             .sum::<f64>()
             / spectrum.intensities_raw().len() as f64;
 
-        Deconvolution::new(
+        Ok(Deconvolution::new(
             lorentzians,
             self.smoothing_algo,
             self.selection_algo,
             self.fitting_algo,
             mse,
-        )
+        ))
     }
 
     #[cfg(feature = "parallel")]
-    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
+    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
         spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
@@ -92,7 +93,7 @@ impl Deconvoluter {
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum).unwrap()
+            selector.select_peaks(spectrum)?
         };
         let lorentzians = {
             let fitter = match self.fitting_algo {
@@ -107,12 +108,12 @@ impl Deconvoluter {
             .sum::<f64>()
             / spectrum.intensities_raw().len() as f64;
 
-        Deconvolution::new(
+        Ok(Deconvolution::new(
             lorentzians,
             self.smoothing_algo,
             self.selection_algo,
             self.fitting_algo,
             mse,
-        )
+        ))
     }
 }

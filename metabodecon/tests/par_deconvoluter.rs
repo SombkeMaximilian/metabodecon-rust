@@ -18,7 +18,7 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Deconvolution {
         },
         FittingAlgo::Analytical { iterations: 10 },
     );
-    deconvoluter.par_deconvolute_spectrum(&mut spectrum)
+    deconvoluter.par_deconvolute_spectrum(&mut spectrum).unwrap()
 }
 
 #[cfg(feature = "parallel")]

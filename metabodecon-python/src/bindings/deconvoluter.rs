@@ -56,14 +56,16 @@ impl Deconvoluter {
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
         Deconvolution::from_inner(
             self.inner
-                .deconvolute_spectrum(spectrum.inner_mut()),
+                .deconvolute_spectrum(spectrum.inner_mut())
+                .unwrap(),
         )
     }
 
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
         Deconvolution::from_inner(
             self.inner
-                .par_deconvolute_spectrum(spectrum.inner_mut()),
+                .par_deconvolute_spectrum(spectrum.inner_mut())
+                .unwrap(),
         )
     }
 }
