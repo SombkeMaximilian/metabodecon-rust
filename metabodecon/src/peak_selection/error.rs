@@ -14,7 +14,6 @@ pub enum Kind {
     NoPeaksDetected,
     EmptySignalRegion,
     EmptySignalFreeRegion,
-    EmptyWaterRegion,
 }
 
 impl std::error::Error for Error {}
@@ -32,6 +31,10 @@ impl core::fmt::Display for Error {
 }
 
 impl Error {
+    pub fn new(kind: Kind) -> Self {
+        kind.into()
+    }
+
     pub fn kind(&self) -> &Kind {
         &self.kind
     }
