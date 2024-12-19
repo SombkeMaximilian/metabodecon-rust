@@ -16,7 +16,11 @@ pub enum Kind {
     EmptySignalFreeRegion,
 }
 
-impl std::error::Error for Error {}
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        self.source.as_ref().map(|s| &**s as _)
+    }
+}
 
 impl From<Kind> for Error {
     fn from(kind: Kind) -> Self {
