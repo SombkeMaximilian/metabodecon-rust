@@ -1,5 +1,5 @@
 #[macro_use]
-mod regex_capture_macros;
+mod macros;
 mod bruker_reader;
 mod hdf5_reader;
 #[rustfmt::skip] #[allow(dead_code)] mod jdx_reader;
