@@ -43,7 +43,7 @@ use std::path::{Path, PathBuf};
 /// From the `procs` file, the following keys are required:
 /// * `OFFSET`: The maximum chemical shift in ppm as a floating point number.
 /// * `SI`: The size of the data. 2^15 and 2^17 are the expected values.
-/// * `BYTORDP`: The byte order of the data encoded, as an integer.
+/// * `BYTORDP`: The endianness of the data, encoded as an integer.
 ///
 ///   | Value | Endianness |
 ///   | ----- | ---------- |
