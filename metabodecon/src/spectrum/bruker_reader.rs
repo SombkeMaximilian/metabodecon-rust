@@ -61,6 +61,11 @@ use std::path::{Path, PathBuf};
 /// * `NC_proc`: The scaling exponent of the data. If the data is stored as
 ///   integers, it is scaled by 2 to the power of this value. If the data is
 ///   stored as floats, this value is unused.
+///
+/// # Raw Data
+///
+/// The raw data is stored in the `1r` file in binary format. The metadata
+/// specifies how the data has to be read.
 #[derive(Default)]
 pub struct BrukerReader;
 
