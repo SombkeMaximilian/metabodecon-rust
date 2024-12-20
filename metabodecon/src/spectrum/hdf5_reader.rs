@@ -2,19 +2,46 @@ use crate::error::Result;
 use crate::spectrum::Spectrum;
 use std::path::Path;
 
+/// Unit struct for reading 1D NMR spectra from HDF5 files.
+///
+/// The HDF5 files are expected to have the following structure:
+/// ```quote
+/// file.h5
+/// └── dataset_01
+///     └── spectrum
+///         ├── data
+///         │   ├── chemical_shifts
+///         │   └── signal_intensities
+///         └── meta
+///             ├── signal_boundaries
+///             └── water_boundaries
+/// ```
+/// `file.h5` and `dataset_01` are the file and dataset names, respectively.
+/// There can be any number of datasets in one file and their names do not need
+/// to follow a pattern. For example, blood_01 and sim_01 would be valid dataset
+/// names in the same file. The `spectrum` group contains the `data` and `meta`
+/// groups, which contain the raw data and metadata, respectively. The
+/// `spectrum` group contains the `data` and `meta` groups, which contain the
+/// raw data and metadata, respectively.
 #[derive(Default)]
 pub struct Hdf5Reader;
 
 impl Hdf5Reader {
+    /// Constructs a new `Hdf5Reader`.
     pub fn new() -> Self {
         Self
     }
 
+    /// Reads the spectrum in the provided dataset from an HDF5 file at the
+    /// provided path and returns it. Any errors are propagated to the
+    /// caller.
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
         Self::read_from_file(&file, dataset)
     }
 
+    /// Reads all spectra from an HDF5 file at the provided path and returns
+    /// them. Any errors are propagated to the caller.
     pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
@@ -26,6 +53,9 @@ impl Hdf5Reader {
         Ok(spectra)
     }
 
+    /// Internal helper function to read the spectrum in the provided dataset
+    /// from the provided HDF5 file handle and return it. Internal errors and
+    /// errors from the HDF5 crate are propagated to the caller.
     fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;
