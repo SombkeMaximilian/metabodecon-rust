@@ -40,13 +40,27 @@ impl Monotonicity {
     }
 }
 
+/// Data structure that represents a 1D NMR spectrum.
+///
+/// `Spectrum` is a container that holds the chemical shifts, raw intensities,
+/// preprocessed intensities and metadata of a 1D NMR spectrum. Preprocessed
+/// intensities are empty when the Spectrum is created. 1D NMR spectra typically
+/// contain signal free regions on both ends of the frequency range, and a water
+/// artifact within the signal region. The boundaries of the signal region and
+/// water artifact are stored in the spectrum object as tuples.
 #[derive(Clone, Debug, Default)]
 pub struct Spectrum {
+    /// The chemical shifts of the spectrum.
     chemical_shifts: Box<[f64]>,
+    /// The preprocessed intensities of the spectrum.
     intensities: Box<[f64]>,
+    /// The raw intensities of the spectrum.
     intensities_raw: Box<[f64]>,
+    /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
+    /// The boundaries of the water artifact.
     water_boundaries: (f64, f64),
+    /// The monotonicity of the spectrum. Used internally to validate the data.
     monotonicity: Monotonicity,
 }
 
