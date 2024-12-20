@@ -318,7 +318,7 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::MovingAverageAlgo;
+    use crate::smoothing::MovingAverageAlgo;
     use assert_approx_eq::assert_approx_eq;
 
     macro_rules! check_sim_spectrum {
