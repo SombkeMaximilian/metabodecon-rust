@@ -1,3 +1,6 @@
+/// Macro that extracts a capture group from a regular expression and returns
+/// the parsed value or an error if the capture group is missing or could not
+/// be parsed.
 macro_rules! extract_capture {
     ($re:expr, $text:expr, $name:expr, $path:expr) => {
         $re.captures($text)
@@ -25,6 +28,7 @@ macro_rules! extract_capture {
     };
 }
 
+/// Test utility macro to check if the simulated spectrum was read correctly.
 #[cfg(test)]
 macro_rules! check_sim_spectrum {
     ($spectrum:expr) => {
