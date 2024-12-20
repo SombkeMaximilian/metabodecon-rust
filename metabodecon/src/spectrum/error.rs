@@ -56,12 +56,16 @@ pub enum Kind {
         /// The number of elements in the intensities vector.
         intensities: usize,
     },
-    /// The input data is not consistently ordered with the [`Monotonicity`]
-    /// that may be expected.
+    /// The input data is not consistently ordered according to the same
+    /// [`Monotonicity`].
     ///
-    /// This indicates that the input data has been passed in an incorrect
-    /// order, which may indicate incorrect intensities. It is better to
-    /// return an error in this case than to silently continue with
+    /// This occurs when the chemical shifts, signal boundaries, and water
+    /// boundaries are provided with mismatched monotonicity. For example, if
+    /// the chemical shifts are in decreasing order but the boundary tuples are
+    /// in increasing order, it is likely that the intensities are also ordered
+    /// incorrectly relative to the chemical shifts. This is unlikely to be
+    /// intentional and is likely a mistake in the input data. Therefore, it is
+    /// better to return an error in this case than to silently continue with
     /// potentially incorrect data.
     MonotonicityMismatch {
         /// The ordering of the chemical shifts vector.
