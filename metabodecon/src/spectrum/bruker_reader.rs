@@ -6,40 +6,111 @@ use std::fs::{read_to_string, File};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
+/// Unit struct for reading 1D NMR spectra in the Bruker TopSpin format.
+///
+/// The Bruker TopSpin file format stores metadata and data in various files.
+/// Most of the stored information is not used in this implementation, but the
+/// following files are required to read a spectrum:
+/// ```markdown
+/// name
+/// └── name_01
+///     └── experiment
+///         ├── pdata
+///         │   └── processing
+///         │       ├── 1r
+///         │       └── procs
+///         └── acqus
+/// ```
+/// `name` is the name of the dataset, which can be any string. `name_01` is
+/// the name of the sample. `experiment` is an integer that represents the
+/// type of experiment. Usually a lab will have a convention for which number
+/// corresponds to which type of experiment. For example 10 being a 1D NMR
+/// experiment. `pdata` is the processing data directory and `processing` is
+/// the processing number, which is an arbitrary integer.
+///
+/// # Metadata
+///
+/// The `acqus` and `procs` files contain the acquisition and processing
+/// parameters, respectively. They are plain text files with key-value pairs,
+/// where each line starts with `##$key=`. The values are extracted with
+/// regular expressions.
+///
+/// From the `acqus` file, the following keys are required:
+/// * `SW`: The spectral width in ppm as a floating point number.
+///
+/// From the `procs` file, the following keys are required:
+/// * `OFFSET`: The maximum chemical shift in ppm as a floating point number.
+/// * `SI`: The size of the data. 2^15 and 2^17 are the expected values.
+/// * `BYTORDP`: The byte order of the data encoded, as an integer.
+///
+///   | Value | Endianness |
+///   | ----- | ---------- |
+///   | 0     | Little     |
+///   | 1     | Big        |
+///
+/// * `DTYPP`: The data type the raw signal intensities are stored as, encoded
+///   as an integer.
+///
+///   | Value | Type |
+///   | ----- | ---- |
+///   | 0     | i32  |
+///   | 1     | f64  |
+///
+/// * `NC_proc`: The scaling exponent of the data. If the data is stored as
+///   integers, it is scaled by 2 to the power of this value. If the data is
+///   stored as floats, this value is unused.
+#[derive(Default)]
+pub struct BrukerReader;
+
+/// Endianness of the raw data. Extracted from the `procs` file.
+///
+/// BYTORDP | Endianness
+/// ------- | ----------
+/// 0       | Little
+/// 1       | Big
 #[derive(Debug)]
 enum Endian {
     Little,
     Big,
 }
 
+/// Data type of the raw data. Extracted from the `procs` file.
+///
+/// DTYPP | Type
+/// ----- | ----
+/// 0     | i32
+/// 1     | f64
 #[derive(Debug)]
 enum Type {
     I32,
     F64,
 }
 
+/// Acquisition parameters extracted from the `acqus` file.
 #[derive(Debug)]
 struct AcquisitionParameters {
     pub spectrum_width: f64,
 }
 
+/// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
     pub spectrum_maximum: f64,
-    pub scaling_exponent: i32,
+    pub data_size: usize,
     pub endian: Endian,
     pub data_type: Type,
-    pub data_size: usize,
+    pub scaling_exponent: i32,
 }
 
-#[derive(Default)]
-pub struct BrukerReader;
-
 impl BrukerReader {
+    /// Constructs a new `BrukerReader`.
     pub fn new() -> Self {
         Self
     }
 
+    /// Reads the spectrum in the provided dataset from a Bruker TopSpin
+    /// directory at the provided path and returns it. Any errors are
+    /// propagated to the caller.
     pub fn read_spectrum<P: AsRef<Path>>(
         &self,
         path: P,
@@ -86,6 +157,8 @@ impl BrukerReader {
         Ok(spectrum)
     }
 
+    /// Reads all spectra in Bruker TopSpin format in subdirectories of the
+    /// provided path and returns them. Any errors are propagated to the caller.
     pub fn read_spectra<P: AsRef<Path>>(
         &self,
         path: P,
@@ -117,6 +190,8 @@ impl BrukerReader {
         Ok(spectra)
     }
 
+    /// Internal helper function to read the acquisition parameters from the
+    /// `acqus` file and return them.
     fn read_acquisition_parameters<P: AsRef<Path>>(
         &self,
         path: P,
@@ -129,13 +204,15 @@ impl BrukerReader {
         Ok(AcquisitionParameters { spectrum_width })
     }
 
+    /// Internal helper function to read the processing parameters from the
+    /// `procs` file and return them.
     fn read_processing_parameters<P: AsRef<Path>>(&self, path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
-        let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
-        let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
-        let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
         let data_size_re = Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap();
+        let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
+        let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
+        let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
 
         let spectrum_maximum = extract_capture!(maximum_re, &procs, "maximum", path);
         let scaling_exponent = extract_capture!(exponent_re, &procs, "exponent", path);
@@ -151,13 +228,17 @@ impl BrukerReader {
 
         Ok(ProcessingParameters {
             spectrum_maximum,
-            scaling_exponent,
+            data_size,
             endian,
             data_type,
-            data_size,
+            scaling_exponent,
         })
     }
 
+    /// Internal helper function to read the raw data from the `1r` file and
+    /// return it as a vector of floating point numbers. As working with
+    /// chemical shifts in increasing order is generally simpler, the vector is
+    /// reversed before being returned.
     fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
         let mut one_r = File::open(path)?;
         let mut buffer = vec![
