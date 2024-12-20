@@ -59,7 +59,7 @@ pub enum Kind {
     /// The input data is not consistently ordered with the [`Monotonicity`]
     /// that may be expected.
     ///
-    /// This error indicates that theinput data has been passed in an incorrect
+    /// This error indicates that the input data has been passed in an incorrect
     /// order, which may indicate incorrect intensities. It is better to
     /// return an error in this case than to silently continue with
     /// potentially incorrect data.
