@@ -11,6 +11,7 @@ use std::path::{Path, PathBuf};
 /// The Bruker TopSpin file format stores metadata and data in various files.
 /// Most of the stored information is not used in this implementation, but the
 /// following files are required to read a spectrum:
+///
 /// ```markdown
 /// name
 /// └── name_01
@@ -21,6 +22,7 @@ use std::path::{Path, PathBuf};
 ///         │       └── procs
 ///         └── acqus
 /// ```
+///
 /// `name` is the name of the dataset, which can be any string. `name_01` is
 /// the name of the sample. `experiment` is an integer that represents the
 /// type of experiment. Usually a lab will have a convention for which number
