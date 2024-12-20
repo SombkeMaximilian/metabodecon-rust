@@ -191,16 +191,6 @@ impl Spectrum {
         self.water_boundaries = water_boundaries;
     }
 
-    pub fn len(&self) -> usize {
-        self.chemical_shifts.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.chemical_shifts.is_empty()
-            || self.intensities.is_empty()
-            || self.intensities_raw.is_empty()
-    }
-
     /// Computes the step size between two consecutive chemical shifts in ppm.
     pub fn step(&self) -> f64 {
         self.chemical_shifts[1] - self.chemical_shifts[0]
