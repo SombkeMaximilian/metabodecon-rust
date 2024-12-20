@@ -148,12 +148,12 @@ impl Spectrum {
         &self.intensities_raw
     }
 
-    /// Returns the signal boundaries as a tuple.
+    /// Returns the signal region boundaries as a tuple.
     pub fn signal_boundaries(&self) -> (f64, f64) {
         self.signal_boundaries
     }
 
-    /// Returns the water boundaries as a tuple.
+    /// Returns the water artifact boundaries as a tuple.
     pub fn water_boundaries(&self) -> (f64, f64) {
         self.water_boundaries
     }
@@ -179,14 +179,14 @@ impl Spectrum {
         self.intensities_raw = intensities_raw.into_boxed_slice();
     }
 
-    /// Sets the signal boundaries of the spectrum. This currently does not
-    /// perform any monotonicity validation on the input data.
+    /// Sets the signal region boundaries of the spectrum. This currently does
+    /// not perform any monotonicity validation on the input data.
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
         self.signal_boundaries = signal_boundaries;
     }
 
-    /// Sets the water boundaries of the spectrum. This currently does not
-    /// perform any monotonicity validation on the input data.
+    /// Sets the water artifact boundaries of the spectrum. This currently does
+    /// not perform any monotonicity validation on the input data.
     pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) {
         self.water_boundaries = water_boundaries;
     }
