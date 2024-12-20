@@ -66,8 +66,9 @@ mod tests {
     #[test]
     fn read_spectrum() {
         let path = "../data/hdf5/sim.h5";
+        let dataset = "sim_01";
         let reader = Hdf5Reader::new();
-        let spectrum = reader.read_spectrum(path, "sim_01").unwrap();
+        let spectrum = reader.read_spectrum(path, dataset).unwrap();
         check_sim_spectrum!(spectrum);
     }
 
