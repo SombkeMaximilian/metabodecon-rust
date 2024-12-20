@@ -5,7 +5,7 @@ use std::path::Path;
 /// Unit struct for reading 1D NMR spectra from HDF5 files.
 ///
 /// The HDF5 files are expected to have the following structure:
-/// ```quote
+/// ```markdown
 /// file.h5
 /// └── dataset_01
 ///     └── spectrum
@@ -33,15 +33,14 @@ impl Hdf5Reader {
     }
 
     /// Reads the spectrum in the provided dataset from an HDF5 file at the
-    /// provided path and returns it. Any errors are propagated to the
-    /// caller.
+    /// provided path and returns it.
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
         Self::read_from_file(&file, dataset)
     }
 
     /// Reads all spectra from an HDF5 file at the provided path and returns
-    /// them. Any errors are propagated to the caller.
+    /// them.
     pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
@@ -54,8 +53,7 @@ impl Hdf5Reader {
     }
 
     /// Internal helper function to read the spectrum in the provided dataset
-    /// from the provided HDF5 file handle and return it. Internal errors and
-    /// errors from the HDF5 crate are propagated to the caller.
+    /// from the provided HDF5 file handle and return it.
     fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;
