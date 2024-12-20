@@ -4,6 +4,21 @@ use regex::Regex;
 use std::fs::read_to_string;
 use std::path::Path;
 
+/// Unit struct for reading 1D NMR spectra in JCAMP-DX format.
+///
+/// The JCAMP-DX format is a text-based format for storing 1D NMR spectra. Both
+/// the metadata and the data are stored in the same file, which can be divided
+/// into the header and the data section. The header contains metadata about the
+/// spectrum. The data section contains the actual spectrum data as a table of
+/// encoded values.
+///
+/// # Metadata
+///
+/// The metadata is stored as key-value pairs, where the lines start with
+/// `##$key=`. The values are extracted with regular expressions.
+#[derive(Default)]
+pub struct JdxReader;
+
 #[derive(Debug)]
 enum Type {
     I32,
@@ -17,9 +32,6 @@ struct MetaData {
     pub scaling_exponent: i32,
     pub data_type: Type,
 }
-
-#[derive(Default)]
-pub struct JdxReader;
 
 impl JdxReader {
     pub fn new() -> Self {
