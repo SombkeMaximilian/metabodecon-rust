@@ -2,11 +2,11 @@ use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
 use std::sync::Arc;
 
-/// An Error that occurred while constructing a [`Spectrum`] or reading 1D NMR
+/// An `Error` that occurred while constructing a [`Spectrum`] or reading 1D NMR
 /// data.
 ///
-/// This Error type is generally unrecoverable and indicates a problem with the
-/// input data itself or the file format it is stored in. For example,
+/// This type of error is generally unrecoverable and indicates a problem with
+/// the input data itself or the file format it is stored in. For example,
 /// if the input data is empty, a file of the Bruker TopSpin format is missing,
 /// or metadata within one of these files is missing.
 ///
@@ -21,18 +21,18 @@ pub struct Error {
 }
 
 impl Error {
-    /// Constructs a new Error from the given `Kind`.
+    /// Constructs a new `Error` from the given `Kind`.
     pub fn new(kind: Kind) -> Self {
         kind.into()
     }
 
-    /// Returns the `Kind` of error.
+    /// Returns the `Kind` of the `Error`.
     pub fn kind(&self) -> &Kind {
         &self.kind
     }
 }
 
-/// The kind of error that can occur while constructing a [`Spectrum`] or
+/// The kind of `Error` that can occur while constructing a [`Spectrum`] or
 /// reading 1D NMR data.
 ///
 /// Marked as non-exhaustive to allow for new variants to be added in the future
@@ -59,7 +59,7 @@ pub enum Kind {
     /// The input data is not consistently ordered with the [`Monotonicity`]
     /// that may be expected.
     ///
-    /// This error indicates that the input data has been passed in an incorrect
+    /// This indicates that the input data has been passed in an incorrect
     /// order, which may indicate incorrect intensities. It is better to
     /// return an error in this case than to silently continue with
     /// potentially incorrect data.
@@ -73,7 +73,7 @@ pub enum Kind {
     },
     /// The chemical shifts are not uniformly spaced.
     ///
-    /// This error occurs when a step size between two chemical shifts is not
+    /// This occurs when a step size between two chemical shifts is not
     /// equal to the expected step size. This may indicate that the data is
     /// corrupted (incorrectly computed, duplicate or missing chemical shifts).
     NonUniformSpacing {
@@ -83,7 +83,7 @@ pub enum Kind {
 
     /// The acqus file of the Bruker TopSpin format is missing.
     ///
-    /// This error indicates corruption or misplacement of the input data, or
+    /// This indicates corruption or misplacement of the input data, or
     /// that an incorrect path was provided.
     MissingAcqus {
         /// The path where the acqus file was expected.
@@ -91,7 +91,7 @@ pub enum Kind {
     },
     /// The procs file of the Bruker TopSpin format is missing.
     ///
-    /// This error indicates corruption or misplacement of the input data, or
+    /// This indicates corruption or misplacement of the input data, or
     /// that an incorrect path was provided.
     MissingProcs {
         /// The path where the procs file was expected.
@@ -99,7 +99,7 @@ pub enum Kind {
     },
     /// The 1r file of the Bruker TopSpin format is missing.
     ///
-    /// This error indicates corruption or misplacement of the input data, or
+    /// This indicates corruption or misplacement of the input data, or
     /// that an incorrect path was provided.
     Missing1r {
         /// The path where the 1r file was expected.
@@ -107,14 +107,14 @@ pub enum Kind {
     },
     /// The file of the JDX format is missing.
     ///
-    /// This error indicates that an incorrect path was provided.
+    /// This indicates that an incorrect path was provided.
     MissingJdx {
         /// The path where the JDX file was expected.
         path: PathBuf,
     },
     /// Metadata is missing from a file.
     ///
-    /// This error indicates that the stored data was corrupted or that the
+    /// This indicates that the stored data was corrupted or that the
     /// format of the file is not as expected.
     MissingMetadata {
         /// The path to the file where the metadata was expected.
