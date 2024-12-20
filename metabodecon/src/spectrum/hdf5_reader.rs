@@ -57,3 +57,28 @@ impl Hdf5Reader {
         Ok(spectrum)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
+    #[test]
+    fn read_spectrum() {
+        let path = "../data/hdf5/sim.h5";
+        let reader = Hdf5Reader::new();
+        let spectrum = reader.read_spectrum(path, "sim_01").unwrap();
+        check_sim_spectrum!(spectrum);
+    }
+
+    #[test]
+    fn read_spectra() {
+        let path = "../data/hdf5/sim.h5";
+        let reader = Hdf5Reader::new();
+        let spectra = reader.read_spectra(path).unwrap();
+        assert_eq!(spectra.len(), 16);
+        spectra.iter().for_each(|spectrum| {
+            check_sim_spectrum!(spectrum);
+        })
+    }
+}

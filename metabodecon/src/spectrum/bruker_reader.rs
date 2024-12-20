@@ -203,3 +203,32 @@ impl BrukerReader {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
+    #[test]
+    fn read_spectrum() {
+        let path = "../data/bruker/sim/sim_01";
+        let reader = BrukerReader::new();
+        let spectrum = reader
+            .read_spectrum(path, 10, 10, (3.339007, 3.553942), (3.444939, 3.448010))
+            .unwrap();
+        check_sim_spectrum!(spectrum);
+    }
+
+    #[test]
+    fn read_spectra() {
+        let path = "../data/bruker/sim";
+        let reader = BrukerReader::new();
+        let spectra = reader
+            .read_spectra(path, 10, 10, (3.339007, 3.553942), (3.444939, 3.448010))
+            .unwrap();
+        assert_eq!(spectra.len(), 16);
+        spectra.iter().for_each(|spectrum| {
+            check_sim_spectrum!(spectrum);
+        })
+    }
+}

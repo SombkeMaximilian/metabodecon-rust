@@ -382,60 +382,6 @@ mod tests {
     }
 
     #[test]
-    fn read_from_bruker() {
-        let bruker_path = "../data/bruker/sim/sim_01";
-        let spectrum = Spectrum::from_bruker(
-            bruker_path,
-            10,
-            10,
-            (3.339007, 3.553942),
-            (3.444939, 3.448010),
-        )
-        .unwrap();
-        check_sim_spectrum!(spectrum);
-    }
-
-    #[test]
-    fn read_from_bruker_set() {
-        let bruker_path = "../data/bruker/sim";
-        let spectra = Spectrum::from_bruker_set(
-            bruker_path,
-            10,
-            10,
-            (3.339007, 3.553942),
-            (3.444939, 3.448010),
-        )
-        .unwrap();
-        assert_eq!(spectra.len(), 16);
-        spectra.iter().for_each(|spectrum| {
-            check_sim_spectrum!(spectrum);
-        });
-    }
-
-    #[test]
-    #[should_panic(expected = "Reading JCAMP-DX files is not yet implemented")]
-    fn read_from_jcampdx() {
-        unimplemented!("Reading JCAMP-DX files is not yet implemented");
-    }
-
-    #[test]
-    fn read_from_hdf5() {
-        let hdf5_path = "../data/hdf5/sim.h5";
-        let spectrum = Spectrum::from_hdf5(hdf5_path, "sim_01").unwrap();
-        check_sim_spectrum!(spectrum);
-    }
-
-    #[test]
-    fn read_from_hdf5_set() {
-        let hdf5_path = "../data/hdf5/sim.h5";
-        let spectra = Spectrum::from_hdf5_set(hdf5_path).unwrap();
-        assert_eq!(spectra.len(), 16);
-        spectra.iter().for_each(|spectrum| {
-            check_sim_spectrum!(spectrum);
-        });
-    }
-
-    #[test]
     fn remove_water_signal() {
         let mut intensities = vec![1.0, 2.0, 3.0, 4.0, 5.0];
         let water_boundaries_indices = (1, 4);
