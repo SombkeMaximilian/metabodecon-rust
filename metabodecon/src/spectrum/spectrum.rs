@@ -238,7 +238,8 @@ impl Spectrum {
         self.set_intensities(intensities);
     }
 
-    /// Removes the water signal from the provided intensities.
+    /// Internal helper function to remove the water signal from the provided
+    /// intensities.
     fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
         let min_intensity = *intensities
             .iter()
@@ -248,7 +249,8 @@ impl Spectrum {
         water_region.fill(min_intensity);
     }
 
-    /// Removes negative values from the provided intensities.
+    /// Internal helper function to remove negative values from the provided
+    /// intensities.
     fn remove_negative_values(intensities: &mut [f64]) {
         intensities
             .iter_mut()
@@ -256,7 +258,8 @@ impl Spectrum {
             .for_each(|intensity| *intensity = -*intensity);
     }
 
-    /// Smooths the intensities using the specified algorithm.
+    /// Internal helper function to smooth the intensities using the specified
+    /// algorithm.
     fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
         match algorithm {
             SmoothingAlgo::MovingAverage {
