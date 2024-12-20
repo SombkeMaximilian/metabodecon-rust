@@ -71,10 +71,10 @@ pub struct BrukerReader;
 
 /// Endianness of the raw data. Extracted from the `procs` file.
 ///
-/// BYTORDP | Endianness
-/// ------- | ----------
-/// 0       | Little
-/// 1       | Big
+/// | BYTORDP | Endianness |
+/// | ------- | ---------- |
+/// | 0       | Little     |
+/// | 1       | Big        |
 #[derive(Debug)]
 enum Endian {
     Little,
@@ -83,10 +83,10 @@ enum Endian {
 
 /// Data type of the raw data. Extracted from the `procs` file.
 ///
-/// DTYPP | Type
-/// ----- | ----
-/// 0     | i32
-/// 1     | f64
+/// | DTYPP | Type |
+/// | ----- | ---- |
+/// | 0     | i32  |
+/// | 1     | f64  |
 #[derive(Debug)]
 enum Type {
     I32,
