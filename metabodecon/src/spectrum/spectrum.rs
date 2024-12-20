@@ -186,24 +186,12 @@ impl Spectrum {
         &self.chemical_shifts
     }
 
-    pub fn chemical_shifts_mut(&mut self) -> &mut [f64] {
-        &mut self.chemical_shifts
-    }
-
     pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
 
-    pub fn intensities_mut(&mut self) -> &mut [f64] {
-        &mut self.intensities
-    }
-
     pub fn intensities_raw(&self) -> &[f64] {
         &self.intensities_raw
-    }
-
-    pub fn intensities_raw_mut(&mut self) -> &mut [f64] {
-        &mut self.intensities_raw
     }
 
     pub fn signal_boundaries(&self) -> (f64, f64) {
@@ -361,10 +349,13 @@ mod tests {
         spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0]);
         spectrum.set_signal_boundaries((1.0, 4.0));
         spectrum.set_water_boundaries((2.5, 3.0));
-        spectrum
-            .intensities_mut()
-            .iter_mut()
-            .for_each(|intensity| *intensity = -*intensity);
+        spectrum.set_intensities(
+            spectrum
+                .intensities()
+                .iter()
+                .map(|intensity| -intensity)
+                .collect(),
+        );
         assert_eq!(spectrum.intensities(), &[-1.0, -2.0, -3.0, -4.0]);
     }
 
