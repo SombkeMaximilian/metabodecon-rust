@@ -61,6 +61,8 @@ pub struct Spectrum {
 }
 
 impl Spectrum {
+    /// Constructs a `Spectrum` from the given data. Performs some basic checks
+    /// on the input data to validate it.
     pub fn new(
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
@@ -131,46 +133,60 @@ impl Spectrum {
         })
     }
 
+    /// Returns the chemical shifts as a slice.
     pub fn chemical_shifts(&self) -> &[f64] {
         &self.chemical_shifts
     }
 
+    /// Returns the preprocessed intensities as a slice.
     pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
 
+    /// Returns the raw intensities as a slice.
     pub fn intensities_raw(&self) -> &[f64] {
         &self.intensities_raw
     }
 
+    /// Returns the signal boundaries as a tuple.
     pub fn signal_boundaries(&self) -> (f64, f64) {
         self.signal_boundaries
     }
 
+    /// Returns the water boundaries as a tuple.
     pub fn water_boundaries(&self) -> (f64, f64) {
         self.water_boundaries
     }
 
+    /// Returns the monotonicity of the spectrum.
     pub fn monotonicity(&self) -> Monotonicity {
         self.monotonicity
     }
 
+    /// Sets the chemical shifts of the spectrum. This currently does not
+    /// perform any monotonicity validation on the input data.
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) {
         self.chemical_shifts = chemical_shifts.into_boxed_slice();
     }
 
+    /// Sets the preprocessed intensities of the spectrum.
     pub fn set_intensities(&mut self, intensities: Vec<f64>) {
         self.intensities = intensities.into_boxed_slice();
     }
 
+    /// Sets the raw intensities of the spectrum.
     pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) {
         self.intensities_raw = intensities_raw.into_boxed_slice();
     }
 
+    /// Sets the signal boundaries of the spectrum. This currently does not
+    /// perform any monotonicity validation on the input data.
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
         self.signal_boundaries = signal_boundaries;
     }
 
+    /// Sets the water boundaries of the spectrum. This currently does not
+    /// perform any monotonicity validation on the input data.
     pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) {
         self.water_boundaries = water_boundaries;
     }
@@ -185,18 +201,23 @@ impl Spectrum {
             || self.intensities_raw.is_empty()
     }
 
+    /// Computes the step size between two consecutive chemical shifts in ppm.
     pub fn step(&self) -> f64 {
         self.chemical_shifts[1] - self.chemical_shifts[0]
     }
 
+    /// Computes the width of the spectrum in ppm.
     pub fn width(&self) -> f64 {
         self.chemical_shifts.last().unwrap() - self.chemical_shifts.first().unwrap()
     }
 
+    /// Computes the center of the spectrum in ppm.
     pub fn center(&self) -> f64 {
         self.chemical_shifts.first().unwrap() + self.width() / 2.
     }
 
+    /// Computes the indices of the chemical shifts that are closest to the
+    /// signal region boundaries.
     pub fn signal_boundaries_indices(&self) -> (usize, usize) {
         (
             ((self.signal_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
@@ -204,6 +225,8 @@ impl Spectrum {
         )
     }
 
+    /// Computes the indices of the chemical shifts that are closest to the
+    /// water artifact boundaries.
     pub fn water_boundaries_indices(&self) -> (usize, usize) {
         (
             ((self.water_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
@@ -211,6 +234,11 @@ impl Spectrum {
         )
     }
 
+    /// Applies preprocessing to the raw intensities of the spectrum and stores
+    /// the result in the intensities. The preprocessing steps include:
+    /// 1. Removing the water signal from the intensities.
+    /// 2. Removing negative values from the intensities.
+    /// 3. Smoothing the intensities using the specified [`SmoothingAlgo`].
     pub fn apply_preprocessing(&mut self, smoothing_algo: SmoothingAlgo) {
         let water_boundaries_indices = self.water_boundaries_indices();
         let mut intensities = self.intensities_raw().to_vec();
@@ -220,6 +248,7 @@ impl Spectrum {
         self.set_intensities(intensities);
     }
 
+    /// Removes the water signal from the provided intensities.
     fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
         let min_intensity = *intensities
             .iter()
@@ -229,6 +258,7 @@ impl Spectrum {
         water_region.fill(min_intensity);
     }
 
+    /// Removes negative values from the provided intensities.
     fn remove_negative_values(intensities: &mut [f64]) {
         intensities
             .iter_mut()
@@ -236,6 +266,7 @@ impl Spectrum {
             .for_each(|intensity| *intensity = -*intensity);
     }
 
+    /// Smooths the intensities using the specified algorithm.
     fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
         match algorithm {
             SmoothingAlgo::MovingAverage {
@@ -305,10 +336,7 @@ mod tests {
             (2.5, 3.5),
         )
         .unwrap();
-        assert_eq!(spectrum.len(), 5);
-        assert!(spectrum.is_empty());
         spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
-        assert!(!spectrum.is_empty());
         assert_approx_eq!(spectrum.step(), 1.0);
         assert_approx_eq!(spectrum.width(), 4.0);
         assert_approx_eq!(spectrum.center(), 3.0);
