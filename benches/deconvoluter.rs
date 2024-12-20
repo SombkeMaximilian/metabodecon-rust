@@ -17,9 +17,16 @@ fn d() -> Deconvoluter {
 }
 
 fn read_spectra() -> (Spectrum, Spectrum, Spectrum) {
-    let sim_spectrum = Spectrum::from_hdf5("../data/hdf5/sim.h5", "sim_01").unwrap();
-    let blood_spectrum = Spectrum::from_hdf5("../data/hdf5/blood.h5", "blood_01").unwrap();
-    let urine_spectrum = Spectrum::from_hdf5("../data/hdf5/urine.h5", "urine_1").unwrap();
+    let reader = Hdf5Reader::new();
+    let sim_spectrum = reader
+        .read_spectrum("../data/hdf5/sim.h5", "sim_01")
+        .unwrap();
+    let blood_spectrum = reader
+        .read_spectrum("../data/hdf5/blood.h5", "blood_01")
+        .unwrap();
+    let urine_spectrum = reader
+        .read_spectrum("../data/hdf5/urine.h5", "urine_1")
+        .unwrap();
     (sim_spectrum, blood_spectrum, urine_spectrum)
 }
 

@@ -42,7 +42,8 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> PyResult<Self> {
-        match metabodecon::Spectrum::from_bruker(
+        let reader = metabodecon::BrukerReader::new();
+        match reader.read_spectrum(
             path,
             experiment,
             processing,
@@ -62,7 +63,8 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> PyResult<Vec<Self>> {
-        match metabodecon::Spectrum::from_bruker_set(
+        let reader = metabodecon::BrukerReader::new();
+        match reader.read_spectra(
             path,
             experiment,
             processing,
@@ -79,7 +81,8 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        match metabodecon::Spectrum::from_hdf5(path, dataset) {
+        let reader = metabodecon::Hdf5Reader::new();
+        match reader.read_spectrum(path, dataset) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -87,7 +90,8 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
-        match metabodecon::Spectrum::from_hdf5_set(path) {
+        let reader = metabodecon::Hdf5Reader::new();
+        match reader.read_spectra(path) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
                 .map(|spectrum| Spectrum { inner: spectrum })

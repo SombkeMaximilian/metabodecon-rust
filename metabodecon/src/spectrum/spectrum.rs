@@ -1,10 +1,6 @@
 use crate::error::Result;
 use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
 use crate::spectrum::error::{Error, Kind};
-use crate::spectrum::{
-    bruker_reader::BrukerReader, hdf5_reader::Hdf5Reader, jdx_reader::JdxReader,
-};
-use std::path::Path;
 
 /// Represents the ordering of 1D NMR spectrum data.
 ///
@@ -133,67 +129,6 @@ impl Spectrum {
             water_boundaries,
             monotonicity,
         })
-    }
-
-    pub fn from_bruker<P: AsRef<Path>>(
-        path: P,
-        experiment: u32,
-        processing: u32,
-        signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
-    ) -> Result<Self> {
-        let reader = BrukerReader::new();
-        let spectrum = reader.read_spectrum(
-            path,
-            experiment,
-            processing,
-            signal_boundaries,
-            water_boundaries,
-        )?;
-
-        Ok(spectrum)
-    }
-
-    pub fn from_bruker_set<P: AsRef<Path>>(
-        path: P,
-        experiment: u32,
-        processing: u32,
-        signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
-    ) -> Result<Vec<Self>> {
-        let reader = BrukerReader::new();
-        let spectra = reader.read_spectra(
-            path,
-            experiment,
-            processing,
-            signal_boundaries,
-            water_boundaries,
-        )?;
-
-        Ok(spectra)
-    }
-
-    pub fn from_jcampdx<P: AsRef<Path>>(
-        path: P,
-        signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
-    ) -> Result<Self> {
-        let reader = JdxReader::new();
-        let mut spectrum = reader.read_spectrum(path, signal_boundaries, water_boundaries)?;
-        spectrum.set_signal_boundaries(signal_boundaries);
-        spectrum.set_water_boundaries(water_boundaries);
-
-        Ok(spectrum)
-    }
-
-    pub fn from_hdf5<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Self> {
-        let reader = Hdf5Reader::new();
-        reader.read_spectrum(path, dataset)
-    }
-
-    pub fn from_hdf5_set<P: AsRef<Path>>(path: P) -> Result<Vec<Self>> {
-        let reader = Hdf5Reader::new();
-        reader.read_spectra(path)
     }
 
     pub fn chemical_shifts(&self) -> &[f64] {

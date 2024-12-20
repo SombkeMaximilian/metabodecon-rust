@@ -4,8 +4,9 @@ use common::store_deconvolution;
 
 #[cfg(feature = "parallel")]
 #[cfg(test)]
-pub fn run_par_deconvolution(path: &str, data: &str) -> Deconvolution {
-    let mut spectrum = Spectrum::from_hdf5(path, data).unwrap();
+pub fn run_par_deconvolution(path: &str, data: &str) -> Result<Deconvolution> {
+    let reader = Hdf5Reader::new();
+    let mut spectrum = reader.read_spectrum(path, data)?;
     let deconvoluter = Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
             algo: MovingAverageAlgo::SumCache,
@@ -18,9 +19,7 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Deconvolution {
         },
         FittingAlgo::Analytical { iterations: 10 },
     );
-    deconvoluter
-        .par_deconvolute_spectrum(&mut spectrum)
-        .unwrap()
+    deconvoluter.par_deconvolute_spectrum(&mut spectrum)
 }
 
 #[cfg(feature = "parallel")]
@@ -28,7 +27,7 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Deconvolution {
 fn sim() {
     let path = "../data/hdf5/sim.h5";
     let dataset = "sim_01";
-    let deconvolution = run_par_deconvolution(path, dataset);
+    let deconvolution = run_par_deconvolution(path, dataset).unwrap();
     store_deconvolution(deconvolution, "../target/sim_par_deconvolution.csv");
 }
 
@@ -37,7 +36,7 @@ fn sim() {
 fn blood() {
     let path = "../data/hdf5/blood.h5";
     let dataset = "blood_01";
-    let deconvolution = run_par_deconvolution(path, dataset);
+    let deconvolution = run_par_deconvolution(path, dataset).unwrap();
     store_deconvolution(deconvolution, "../target/blood_par_deconvolution.csv");
 }
 
@@ -46,6 +45,6 @@ fn blood() {
 fn urine() {
     let path = "../data/hdf5/urine.h5";
     let dataset = "urine_1";
-    let deconvolution = run_par_deconvolution(path, dataset);
+    let deconvolution = run_par_deconvolution(path, dataset).unwrap();
     store_deconvolution(deconvolution, "../target/urine_par_deconvolution.csv");
 }
