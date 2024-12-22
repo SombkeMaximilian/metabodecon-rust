@@ -1,5 +1,5 @@
 mod circular_buffer;
-mod moving_average_sum_cache;
+mod moving_average;
 mod smoother;
 mod smoother_moving_average;
 

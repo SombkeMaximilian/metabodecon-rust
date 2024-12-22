@@ -3,7 +3,7 @@ use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
 #[derive(Debug)]
-pub struct SumCacheMA<Type> {
+pub struct MovingAverage<Type> {
     buffer: CircularBuffer<Type>,
     num: usize,
     sum: Type,
@@ -11,7 +11,7 @@ pub struct SumCacheMA<Type> {
     one: Type,
 }
 
-impl<Type> SumCacheMA<Type>
+impl<Type> MovingAverage<Type>
 where
     Type: Copy
         + FromPrimitive
@@ -72,13 +72,13 @@ mod tests {
     use super::*;
     #[test]
     fn new() {
-        let sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
+        let sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
         assert_eq!(sum_cache_ma.compute_average(), 0.0);
     }
 
     #[test]
     fn add_value() {
-        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
         sum_cache_ma.add_value(1.0);
         assert_eq!(sum_cache_ma.compute_average(), 1.0 / 1.0);
         sum_cache_ma.add_value(2.0);
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn pop_last() {
-        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn clear() {
-        let mut sum_cache_ma: SumCacheMA<f32> = SumCacheMA::new(3);
+        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
         sum_cache_ma.add_value(1.0);
         sum_cache_ma.add_value(2.0);
         sum_cache_ma.add_value(3.0);

@@ -1,11 +1,11 @@
-use crate::smoothing::moving_average_sum_cache::SumCacheMA;
+use crate::smoothing::moving_average::MovingAverage;
 use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
 pub struct MovingAverageSmoother<Type> {
-    algo: SumCacheMA<Type>,
+    algo: MovingAverage<Type>,
     iterations: usize,
     right: usize,
     type_marker: PhantomData<Type>,
@@ -56,7 +56,7 @@ where
 {
     pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
-            algo: SumCacheMA::new(window_size),
+            algo: MovingAverage::new(window_size),
             iterations,
             right: window_size / 2,
             type_marker: PhantomData,
