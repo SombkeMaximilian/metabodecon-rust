@@ -1,5 +1,4 @@
 use crate::smoothing::circular_buffer::CircularBuffer;
-use crate::smoothing::MovingAverage;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
@@ -12,7 +11,7 @@ pub struct SumCacheMA<Type> {
     one: Type,
 }
 
-impl<Type> MovingAverage<Type> for SumCacheMA<Type>
+impl<Type> SumCacheMA<Type>
 where
     Type: Copy
         + FromPrimitive
@@ -22,7 +21,17 @@ where
         + Div<Output = Type>
         + Mul<Output = Type>,
 {
-    fn add_value(&mut self, value: Type) {
+    pub fn new(window_size: usize) -> Self {
+        Self {
+            buffer: CircularBuffer::new(window_size),
+            num: 0,
+            sum: Type::zero(),
+            div: Type::from_u8(1).unwrap(),
+            one: Type::from_u8(1).unwrap(),
+        }
+    }
+
+    pub fn add_value(&mut self, value: Type) {
         self.sum += value;
         if let Some(popped_value) = self.buffer.next(value) {
             self.sum -= popped_value;
@@ -32,7 +41,7 @@ where
         }
     }
 
-    fn pop_last(&mut self) -> Option<Type> {
+    pub fn pop_last(&mut self) -> Option<Type> {
         if let Some(popped_value) = self.buffer.pop() {
             self.num -= 1;
             self.div = self.one / Type::from_usize(self.num).unwrap();
@@ -43,33 +52,18 @@ where
         }
     }
 
-    fn compute_average(&self) -> Type {
+    pub fn compute_average(&self) -> Type {
         if self.buffer.num_elements() == 0 {
             return Type::zero();
         }
         self.sum * self.div
     }
 
-    fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.buffer.clear();
         self.num = 0;
         self.sum = Type::from_u8(0).unwrap();
         self.div = self.one;
-    }
-}
-
-impl<Type> SumCacheMA<Type>
-where
-    Type: Copy + Zero + FromPrimitive,
-{
-    pub fn new(window_size: usize) -> Self {
-        Self {
-            buffer: CircularBuffer::new(window_size),
-            num: 0,
-            sum: Type::zero(),
-            div: Type::from_u8(1).unwrap(),
-            one: Type::from_u8(1).unwrap(),
-        }
     }
 }
 

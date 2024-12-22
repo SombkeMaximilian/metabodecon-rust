@@ -1,18 +1,26 @@
 use crate::smoothing::moving_average_sum_cache::SumCacheMA;
-use crate::smoothing::MovingAverage;
 use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
 pub struct MovingAverageSmoother<Type> {
-    algo: Box<dyn MovingAverage<Type>>,
+    algo: SumCacheMA<Type>,
     iterations: usize,
     right: usize,
     type_marker: PhantomData<Type>,
 }
 
-impl<Type: Copy + Zero> Smoother<Type> for MovingAverageSmoother<Type> {
+impl<Type> Smoother<Type> for MovingAverageSmoother<Type>
+where
+    Type: Copy
+    + FromPrimitive
+    + Zero
+    + AddAssign
+    + SubAssign
+    + Div<Output = Type>
+    + Mul<Output = Type>,
+{
     fn smooth_values(&mut self, values: &mut [Type]) {
         let len = values.len();
         for _ in 0..self.iterations {
@@ -48,7 +56,7 @@ where
 {
     pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
-            algo: Box::new(SumCacheMA::new(window_size)),
+            algo: SumCacheMA::new(window_size),
             iterations,
             right: window_size / 2,
             type_marker: PhantomData,
