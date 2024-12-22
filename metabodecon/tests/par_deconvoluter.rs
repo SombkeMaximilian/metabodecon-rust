@@ -9,7 +9,6 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Result<Deconvolution> {
     let mut spectrum = reader.read_spectrum(path, data)?;
     let deconvoluter = Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
-            algo: MovingAverageAlgo::SumCache,
             iterations: 2,
             window_size: 5,
         },

@@ -27,5 +27,5 @@ pub use deconvolution::{Deconvoluter, Deconvolution};
 pub use error::{Error, Result};
 pub use fitting::{FittingAlgo, Lorentzian};
 pub use peak_selection::{ScoringAlgo, SelectionAlgo};
-pub use smoothing::{MovingAverageAlgo, SmoothingAlgo};
+pub use smoothing::SmoothingAlgo;
 pub use spectrum::{BrukerReader, Hdf5Reader, JdxReader, Spectrum};

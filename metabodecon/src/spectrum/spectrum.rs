@@ -263,11 +263,10 @@ impl Spectrum {
     fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
         match algorithm {
             SmoothingAlgo::MovingAverage {
-                algo,
                 iterations,
                 window_size,
             } => {
-                let mut smoother = MovingAverageSmoother::<f64>::new(algo, iterations, window_size);
+                let mut smoother = MovingAverageSmoother::<f64>::new(iterations, window_size);
                 smoother.smooth_values(intensities);
             }
         }
@@ -277,7 +276,6 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::smoothing::MovingAverageAlgo;
     use assert_approx_eq::assert_approx_eq;
 
     #[test]
@@ -356,7 +354,6 @@ mod tests {
     fn smooth_intensities() {
         let mut intensities = vec![1.25, 1.75, 1.5, 2.0, 1.75];
         let algorithm = SmoothingAlgo::MovingAverage {
-            algo: MovingAverageAlgo::SumCache,
             iterations: 1,
             window_size: 3,
         };

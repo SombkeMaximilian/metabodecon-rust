@@ -4,7 +4,6 @@ use metabodecon::*;
 fn d() -> Deconvoluter {
     Deconvoluter::new(
         SmoothingAlgo::MovingAverage {
-            algo: MovingAverageAlgo::Simple,
             iterations: 2,
             window_size: 5,
         },

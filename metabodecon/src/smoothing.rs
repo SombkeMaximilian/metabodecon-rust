@@ -7,5 +7,4 @@ mod smoother_moving_average;
 pub use moving_average::MovingAverage;
 pub use smoother::Smoother;
 pub use smoother::SmoothingAlgo;
-pub use smoother_moving_average::MovingAverageAlgo;
 pub use smoother_moving_average::MovingAverageSmoother;

@@ -15,7 +15,6 @@ impl Deconvoluter {
         Self {
             inner: metabodecon::Deconvoluter::new(
                 metabodecon::SmoothingAlgo::MovingAverage {
-                    algo: metabodecon::MovingAverageAlgo::SumCache,
                     iterations: 0,
                     window_size: 0,
                 },
@@ -31,7 +30,6 @@ impl Deconvoluter {
     pub fn with_ma_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
         self.inner
             .set_smoothing_algo(metabodecon::SmoothingAlgo::MovingAverage {
-                algo: metabodecon::MovingAverageAlgo::SumCache,
                 iterations,
                 window_size,
             });

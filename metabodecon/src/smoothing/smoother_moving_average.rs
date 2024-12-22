@@ -5,12 +5,6 @@ use num_traits::{FromPrimitive, Zero};
 use std::marker::PhantomData;
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
-#[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
-pub enum MovingAverageAlgo {
-    SumCache,
-}
-
 pub struct MovingAverageSmoother<Type> {
     algo: Box<dyn MovingAverage<Type>>,
     iterations: usize,
@@ -52,12 +46,9 @@ where
         + Div<Output = Type>
         + Mul<Output = Type>,
 {
-    pub fn new(algo: MovingAverageAlgo, iterations: usize, window_size: usize) -> Self {
-        let algo: Box<dyn MovingAverage<Type>> = match algo {
-            MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new(window_size)),
-        };
+    pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
-            algo,
+            algo: Box::new(SumCacheMA::new(window_size)),
             iterations,
             right: window_size / 2,
             type_marker: PhantomData,
