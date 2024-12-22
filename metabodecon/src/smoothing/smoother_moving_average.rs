@@ -14,12 +14,12 @@ pub struct MovingAverageSmoother<Type> {
 impl<Type> Smoother<Type> for MovingAverageSmoother<Type>
 where
     Type: Copy
-    + FromPrimitive
-    + Zero
-    + AddAssign
-    + SubAssign
-    + Div<Output = Type>
-    + Mul<Output = Type>,
+        + FromPrimitive
+        + Zero
+        + AddAssign
+        + SubAssign
+        + Div<Output = Type>
+        + Mul<Output = Type>,
 {
     fn smooth_values(&mut self, values: &mut [Type]) {
         let len = values.len();
