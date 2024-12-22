@@ -8,14 +8,6 @@ pub struct CircularBuffer<Type> {
     capacity: usize,
 }
 
-#[derive(Debug)]
-pub struct CircularBufferIterator<'a, Type: 'a> {
-    buffer: &'a [Type],
-    index: usize,
-    count: usize,
-    capacity: usize,
-}
-
 impl<Type: Copy + Zero> CircularBuffer<Type> {
     pub fn new(capacity: usize) -> Self {
         Self {
@@ -60,34 +52,6 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 
     pub fn num_elements(&self) -> usize {
         self.num_elements
-    }
-
-    pub fn iter(&self) -> CircularBufferIterator<Type> {
-        CircularBufferIterator::new(&self.buffer, self.index, self.num_elements, self.capacity)
-    }
-}
-
-impl<'a, Type: 'a> CircularBufferIterator<'a, Type> {
-    pub fn new(buffer: &'a [Type], index: usize, count: usize, capacity: usize) -> Self {
-        Self {
-            buffer,
-            index,
-            count,
-            capacity,
-        }
-    }
-}
-
-impl<'a, Type: Copy> Iterator for CircularBufferIterator<'a, Type> {
-    type Item = &'a Type;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.count == 0 {
-            return None;
-        }
-        let index: usize = (self.index + self.capacity - self.count) % self.capacity;
-        self.count -= 1;
-        Some(&self.buffer[index])
     }
 }
 
@@ -134,19 +98,5 @@ mod tests {
         buffer.push(3);
         buffer.clear();
         assert_eq!(buffer.num_elements(), 0);
-    }
-
-    #[test]
-    fn iter() {
-        let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
-        buffer.push(1);
-        buffer.push(2);
-        buffer.push(3);
-        let mut iter = buffer.iter();
-        assert_eq!(iter.next(), Some(&1));
-        assert_eq!(iter.next(), Some(&2));
-        assert_eq!(iter.next(), Some(&3));
-        assert_eq!(iter.next(), None);
-        assert_eq!(iter.next(), None);
     }
 }

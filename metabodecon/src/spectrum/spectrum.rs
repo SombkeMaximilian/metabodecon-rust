@@ -356,7 +356,7 @@ mod tests {
     fn smooth_intensities() {
         let mut intensities = vec![1.25, 1.75, 1.5, 2.0, 1.75];
         let algorithm = SmoothingAlgo::MovingAverage {
-            algo: MovingAverageAlgo::Simple,
+            algo: MovingAverageAlgo::SumCache,
             iterations: 1,
             window_size: 3,
         };

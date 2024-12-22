@@ -1,4 +1,3 @@
-use crate::smoothing::moving_average_simple::SimpleMA;
 use crate::smoothing::moving_average_sum_cache::SumCacheMA;
 use crate::smoothing::MovingAverage;
 use crate::smoothing::Smoother;
@@ -9,7 +8,6 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 pub enum MovingAverageAlgo {
-    Simple,
     SumCache,
 }
 
@@ -56,7 +54,6 @@ where
 {
     pub fn new(algo: MovingAverageAlgo, iterations: usize, window_size: usize) -> Self {
         let algo: Box<dyn MovingAverage<Type>> = match algo {
-            MovingAverageAlgo::Simple => Box::new(SimpleMA::new(window_size)),
             MovingAverageAlgo::SumCache => Box::new(SumCacheMA::new(window_size)),
         };
         Self {
