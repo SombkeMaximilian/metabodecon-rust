@@ -1,14 +1,25 @@
 use num_traits::Zero;
 
+/// FIFO buffer with a fixed capacity that wraps around and overwrites old
+/// elements when full.
+///
+/// `CircularBuffer`, also known as ring buffer or circular queue, is a circular
+/// container that wraps around and overwrites the oldest element once its
+/// capacity is reached.
 #[derive(Debug)]
 pub struct CircularBuffer<Type> {
+    /// The underlying storage for the buffer.
     buffer: Box<[Type]>,
+    /// The index of the next element to be pushed.
     index: usize,
+    /// The number of elements currently in the buffer.
     num_elements: usize,
 }
 
 impl<Type: Copy + Zero> CircularBuffer<Type> {
+    /// Creates a new `CircularBuffer` with the given capacity.
     pub fn new(capacity: usize) -> Self {
+        assert!(capacity > 0, "capacity must be greater than zero");
         Self {
             buffer: vec![Type::zero(); capacity].into_boxed_slice(),
             index: 0,
@@ -16,6 +27,8 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         }
     }
 
+    /// Inserts a new element into the buffer and returns the oldest element if
+    /// the buffer was already full or `None` otherwise.
     pub fn next(&mut self, value: Type) -> Option<Type> {
         let popped_value: Option<Type> = if self.num_elements == self.buffer.len() {
             self.pop()
@@ -26,6 +39,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         popped_value
     }
 
+    /// Inserts a new element into the buffer.
     pub fn push(&mut self, value: Type) {
         self.buffer[self.index] = value;
         self.index = (self.index + 1) % self.buffer.len();
@@ -34,6 +48,8 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         }
     }
 
+    /// Removes and returns the oldest element from the buffer or `None` if the
+    /// buffer was already empty.
     pub fn pop(&mut self) -> Option<Type> {
         if self.num_elements == 0 {
             return None;
@@ -43,11 +59,13 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         Some(self.buffer[index])
     }
 
+    /// Resets the buffer to its initial state.
     pub fn clear(&mut self) {
         self.index = 0;
         self.num_elements = 0;
     }
 
+    /// Returns the number of elements currently in the buffer.
     pub fn num_elements(&self) -> usize {
         self.num_elements
     }
