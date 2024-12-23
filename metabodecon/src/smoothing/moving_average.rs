@@ -3,6 +3,7 @@ use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
+#[derive(Debug)]
 pub struct MovingAverage<Type> {
     buffer: CircularBuffer<Type>,
     sum: Type,
