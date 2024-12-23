@@ -5,7 +5,6 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 #[derive(Debug)]
 pub struct MovingAverage<Type> {
     buffer: CircularBuffer<Type>,
-    num: usize,
     sum: Type,
     div: Type,
     one: Type,
@@ -24,7 +23,6 @@ where
     pub fn new(window_size: usize) -> Self {
         Self {
             buffer: CircularBuffer::new(window_size),
-            num: 0,
             sum: Type::zero(),
             div: Type::from_u8(1).unwrap(),
             one: Type::from_u8(1).unwrap(),
@@ -36,15 +34,13 @@ where
         if let Some(popped_value) = self.buffer.next(value) {
             self.sum -= popped_value;
         } else {
-            self.num += 1;
-            self.div = self.one / Type::from_usize(self.num).unwrap();
+            self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
         }
     }
 
     pub fn pop_last(&mut self) -> Option<Type> {
         if let Some(popped_value) = self.buffer.pop() {
-            self.num -= 1;
-            self.div = self.one / Type::from_usize(self.num).unwrap();
+            self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
             self.sum -= popped_value;
             Some(popped_value)
         } else {
@@ -61,7 +57,6 @@ where
 
     pub fn clear(&mut self) {
         self.buffer.clear();
-        self.num = 0;
         self.sum = Type::from_u8(0).unwrap();
         self.div = self.one;
     }
