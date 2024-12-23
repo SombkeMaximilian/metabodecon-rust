@@ -5,7 +5,6 @@ pub struct CircularBuffer<Type> {
     buffer: Box<[Type]>,
     index: usize,
     num_elements: usize,
-    capacity: usize,
 }
 
 impl<Type: Copy + Zero> CircularBuffer<Type> {
@@ -14,12 +13,11 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
             buffer: vec![Type::zero(); capacity].into_boxed_slice(),
             index: 0,
             num_elements: 0,
-            capacity,
         }
     }
 
     pub fn next(&mut self, value: Type) -> Option<Type> {
-        let popped_value: Option<Type> = if self.num_elements == self.capacity {
+        let popped_value: Option<Type> = if self.num_elements == self.buffer.len() {
             self.pop()
         } else {
             None
@@ -30,8 +28,8 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 
     pub fn push(&mut self, value: Type) {
         self.buffer[self.index] = value;
-        self.index = (self.index + 1) % self.capacity;
-        if self.num_elements < self.capacity {
+        self.index = (self.index + 1) % self.buffer.len();
+        if self.num_elements < self.buffer.len() {
             self.num_elements += 1;
         }
     }
@@ -40,7 +38,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         if self.num_elements == 0 {
             return None;
         }
-        let index: usize = (self.index + self.capacity - self.num_elements) % self.capacity;
+        let index: usize = (self.index + self.buffer.len() - self.num_elements) % self.buffer.len();
         self.num_elements -= 1;
         Some(self.buffer[index])
     }
