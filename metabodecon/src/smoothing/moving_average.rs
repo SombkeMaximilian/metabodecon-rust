@@ -1,35 +1,73 @@
 use crate::smoothing::circular_buffer::CircularBuffer;
+use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
-#[derive(Debug)]
 pub struct MovingAverage<Type> {
     buffer: CircularBuffer<Type>,
     sum: Type,
     div: Type,
     one: Type,
+    iterations: usize,
+    right: usize,
 }
 
-impl<Type> MovingAverage<Type>
+impl<Type> Smoother<Type> for MovingAverage<Type>
 where
     Type: Copy
         + FromPrimitive
         + Zero
         + AddAssign
         + SubAssign
+        + Mul<Output = Type>
         + Div<Output = Type>
-        + Mul<Output = Type>,
+        + 'static,
 {
-    pub fn new(window_size: usize) -> Self {
+    fn smooth_values(&mut self, values: &mut [Type]) {
+        let len = values.len();
+        for _ in 0..self.iterations {
+            values
+                .iter()
+                .take(self.right)
+                .for_each(|value| self.add_value(*value));
+            for i in 0..(len - self.right) {
+                self.add_value(values[i + self.right]);
+                values[i] = self.compute_average();
+            }
+            values[(len - self.right)..]
+                .iter_mut()
+                .for_each(|value| {
+                    self.pop_last();
+                    *value = self.compute_average();
+                });
+            self.clear();
+        }
+    }
+}
+
+impl<Type> MovingAverage<Type>
+where
+    Type: Copy
+        + Zero
+        + FromPrimitive
+        + 'static
+        + AddAssign
+        + SubAssign
+        + Mul<Output = Type>
+        + Div<Output = Type>,
+{
+    pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
             buffer: CircularBuffer::new(window_size),
             sum: Type::zero(),
             div: Type::from_u8(1).unwrap(),
             one: Type::from_u8(1).unwrap(),
+            iterations,
+            right: window_size / 2,
         }
     }
 
-    pub fn add_value(&mut self, value: Type) {
+    fn add_value(&mut self, value: Type) {
         self.sum += value;
         if let Some(popped_value) = self.buffer.next(value) {
             self.sum -= popped_value;
@@ -38,7 +76,7 @@ where
         }
     }
 
-    pub fn pop_last(&mut self) -> Option<Type> {
+    fn pop_last(&mut self) -> Option<Type> {
         if let Some(popped_value) = self.buffer.pop() {
             self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
             self.sum -= popped_value;
@@ -48,16 +86,13 @@ where
         }
     }
 
-    pub fn compute_average(&self) -> Type {
-        if self.buffer.num_elements() == 0 {
-            return Type::zero();
-        }
+    fn compute_average(&self) -> Type {
         self.sum * self.div
     }
 
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.buffer.clear();
-        self.sum = Type::from_u8(0).unwrap();
+        self.sum = Type::zero();
         self.div = self.one;
     }
 }
@@ -65,57 +100,61 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use assert_approx_eq::assert_approx_eq;
+
     #[test]
     fn new() {
-        let sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
-        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+        let smoother = MovingAverage::<f64>::new(1, 3);
+        assert_approx_eq!(smoother.compute_average(), 0.0);
     }
 
     #[test]
     fn add_value() {
-        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
-        sum_cache_ma.add_value(1.0);
-        assert_eq!(sum_cache_ma.compute_average(), 1.0 / 1.0);
-        sum_cache_ma.add_value(2.0);
-        assert_eq!(sum_cache_ma.compute_average(), 3.0 / 2.0);
-        sum_cache_ma.add_value(3.0);
-        assert_eq!(sum_cache_ma.compute_average(), 6.0 / 3.0);
-        sum_cache_ma.add_value(4.0);
-        assert_eq!(sum_cache_ma.compute_average(), 9.0 / 3.0);
-        sum_cache_ma.add_value(5.0);
-        assert_eq!(sum_cache_ma.compute_average(), 12.0 / 3.0);
+        let mut smoother = MovingAverage::<f64>::new(1, 3);
+        smoother.add_value(1.0);
+        assert_approx_eq!(smoother.compute_average(), 1.0 / 1.0);
+        smoother.add_value(2.0);
+        assert_approx_eq!(smoother.compute_average(), 3.0 / 2.0);
+        smoother.add_value(3.0);
+        assert_approx_eq!(smoother.compute_average(), 6.0 / 3.0);
+        smoother.add_value(4.0);
+        assert_approx_eq!(smoother.compute_average(), 9.0 / 3.0);
+        smoother.add_value(5.0);
+        assert_approx_eq!(smoother.compute_average(), 12.0 / 3.0);
+        smoother.add_value(6.0);
+        assert_approx_eq!(smoother.compute_average(), 15.0 / 3.0);
     }
 
     #[test]
     fn pop_last() {
-        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
-        sum_cache_ma.add_value(1.0);
-        sum_cache_ma.add_value(2.0);
-        sum_cache_ma.add_value(3.0);
-        sum_cache_ma.add_value(4.0);
-        sum_cache_ma.add_value(5.0);
-        assert_eq!(sum_cache_ma.compute_average(), 12.0 / 3.0);
-        assert_eq!(sum_cache_ma.pop_last(), Some(3.0));
-        assert_eq!(sum_cache_ma.compute_average(), 9.0 / 2.0);
-        assert_eq!(sum_cache_ma.pop_last(), Some(4.0));
-        assert_eq!(sum_cache_ma.compute_average(), 5.0 / 1.0);
-        assert_eq!(sum_cache_ma.pop_last(), Some(5.0));
-        assert_eq!(sum_cache_ma.compute_average(), 0.0);
-        assert_eq!(sum_cache_ma.pop_last(), None);
-        assert_eq!(sum_cache_ma.compute_average(), 0.0);
-        assert_eq!(sum_cache_ma.pop_last(), None);
-        assert_eq!(sum_cache_ma.compute_average(), 0.0);
-        assert_eq!(sum_cache_ma.pop_last(), None);
+        let mut smoother = MovingAverage::<f64>::new(1, 3);
+        for i in 1..6 {
+            smoother.add_value(i as f64);
+        }
+        assert_approx_eq!(smoother.compute_average(), 12.0 / 3.0);
+        assert_approx_eq!(smoother.pop_last().unwrap(), 3.0);
+        assert_approx_eq!(smoother.compute_average(), 9.0 / 2.0);
+        assert_approx_eq!(smoother.pop_last().unwrap(), 4.0);
+        assert_approx_eq!(smoother.compute_average(), 5.0 / 1.0);
+        assert_approx_eq!(smoother.pop_last().unwrap(), 5.0);
+        assert!(smoother.compute_average().is_nan());
+        assert!(smoother.pop_last().is_none());
+        assert!(smoother.compute_average().is_nan());
+        assert!(smoother.pop_last().is_none());
+        assert!(smoother.compute_average().is_nan());
+        assert!(smoother.pop_last().is_none());
+        smoother.add_value(1.0);
+        assert_approx_eq!(smoother.compute_average(), 1.0 / 1.0);
     }
 
     #[test]
     fn clear() {
-        let mut sum_cache_ma: MovingAverage<f32> = MovingAverage::new(3);
-        sum_cache_ma.add_value(1.0);
-        sum_cache_ma.add_value(2.0);
-        sum_cache_ma.add_value(3.0);
-        assert_eq!(sum_cache_ma.compute_average(), 6.0 / 3.0);
-        sum_cache_ma.clear();
-        assert_eq!(sum_cache_ma.compute_average(), 0.0);
+        let mut smoother = MovingAverage::<f64>::new(1, 3);
+        for i in 1..4 {
+            smoother.add_value(i as f64);
+        }
+        assert_approx_eq!(smoother.compute_average(), 6.0 / 3.0);
+        smoother.clear();
+        assert_approx_eq!(smoother.compute_average(), 0.0);
     }
 }

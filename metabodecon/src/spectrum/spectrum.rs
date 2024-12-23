@@ -1,5 +1,5 @@
 use crate::error::Result;
-use crate::smoothing::{MovingAverageSmoother, Smoother, SmoothingAlgo};
+use crate::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::spectrum::error::{Error, Kind};
 
 /// Represents the ordering of 1D NMR spectrum data.
@@ -266,7 +266,7 @@ impl Spectrum {
                 iterations,
                 window_size,
             } => {
-                let mut smoother = MovingAverageSmoother::<f64>::new(iterations, window_size);
+                let mut smoother = MovingAverage::<f64>::new(iterations, window_size);
                 smoother.smooth_values(intensities);
             }
         }
