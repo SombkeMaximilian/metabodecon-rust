@@ -51,11 +51,11 @@ where
     Type: Copy
         + Zero
         + FromPrimitive
-        + 'static
         + AddAssign
         + SubAssign
         + Mul<Output = Type>
-        + Div<Output = Type>,
+        + Div<Output = Type>
+        + 'static,
 {
     pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
