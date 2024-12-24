@@ -12,17 +12,17 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 /// input sequence, the window starts at half its size (rounded up) at the left
 /// edge and grows to its full size when there are enough values to the left of
 /// the current value. For example, with a window size of 5 (window center
-/// marked by `x`, extent marked by `—`):
+/// marked by `x`, extent marked by `-`):
 ///
 /// | Index  | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
 /// | ------ | --- | --- | --- | --- | --- | --- | --- |
-/// | Step 1 | x   | —   | —   |     |     |     |     |
-/// | Step 2 | —   | x   | —   | —   |     |     |     |
-/// | Step 3 | —   | —   | x   | —   | —   |     |     |
-/// | Step 4 |     | —   | —   | x   | —   | —   |     |
-/// | Step 5 |     |     | —   | —   | x   | —   | —   |
-/// | Step 6 |     |     |     | —   | —   | x   | —   |
-/// | Step 7 |     |     |     |     | —   | —   | x   |
+/// | Step 1 | x   | -   | -   |     |     |     |     |
+/// | Step 2 | -   | x   | -   | -   |     |     |     |
+/// | Step 3 | -   | -   | x   | -   | -   |     |     |
+/// | Step 4 |     | -   | -   | x   | -   | -   |     |
+/// | Step 5 |     |     | -   | -   | x   | -   | -   |
+/// | Step 6 |     |     |     | -   | -   | x   | -   |
+/// | Step 7 |     |     |     |     | -   | -   | x   |
 #[derive(Debug)]
 pub struct MovingAverage<Type> {
     /// The buffer used to store the values in the window.
