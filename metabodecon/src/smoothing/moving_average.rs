@@ -3,13 +3,39 @@ use crate::smoothing::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 
+/// Moving average filter that smooths a sequence of values by averaging them
+/// over a sliding window.
+///
+/// # Edge Handling
+///
+/// The window is centered around the current value. To handle the edges of the
+/// input sequence, the window starts at half its size (rounded down) at the
+/// left edge and grows to its full size when there are enough values to the
+/// left of the current value. For example, with a window size of 5 (window
+/// center marked by `x`, extent marked by `—`):
+///
+/// | Index  | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+/// | ------ | --- | --- | --- | --- | --- | --- | --- |
+/// | Step 1 | x   | —   | —   |     |     |     |     |
+/// | Step 2 | —   | x   | —   | —   |     |     |     |
+/// | Step 3 | —   | —   | x   | —   | —   |     |     |
+/// | Step 4 |     | —   | —   | x   | —   | —   |     |
+/// | Step 5 |     |     | —   | —   | x   | —   | —   |
+/// | Step 6 |     |     |     | —   | —   | x   | —   |
+/// | Step 7 |     |     |     |     | —   | —   | x   |
 #[derive(Debug)]
 pub struct MovingAverage<Type> {
+    /// The buffer used to store the values in the window.
     buffer: CircularBuffer<Type>,
+    /// The cached sum of the values in the window.
     sum: Type,
+    /// The cached division factor for computing the average.
     div: Type,
+    /// The cached value of one for adjusting the division factor.
     one: Type,
+    /// The number of iterations to apply the filter.
     iterations: usize,
+    /// The number of values to the right of the current value in the window.
     right: usize,
 }
 
@@ -24,6 +50,10 @@ where
         + Div<Output = Type>
         + 'static,
 {
+    /// Smooths the given sequence of values in place using the moving average
+    /// filter.
+    ///
+    /// The index based for loop should be replaced by iterators.
     fn smooth_values(&mut self, values: &mut [Type]) {
         let len = values.len();
         for _ in 0..self.iterations {
@@ -57,6 +87,8 @@ where
         + Div<Output = Type>
         + 'static,
 {
+    /// Creates a new `MovingAverage` filter with the given number of iterations
+    /// and window size.
     pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
             buffer: CircularBuffer::new(window_size),
@@ -68,6 +100,8 @@ where
         }
     }
 
+    /// Adds the given value to the buffer and updates the cached sum and
+    /// division factor.
     fn add_value(&mut self, value: Type) {
         self.sum += value;
         if let Some(popped_value) = self.buffer.next(value) {
@@ -77,6 +111,8 @@ where
         }
     }
 
+    /// Removes the oldest value from the buffer, updates the cached sum and
+    /// division factor, and returns the removed value (if any).
     fn pop_last(&mut self) -> Option<Type> {
         if let Some(popped_value) = self.buffer.pop() {
             self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
@@ -87,10 +123,12 @@ where
         }
     }
 
+    /// Returns the average of the values in the buffer.
     fn compute_average(&self) -> Type {
         self.sum * self.div
     }
 
+    /// Clears the buffer and resets the cached sum and division factor.
     fn clear(&mut self) {
         self.buffer.clear();
         self.sum = Type::zero();
