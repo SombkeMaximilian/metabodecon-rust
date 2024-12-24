@@ -9,10 +9,10 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 /// # Edge Handling
 ///
 /// The window is centered around the current value. To handle the edges of the
-/// input sequence, the window starts at half its size (rounded down) at the
-/// left edge and grows to its full size when there are enough values to the
-/// left of the current value. For example, with a window size of 5 (window
-/// center marked by `x`, extent marked by `—`):
+/// input sequence, the window starts at half its size (rounded up) at the left
+/// edge and grows to its full size when there are enough values to the left of
+/// the current value. For example, with a window size of 5 (window center
+/// marked by `x`, extent marked by `—`):
 ///
 /// | Index  | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
 /// | ------ | --- | --- | --- | --- | --- | --- | --- |
