@@ -2,10 +2,6 @@ use num_traits::Zero;
 
 /// FIFO buffer with a fixed capacity that wraps around and overwrites old
 /// elements when full.
-///
-/// `CircularBuffer`, also known as ring buffer or circular queue, is a circular
-/// container that wraps around and overwrites the oldest element once its
-/// capacity is reached.
 #[derive(Debug)]
 pub struct CircularBuffer<Type> {
     /// The underlying storage for the buffer.
