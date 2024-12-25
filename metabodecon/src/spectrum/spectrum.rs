@@ -46,11 +46,11 @@ impl Monotonicity {
 /// water artifact are stored in the spectrum object as tuples.
 #[derive(Clone, Debug, Default)]
 pub struct Spectrum {
-    /// The chemical shifts of the spectrum.
+    /// The chemical shifts of the spectrum in ppm.
     chemical_shifts: Box<[f64]>,
-    /// The preprocessed intensities of the spectrum.
+    /// The preprocessed intensities of the spectrum in arbitrary units.
     intensities: Box<[f64]>,
-    /// The raw intensities of the spectrum.
+    /// The raw intensities of the spectrum in arbitrary units.
     intensities_raw: Box<[f64]>,
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
