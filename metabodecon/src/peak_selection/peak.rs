@@ -1,11 +1,16 @@
+/// Data structure that represents a peak in a spectrum.
 #[derive(Debug)]
 pub struct Peak {
+    /// Index of the left boundary of the peak.
     left: usize,
+    /// Index of the center of the peak.
     center: usize,
+    /// Index of the right boundary of the peak.
     right: usize,
 }
 
 impl Peak {
+    /// Creates a `Peak` from the indices of the 3 points that define it.
     pub fn new(left: usize, center: usize, right: usize) -> Self {
         Self {
             left,
@@ -14,14 +19,17 @@ impl Peak {
         }
     }
 
+    /// Returns the index of the left boundary of the peak.
     pub fn left(&self) -> usize {
         self.left
     }
 
+    /// Returns the index of the center of the peak.
     pub fn center(&self) -> usize {
         self.center
     }
 
+    /// Returns the index of the right boundary of the peak.
     pub fn right(&self) -> usize {
         self.right
     }
