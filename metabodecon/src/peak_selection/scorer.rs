@@ -12,7 +12,7 @@ pub enum ScoringAlgo {
     MinimumSum,
 }
 
-/// Trait interface for the scoring algorithms.
+/// Trait interface for peak scoring algorithms.
 pub trait Scorer {
     /// Scores the given peak.
     fn score_peak(&self, peak: &Peak) -> f64;

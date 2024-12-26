@@ -15,7 +15,7 @@ pub enum SmoothingAlgo {
     },
 }
 
-/// Trait interface for the smoothing algorithms.
+/// Trait interface for smoothing algorithms.
 pub trait Smoother<Type> {
     /// Smooths the given sequence of values in place.
     fn smooth_values(&mut self, values: &mut [Type]);
