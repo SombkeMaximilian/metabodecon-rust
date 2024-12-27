@@ -54,7 +54,7 @@ impl Deconvoluter {
         spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
-                SelectionAlgo::Default {
+                SelectionAlgo::NoiseScoreFilter {
                     threshold,
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),
@@ -88,7 +88,7 @@ impl Deconvoluter {
         spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
             let selector = match self.selection_algo {
-                SelectionAlgo::Default {
+                SelectionAlgo::NoiseScoreFilter {
                     threshold,
                     scoring_algo,
                 } => SelectorDefault::new(scoring_algo, threshold),

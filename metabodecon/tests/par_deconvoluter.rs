@@ -12,7 +12,7 @@ pub fn run_par_deconvolution(path: &str, data: &str) -> Result<Deconvolution> {
             iterations: 2,
             window_size: 5,
         },
-        SelectionAlgo::Default {
+        SelectionAlgo::NoiseScoreFilter {
             scoring_algo: ScoringAlgo::MinimumSum,
             threshold: 6.4,
         },

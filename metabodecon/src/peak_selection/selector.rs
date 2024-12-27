@@ -6,7 +6,7 @@ use crate::spectrum::Spectrum;
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 pub enum SelectionAlgo {
-    Default {
+    NoiseScoreFilter {
         scoring_algo: ScoringAlgo,
         threshold: f64,
     },

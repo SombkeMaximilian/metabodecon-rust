@@ -18,7 +18,7 @@ impl Deconvoluter {
                     iterations: 0,
                     window_size: 0,
                 },
-                metabodecon::SelectionAlgo::Default {
+                metabodecon::SelectionAlgo::NoiseScoreFilter {
                     scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
                     threshold: 0.0,
                 },
@@ -38,7 +38,7 @@ impl Deconvoluter {
 
     pub fn with_def_selector(&mut self, threshold: f64) -> Self {
         self.inner
-            .set_selection_algo(metabodecon::SelectionAlgo::Default {
+            .set_selection_algo(metabodecon::SelectionAlgo::NoiseScoreFilter {
                 scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
                 threshold,
             });
