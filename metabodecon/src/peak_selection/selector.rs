@@ -20,7 +20,9 @@ pub enum SelectionAlgo {
     /// score > mean + threshold * std_dev
     /// ```
     NoiseScoreFilter {
+        /// The scoring algorithm to use.
         scoring_algo: ScoringAlgo,
+        /// The threshold to apply to the scores.
         threshold: f64,
     },
 }
