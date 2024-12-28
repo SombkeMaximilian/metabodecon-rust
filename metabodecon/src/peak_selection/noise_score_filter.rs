@@ -7,12 +7,12 @@ use crate::peak_selection::selector::Selector;
 use crate::spectrum::Spectrum;
 
 #[derive(Debug)]
-pub struct SelectorDefault {
+pub struct NoiseScoreFilter {
     scoring_algo: ScoringAlgo,
     threshold: f64,
 }
 
-impl Selector for SelectorDefault {
+impl Selector for NoiseScoreFilter {
     fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
         let signal_boundaries = spectrum.signal_boundaries_indices();
         let mut second_derivative = Self::second_derivative(spectrum.intensities());
@@ -28,7 +28,7 @@ impl Selector for SelectorDefault {
     }
 }
 
-impl SelectorDefault {
+impl NoiseScoreFilter {
     pub fn new(scoring_algo: ScoringAlgo, threshold: f64) -> Self {
         Self {
             scoring_algo,
@@ -105,7 +105,7 @@ mod tests {
     fn second_derivative() {
         let intensities = vec![1., 2., 3., 2., 1.];
         let expected = vec![0., -2., 0.];
-        assert_eq!(SelectorDefault::second_derivative(&intensities), expected);
+        assert_eq!(NoiseScoreFilter::second_derivative(&intensities), expected);
     }
 
     #[test]
@@ -116,7 +116,7 @@ mod tests {
             .map(|i| Peak::new(i - 1, i, i + 1))
             .collect();
         assert_eq!(
-            SelectorDefault::peak_region_boundaries(&peaks, signal_region_boundaries),
+            NoiseScoreFilter::peak_region_boundaries(&peaks, signal_region_boundaries),
             (1, 3)
         );
     }
@@ -135,7 +135,7 @@ mod tests {
             .chain(peaks[peak_region_boundaries.1..].iter())
             .map(|peak| scorer.score_peak(peak))
             .collect();
-        let (mean, sd) = SelectorDefault::mean_sd_scores(scores_sfr);
+        let (mean, sd) = NoiseScoreFilter::mean_sd_scores(scores_sfr);
         assert_approx_eq!(mean, 4.0);
         assert_approx_eq!(sd, 1.0);
     }

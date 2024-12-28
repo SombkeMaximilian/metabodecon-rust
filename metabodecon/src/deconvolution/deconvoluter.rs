@@ -1,7 +1,7 @@
 use crate::deconvolution::Deconvolution;
 use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
-use crate::peak_selection::{SelectionAlgo, Selector, SelectorDefault};
+use crate::peak_selection::{SelectionAlgo, Selector, NoiseScoreFilter};
 use crate::smoothing::SmoothingAlgo;
 use crate::spectrum::Spectrum;
 use crate::Lorentzian;
@@ -57,7 +57,7 @@ impl Deconvoluter {
                 SelectionAlgo::NoiseScoreFilter {
                     threshold,
                     scoring_algo,
-                } => SelectorDefault::new(scoring_algo, threshold),
+                } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
             selector.select_peaks(spectrum)?
         };
@@ -91,7 +91,7 @@ impl Deconvoluter {
                 SelectionAlgo::NoiseScoreFilter {
                     threshold,
                     scoring_algo,
-                } => SelectorDefault::new(scoring_algo, threshold),
+                } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
             selector.select_peaks(spectrum)?
         };
