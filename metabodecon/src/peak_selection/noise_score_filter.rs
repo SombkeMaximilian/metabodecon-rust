@@ -6,6 +6,8 @@ use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
 use crate::spectrum::Spectrum;
 
+/// Peak selection algorithm based on the score of peaks found in the signal
+/// free region.
 #[derive(Debug)]
 pub struct NoiseScoreFilter {
     scoring_algo: ScoringAlgo,
@@ -13,6 +15,18 @@ pub struct NoiseScoreFilter {
 }
 
 impl Selector for NoiseScoreFilter {
+    /// Detects peaks in a spectrum and returns the ones that pass a filter.
+    ///
+    /// Peaks are detected using the curvature of the signal through the second
+    /// derivative. The scores of the peaks are computed using the selected
+    /// scoring algorithm. The mean and standard deviation of the scores in the
+    /// signal free region (where only noise is present) are calculated, and
+    /// peaks in the signal region are filtered according to the following
+    /// criterion:
+    ///
+    /// ```text
+    /// score > mean + threshold * std_dev
+    /// ```
     fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
         let signal_boundaries = spectrum.signal_boundaries_indices();
         let mut second_derivative = Self::second_derivative(spectrum.intensities());
@@ -29,6 +43,8 @@ impl Selector for NoiseScoreFilter {
 }
 
 impl NoiseScoreFilter {
+    /// Constructs a new `NoiseScoreFilter` with the given scoring algorithm and
+    /// threshold.
     pub fn new(scoring_algo: ScoringAlgo, threshold: f64) -> Self {
         Self {
             scoring_algo,
@@ -36,6 +52,8 @@ impl NoiseScoreFilter {
         }
     }
 
+    /// Computes the second derivative of a signal with 3-point finite
+    /// differences.
     fn second_derivative(intensities: &[f64]) -> Vec<f64> {
         intensities
             .windows(3)
@@ -43,6 +61,17 @@ impl NoiseScoreFilter {
             .collect()
     }
 
+    /// Filters peaks based on their scores.
+    ///
+    /// The scores are computed using the selected scoring algorithm, and then
+    /// divided into signal free region (SFR) and signal region. The mean and
+    /// standard deviation of the scores in the SFR, where only noise is
+    /// present, are calculated, and peaks in the signal region are filtered
+    /// according to the following criterion:
+    ///
+    /// ```text
+    /// score > mean + threshold * std_dev
+    /// ```
     fn filter_peaks(
         &self,
         mut peaks: Vec<Peak>,
@@ -53,6 +82,7 @@ impl NoiseScoreFilter {
             ScoringAlgo::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
         };
         let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries);
+
         if peaks[..boundaries.0].is_empty() && peaks[boundaries.1..].is_empty() {
             return Err(Error::new(Kind::EmptySignalFreeRegion).into());
         }
@@ -66,12 +96,15 @@ impl NoiseScoreFilter {
             .map(|peak| scorer.score_peak(peak))
             .collect();
         let (mean, sd) = Self::mean_sd_scores(scores_sfr);
+
         Ok(peaks
             .drain(boundaries.0..boundaries.1)
             .filter(|peak| scorer.score_peak(peak) >= mean + self.threshold * sd)
             .collect())
     }
 
+    /// Computes the indices in the slice of `Peak`s that delimit the signal
+    /// region.
     fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> (usize, usize) {
         let left = peaks
             .iter()
@@ -85,6 +118,7 @@ impl NoiseScoreFilter {
         (left, right)
     }
 
+    /// Computes the mean and standard deviation of a vector of scores.
     fn mean_sd_scores(scores: Vec<f64>) -> (f64, f64) {
         let mean: f64 = scores.iter().sum::<f64>() / scores.len() as f64;
         let variance: f64 = scores
