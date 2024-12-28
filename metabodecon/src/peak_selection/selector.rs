@@ -3,7 +3,7 @@ use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 use crate::spectrum::Spectrum;
 
-/// Peak selection algorithm.
+/// Peak selection methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 pub enum SelectionAlgo {
