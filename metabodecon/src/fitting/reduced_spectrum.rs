@@ -1,13 +1,18 @@
 use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
+/// Data structure that contains a subset of the data from a spectrum.
 #[derive(Debug)]
 pub struct ReducedSpectrum {
+    /// The chemical shifts of the reduced spectrum in ppm.
     chemical_shifts: Vec<f64>,
+    /// The intensities of the reduced spectrum in arbitrary units.
     intensities: Vec<f64>,
 }
 
 impl ReducedSpectrum {
+    /// Extracts the chemical shifts and intensities of the peaks from the
+    /// spectrum and constructs a `ReducedSpectrum` from them.
     pub fn new(spectrum: &Spectrum, peaks: &[Peak]) -> Self {
         let positions = peaks
             .iter()
@@ -28,10 +33,12 @@ impl ReducedSpectrum {
         }
     }
 
+    /// Returns the chemical shifts as a slice.
     pub fn chemical_shifts(&self) -> &[f64] {
         &self.chemical_shifts
     }
 
+    /// Returns the intensities as a slice.
     pub fn intensities(&self) -> &[f64] {
         &self.intensities
     }
