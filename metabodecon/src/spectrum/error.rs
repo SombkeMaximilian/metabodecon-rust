@@ -126,11 +126,6 @@ pub enum Kind {
         /// The regex pattern that was used to search for the metadata.
         regex: String,
     },
-
-    /// An I/O error occurred.
-    IoError,
-    /// An HDF5 error occurred.
-    Hdf5Error,
 }
 
 impl std::error::Error for Error {
@@ -142,24 +137,6 @@ impl std::error::Error for Error {
 impl From<Kind> for Error {
     fn from(kind: Kind) -> Self {
         Self { kind, source: None }
-    }
-}
-
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Self {
-            kind: Kind::IoError,
-            source: Some(Arc::new(error)),
-        }
-    }
-}
-
-impl From<hdf5::Error> for Error {
-    fn from(error: hdf5::Error) -> Self {
-        Self {
-            kind: Kind::Hdf5Error,
-            source: Some(Arc::new(error)),
-        }
     }
 }
 
@@ -227,8 +204,6 @@ impl core::fmt::Display for Error {
                  step size at indices ({}, {}) differs from previous step",
                 positions.0, positions.1
             ),
-            IoError => format!("I/O error: {}", self.source.as_ref().unwrap()),
-            Hdf5Error => format!("HDF5 error: {}", self.source.as_ref().unwrap()),
         };
         write!(f, "{description}")
     }
