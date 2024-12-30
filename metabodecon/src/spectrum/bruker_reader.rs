@@ -77,7 +77,9 @@ pub struct BrukerReader;
 /// | 1       | Big        |
 #[derive(Debug)]
 enum Endian {
+    /// Little-endian byte order.
     Little,
+    /// Big-endian byte order.
     Big,
 }
 
@@ -89,23 +91,31 @@ enum Endian {
 /// | 1     | f64  |
 #[derive(Debug)]
 enum Type {
+    /// Data stored as 32-bit integers.
     I32,
+    /// Data stored as 64-bit floating point numbers.
     F64,
 }
 
 /// Acquisition parameters extracted from the `acqus` file.
 #[derive(Debug)]
 struct AcquisitionParameters {
+    /// The spectral width in ppm.
     pub spectrum_width: f64,
 }
 
 /// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
+    /// The maximum chemical shift in ppm.
     pub spectrum_maximum: f64,
+    /// The size of the data, expected to be 2^15 or 2^17.
     pub data_size: usize,
+    /// The endianness of the data.
     pub endian: Endian,
+    /// The data type of the raw signal intensities.
     pub data_type: Type,
+    /// The scaling exponent of the data, if the data is stored as integers.
     pub scaling_exponent: i32,
 }
 
