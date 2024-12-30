@@ -10,7 +10,9 @@ use crate::spectrum::Spectrum;
 /// free region.
 #[derive(Debug)]
 pub struct NoiseScoreFilter {
+    /// The scoring method to use.
     scoring_algo: ScoringAlgo,
+    /// The threshold for filtering peaks.
     threshold: f64,
 }
 
