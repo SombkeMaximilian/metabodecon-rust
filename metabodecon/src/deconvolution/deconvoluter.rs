@@ -6,14 +6,20 @@ use crate::smoothing::SmoothingAlgo;
 use crate::spectrum::Spectrum;
 use crate::Lorentzian;
 
+/// Deconvolution pipeline that applies smoothing, peak selection, and fitting
+/// to a spectrum to deconvolute it into individual signals.
 #[derive(Copy, Clone, Debug)]
 pub struct Deconvoluter {
+    /// The smoothing algorithm to use.
     smoothing_algo: SmoothingAlgo,
+    /// The peak selection algorithm to use.
     selection_algo: SelectionAlgo,
+    /// The fitting algorithm to use.
     fitting_algo: FittingAlgo,
 }
 
 impl Deconvoluter {
+    /// Constructs a new `Deconvoluter` with the provided settings.
     pub fn new(
         smoothing_algo: SmoothingAlgo,
         selection_algo: SelectionAlgo,
@@ -26,30 +32,37 @@ impl Deconvoluter {
         }
     }
 
+    /// Returns the smoothing algorithm settings.
     pub fn smoothing_algo(&self) -> SmoothingAlgo {
         self.smoothing_algo
     }
 
+    /// Returns the peak selection algorithm settings.
     pub fn selection_algo(&self) -> SelectionAlgo {
         self.selection_algo
     }
 
+    /// Returns the fitting algorithm settings.
     pub fn fitting_algo(&self) -> FittingAlgo {
         self.fitting_algo
     }
 
+    /// Sets the smoothing algorithm settings.
     pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) {
         self.smoothing_algo = smoothing_algo;
     }
 
+    /// Sets the peak selection algorithm settings.
     pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) {
         self.selection_algo = selection_algo;
     }
 
+    /// Sets the fitting algorithm settings.
     pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) {
         self.fitting_algo = fitting_algo;
     }
 
+    /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
         spectrum.apply_preprocessing(self.smoothing_algo);
         let peaks = {
@@ -83,6 +96,7 @@ impl Deconvoluter {
         ))
     }
 
+    /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
         spectrum.apply_preprocessing(self.smoothing_algo);
