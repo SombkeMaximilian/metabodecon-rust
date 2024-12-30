@@ -16,16 +16,13 @@ own work, that have been implemented in Rust.
 [Beirnaert et al. (2018)]: https://doi.org/10.1371/journal.pcbi.1006018
 */
 
-mod deconvolution;
 mod error;
 mod fitting;
 mod peak_selection;
 mod smoothing;
-mod spectrum;
 
-pub use deconvolution::{Deconvoluter, Deconvolution};
 pub use error::{Error, Result};
-pub use fitting::{FittingAlgo, Lorentzian};
-pub use peak_selection::{ScoringAlgo, SelectionAlgo};
-pub use smoothing::SmoothingAlgo;
-pub use spectrum::{BrukerReader, Hdf5Reader, JdxReader, Spectrum};
+
+pub mod spectrum;
+
+pub mod deconvolution;

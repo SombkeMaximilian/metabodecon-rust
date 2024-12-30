@@ -1,3 +1,4 @@
+use metabodecon::spectrum;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
@@ -5,11 +6,11 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Clone, Debug, Default)]
 pub struct Spectrum {
-    inner: metabodecon::Spectrum,
+    inner: spectrum::Spectrum,
 }
 
 impl Spectrum {
-    pub fn inner_mut(&mut self) -> &mut metabodecon::Spectrum {
+    pub fn inner_mut(&mut self) -> &mut spectrum::Spectrum {
         &mut self.inner
     }
 }
@@ -24,7 +25,7 @@ impl Spectrum {
         water_boundaries: (f64, f64),
     ) -> Self {
         Spectrum {
-            inner: metabodecon::Spectrum::new(
+            inner: spectrum::Spectrum::new(
                 chemical_shifts,
                 intensities,
                 signal_boundaries,
@@ -42,7 +43,7 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> PyResult<Self> {
-        let reader = metabodecon::BrukerReader::new();
+        let reader = spectrum::BrukerReader::new();
         match reader.read_spectrum(
             path,
             experiment,
@@ -63,7 +64,7 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> PyResult<Vec<Self>> {
-        let reader = metabodecon::BrukerReader::new();
+        let reader = spectrum::BrukerReader::new();
         match reader.read_spectra(
             path,
             experiment,
@@ -81,7 +82,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        let reader = metabodecon::Hdf5Reader::new();
+        let reader = spectrum::Hdf5Reader::new();
         match reader.read_spectrum(path, dataset) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
@@ -90,7 +91,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
-        let reader = metabodecon::Hdf5Reader::new();
+        let reader = spectrum::Hdf5Reader::new();
         match reader.read_spectra(path) {
             Ok(spectra) => Ok(spectra
                 .into_iter()

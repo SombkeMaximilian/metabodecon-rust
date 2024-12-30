@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use metabodecon::*;
+use metabodecon::{spectrum::*, deconvolution::*};
 
 fn d() -> Deconvoluter {
     Deconvoluter::new(

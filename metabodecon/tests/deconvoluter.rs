@@ -1,4 +1,4 @@
-use metabodecon::*;
+use metabodecon::{deconvolution::*, spectrum::*, Result};
 mod common;
 use common::store_deconvolution;
 

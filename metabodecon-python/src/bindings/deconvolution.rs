@@ -1,4 +1,5 @@
 use crate::bindings::Lorentzian;
+use metabodecon::deconvolution;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 use pyo3::types::PyList;
@@ -6,11 +7,11 @@ use pyo3::types::PyList;
 #[pyclass]
 #[derive(Clone, Debug)]
 pub struct Deconvolution {
-    inner: metabodecon::Deconvolution,
+    inner: deconvolution::Deconvolution,
 }
 
 impl Deconvolution {
-    pub fn from_inner(inner: metabodecon::Deconvolution) -> Self {
+    pub fn from_inner(inner: deconvolution::Deconvolution) -> Self {
         Deconvolution { inner }
     }
 }
@@ -35,7 +36,7 @@ impl Deconvolution {
     }
 
     pub fn superposition(&self, chemical_shift: f64) -> f64 {
-        metabodecon::Lorentzian::superposition(chemical_shift, self.inner.lorentzians())
+        deconvolution::Lorentzian::superposition(chemical_shift, self.inner.lorentzians())
     }
 
     pub fn superposition_vec<'py>(
@@ -45,7 +46,7 @@ impl Deconvolution {
     ) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(
             py,
-            &metabodecon::Lorentzian::superposition_vec(
+            &deconvolution::Lorentzian::superposition_vec(
                 chemical_shifts.as_slice().unwrap(),
                 self.inner.lorentzians(),
             ),
@@ -59,7 +60,7 @@ impl Deconvolution {
     ) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(
             py,
-            &metabodecon::Lorentzian::par_superposition_vec(
+            &deconvolution::Lorentzian::par_superposition_vec(
                 chemical_shifts.as_slice().unwrap(),
                 self.inner.lorentzians(),
             ),

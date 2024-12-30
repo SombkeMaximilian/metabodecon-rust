@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use metabodecon::Hdf5Reader;
+use metabodecon::spectrum::Hdf5Reader;
 
 fn read_spectrum(c: &mut Criterion) {
     let reader = Hdf5Reader::new();

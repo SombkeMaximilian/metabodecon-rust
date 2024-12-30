@@ -1,10 +1,11 @@
 use crate::bindings::{Deconvolution, Spectrum};
+use metabodecon::deconvolution;
 use pyo3::prelude::*;
 
 #[pyclass]
 #[derive(Copy, Clone, Debug)]
 pub struct Deconvoluter {
-    inner: metabodecon::Deconvoluter,
+    inner: deconvolution::Deconvoluter,
 }
 
 #[pymethods]
@@ -13,23 +14,23 @@ impl Deconvoluter {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
-            inner: metabodecon::Deconvoluter::new(
-                metabodecon::SmoothingAlgo::MovingAverage {
+            inner: deconvolution::Deconvoluter::new(
+                deconvolution::SmoothingAlgo::MovingAverage {
                     iterations: 0,
                     window_size: 0,
                 },
-                metabodecon::SelectionAlgo::NoiseScoreFilter {
-                    scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
+                deconvolution::SelectionAlgo::NoiseScoreFilter {
+                    scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
                     threshold: 0.0,
                 },
-                metabodecon::FittingAlgo::Analytical { iterations: 0 },
+                deconvolution::FittingAlgo::Analytical { iterations: 0 },
             ),
         }
     }
 
     pub fn with_ma_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
         self.inner
-            .set_smoothing_algo(metabodecon::SmoothingAlgo::MovingAverage {
+            .set_smoothing_algo(deconvolution::SmoothingAlgo::MovingAverage {
                 iterations,
                 window_size,
             });
@@ -38,8 +39,8 @@ impl Deconvoluter {
 
     pub fn with_def_selector(&mut self, threshold: f64) -> Self {
         self.inner
-            .set_selection_algo(metabodecon::SelectionAlgo::NoiseScoreFilter {
-                scoring_algo: metabodecon::ScoringAlgo::MinimumSum,
+            .set_selection_algo(deconvolution::SelectionAlgo::NoiseScoreFilter {
+                scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
                 threshold,
             });
         *self
@@ -47,7 +48,7 @@ impl Deconvoluter {
 
     pub fn with_analytical_fitter(&mut self, iterations: usize) -> Self {
         self.inner
-            .set_fitting_algo(metabodecon::FittingAlgo::Analytical { iterations });
+            .set_fitting_algo(deconvolution::FittingAlgo::Analytical { iterations });
         *self
     }
 

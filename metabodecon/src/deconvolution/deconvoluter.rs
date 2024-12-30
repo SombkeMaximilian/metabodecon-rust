@@ -1,10 +1,9 @@
 use crate::deconvolution::Deconvolution;
 use crate::error::Result;
-use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo};
+use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
 use crate::peak_selection::{NoiseScoreFilter, SelectionAlgo, Selector};
 use crate::smoothing::SmoothingAlgo;
 use crate::spectrum::Spectrum;
-use crate::Lorentzian;
 
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting
 /// to a spectrum to deconvolute it into individual signals.

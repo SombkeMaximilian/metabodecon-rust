@@ -1,4 +1,4 @@
-use metabodecon::*;
+use metabodecon::deconvolution::Deconvolution;
 use std::io::Write;
 
 #[cfg(test)]

@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use metabodecon::BrukerReader;
+use metabodecon::spectrum::BrukerReader;
 
 fn read_spectrum(c: &mut Criterion) {
     let reader = BrukerReader::new();

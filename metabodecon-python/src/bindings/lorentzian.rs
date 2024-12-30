@@ -1,14 +1,15 @@
+use metabodecon::deconvolution;
 use numpy::{PyArray1, PyReadonlyArray1};
 use pyo3::prelude::*;
 
 #[pyclass]
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Lorentzian {
-    inner: metabodecon::Lorentzian,
+    inner: deconvolution::Lorentzian,
 }
 
 impl Lorentzian {
-    pub fn from_inner(inner: metabodecon::Lorentzian) -> Self {
+    pub fn from_inner(inner: deconvolution::Lorentzian) -> Self {
         Lorentzian { inner }
     }
 }
@@ -18,14 +19,14 @@ impl Lorentzian {
     #[new]
     pub fn new(sf: f64, hw: f64, maxp: f64) -> Self {
         Lorentzian {
-            inner: metabodecon::Lorentzian::new(sf * hw, hw.powi(2), maxp),
+            inner: deconvolution::Lorentzian::new(sf * hw, hw.powi(2), maxp),
         }
     }
 
     #[staticmethod]
     pub fn from_transformed(sfhw: f64, hw2: f64, maxp: f64) -> Self {
         Lorentzian {
-            inner: metabodecon::Lorentzian::new(sfhw, hw2, maxp),
+            inner: deconvolution::Lorentzian::new(sfhw, hw2, maxp),
         }
     }
 
@@ -88,7 +89,7 @@ impl Lorentzian {
             .iter()
             .map(|l| l.inner)
             .collect::<Vec<_>>();
-        metabodecon::Lorentzian::superposition(x, &lorentzians)
+        deconvolution::Lorentzian::superposition(x, &lorentzians)
     }
 
     #[staticmethod]
@@ -103,7 +104,7 @@ impl Lorentzian {
             .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
-            &metabodecon::Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
+            &deconvolution::Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
         )
     }
 
@@ -119,7 +120,7 @@ impl Lorentzian {
             .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
-            &metabodecon::Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),
+            &deconvolution::Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),
         )
     }
 }
