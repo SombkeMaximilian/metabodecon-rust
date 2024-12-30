@@ -5,12 +5,16 @@ use crate::spectrum::Spectrum;
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
 
+/// Fitting algorithm based on the analytical solution of a system of equations
+/// using a 3-point peak stencil.
 #[derive(Debug)]
 pub struct FitterAnalytical {
+    /// The number of iterations to refine the Lorentzian parameters.
     iterations: usize,
 }
 
 impl Fitter for FitterAnalytical {
+    /// Fits a set of Lorentzians to the spectrum using the given peaks.
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
         let reduced_spectrum = ReducedSpectrum::new(spectrum, peaks);
         let mut peak_data = peaks
@@ -63,6 +67,8 @@ impl Fitter for FitterAnalytical {
         lorentzians
     }
 
+    /// Fits a set of Lorentzians to the spectrum using the given peaks in
+    /// parallel.
     #[cfg(feature = "parallel")]
     fn par_fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian> {
         let reduced_spectrum = ReducedSpectrum::new(spectrum, peaks);
