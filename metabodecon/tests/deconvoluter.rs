@@ -1,9 +1,9 @@
-use metabodecon::{deconvolution::*, spectrum::*, Result};
+use metabodecon::{deconvolution::*, spectrum::*};
 mod common;
 use common::store_deconvolution;
 
 #[cfg(test)]
-pub fn run_deconvolution(path: &str, dataset: &str) -> Result<Deconvolution> {
+pub fn run_deconvolution(path: &str, dataset: &str) -> metabodecon::Result<Deconvolution> {
     let reader = Hdf5Reader::new();
     let mut spectrum = reader.read_spectrum(path, dataset)?;
     let deconvoluter = Deconvoluter::new(

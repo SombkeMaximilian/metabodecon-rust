@@ -1,10 +1,10 @@
-use metabodecon::{deconvolution::*, spectrum::*, Result};
+use metabodecon::{deconvolution::*, spectrum::*};
 mod common;
 use common::store_deconvolution;
 
 #[cfg(feature = "parallel")]
 #[cfg(test)]
-pub fn run_par_deconvolution(path: &str, data: &str) -> Result<Deconvolution> {
+pub fn run_par_deconvolution(path: &str, data: &str) -> metabodecon::Result<Deconvolution> {
     let reader = Hdf5Reader::new();
     let mut spectrum = reader.read_spectrum(path, data)?;
     let deconvoluter = Deconvoluter::new(
