@@ -124,10 +124,13 @@ impl Fitter for FitterAnalytical {
 }
 
 impl FitterAnalytical {
+    /// Constructs a new `FitterAnalytical` with the given number of iterations.
     pub fn new(iterations: usize) -> Self {
         Self { iterations }
     }
 
+    /// Internal helper function to analytically compute the maximum position of
+    /// the peak in ppm by solving the system of 3 equations.
     fn maximum_position(p: &PeakStencilData) -> f64 {
         let numerator = p.x_1().powi(2) * p.y_1() * (p.y_2() - p.y_3())
             + p.x_2().powi(2) * p.y_2() * (p.y_3() - p.y_1())
@@ -138,6 +141,8 @@ impl FitterAnalytical {
         numerator / divisor
     }
 
+    /// Internal helper function to analytically compute the half width at half
+    /// maximum of the peak in ppm^2 by solving the system of 3 equations.
     fn half_width2(p: &PeakStencilData, maxp: f64) -> f64 {
         let left = (p.y_1() * (p.x_1() - maxp).powi(2) - p.y_2() * (p.x_2() - maxp).powi(2))
             / (p.y_2() - p.y_1());
@@ -146,6 +151,9 @@ impl FitterAnalytical {
         (left + right) / 2.
     }
 
+    /// Internal helper function to analytically compute the scale factor times
+    /// the half width at half maximum of the peak in ppm^2 by solving the
+    /// system of 3 equations.
     fn scale_factor_half_width(p: &PeakStencilData, maxp: f64, hw2: f64) -> f64 {
         p.y_2() * (hw2 + (p.x_2() - maxp).powi(2))
     }
