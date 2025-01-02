@@ -9,8 +9,8 @@ def main():
     blood.water_boundaries = (4.699535, 4.899771)
 
     deconvoluter = (md.Deconvoluter()
-                        .with_ma_smoother(2, 5)
-                        .with_def_selector(6.4)
+                        .with_moving_average_smoother(2, 5)
+                        .with_noise_score_selector(6.4)
                         .with_analytical_fitter(10))
     t1 = time.time()
     deconvolution = deconvoluter.deconvolute_spectrum(blood)
