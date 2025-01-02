@@ -28,7 +28,7 @@ impl Deconvoluter {
         }
     }
 
-    pub fn with_ma_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
+    pub fn with_moving_average_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
         self.inner
             .set_smoothing_algo(deconvolution::SmoothingAlgo::MovingAverage {
                 iterations,
@@ -37,7 +37,7 @@ impl Deconvoluter {
         *self
     }
 
-    pub fn with_def_selector(&mut self, threshold: f64) -> Self {
+    pub fn with_noise_score_selector(&mut self, threshold: f64) -> Self {
         self.inner
             .set_selection_algo(deconvolution::SelectionAlgo::NoiseScoreFilter {
                 scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
