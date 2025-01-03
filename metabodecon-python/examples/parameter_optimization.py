@@ -30,46 +30,51 @@ def main():
     )
     param_table["MSE"] = np.nan
 
-    spectrum = md.Spectrum.from_bruker("../../data/bruker/sim/sim_01", 10, 10, (3.33, 3.56), (3.445, 3.448))
+    spectra = md.Spectrum.from_bruker_set("../../data/bruker/sim", 10, 10, (3.33, 3.56), (3.445, 3.448))
     deconvoluter = md.Deconvoluter()
+    optimal_parameters = []
 
-    t1 = time.time()
-    for index, row in param_table.iterrows():
-        deconvoluter.with_moving_average_smoother(
-            int(row["Smoothing Iterations"]),
-            int(row["Smoothing Window Size"])
-        )
-        deconvoluter.with_noise_score_selector(
-            row["Noise Score Threshold"]
-        )
-        deconvoluter.with_analytical_fitter(
-            int(row["Fitter Iterations"])
-        )
-        param_table.at[index, "MSE"] = deconvoluter.deconvolute_spectrum(spectrum).mse
+    for i, spectrum in enumerate(spectra):
+        t1 = time.time()
+        for index, row in param_table.iterrows():
+            deconvoluter.with_moving_average_smoother(
+                int(row["Smoothing Iterations"]),
+                int(row["Smoothing Window Size"])
+            )
+            deconvoluter.with_noise_score_selector(
+                row["Noise Score Threshold"]
+            )
+            deconvoluter.with_analytical_fitter(
+                int(row["Fitter Iterations"])
+            )
+            param_table.at[index, "MSE"] = deconvoluter.deconvolute_spectrum(spectrum).mse
 
-    t2 = time.time()
-    print(f"Elapsed time {(t2 - t1) * 1000:.3f}ms")
+        t2 = time.time()
+        print(f"Elapsed time {(t2 - t1) * 1000:.3f}ms")
 
-    min_mse_per_parameter = {
-        "Smoothing Iterations": param_table.groupby("Smoothing Iterations")["MSE"].min(),
-        "Smoothing Window Size": param_table.groupby("Smoothing Window Size")["MSE"].min(),
-        "Noise Score Threshold": param_table.groupby("Noise Score Threshold")["MSE"].min(),
-        "Fitter Iterations": param_table.groupby("Fitter Iterations")["MSE"].min()
-    }
+        min_mse_per_parameter = {
+            "Smoothing Iterations": param_table.groupby("Smoothing Iterations")["MSE"].min(),
+            "Smoothing Window Size": param_table.groupby("Smoothing Window Size")["MSE"].min(),
+            "Noise Score Threshold": param_table.groupby("Noise Score Threshold")["MSE"].min(),
+            "Fitter Iterations": param_table.groupby("Fitter Iterations")["MSE"].min()
+        }
 
-    fig, axs = plt.subplots(2, 2, figsize = (12, 10), dpi = 300)
-    fig.suptitle("Minimum MSE by parameter")
+        fig, axs = plt.subplots(2, 2, figsize = (12, 10), dpi = 300)
+        fig.suptitle(f"Minimum MSE by parameter for spectrum {(i + 1):02}", size = 20)
 
-    for ax, (key, value) in zip(axs.flatten(), min_mse_per_parameter.items()):
-        ax.plot(value, marker = "o")
-        ax.set_title(key)
-        ax.set_xlabel(key)
-        ax.set_ylabel("MSE")
+        for ax, (key, value) in zip(axs.flatten(), min_mse_per_parameter.items()):
+            ax.plot(value, marker = "o")
+            ax.set_title(key)
+            ax.set_xlabel(key)
+            ax.set_ylabel("MSE")
 
-    plt.tight_layout(rect = [0, 0, 1, 0.96])
-    plt.show()
+        plt.tight_layout(rect = (0.0, 0.0, 1.0, 0.96))
+        plt.show()
 
-    print(param_table.loc[param_table["MSE"].idxmin()])
+        optimal_parameters.append(param_table.loc[param_table["MSE"].idxmin()])
+
+    for p in optimal_parameters:
+        print(p)
 
 
 if __name__ == "__main__":
