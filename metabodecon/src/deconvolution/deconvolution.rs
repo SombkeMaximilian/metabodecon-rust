@@ -37,7 +37,7 @@ impl Deconvolution {
 
     /// Returns the deconvoluted signals as a slice of [`Lorentzian`].
     ///
-    /// [`Lorentzian`]: crate::fitting::Lorentzian
+    /// [`Lorentzian`]: Lorentzian
     pub fn lorentzians(&self) -> &[Lorentzian] {
         &self.lorentzians
     }
