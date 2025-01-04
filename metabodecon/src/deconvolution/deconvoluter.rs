@@ -67,8 +67,8 @@ impl Deconvoluter {
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
-                    threshold,
                     scoring_algo,
+                    threshold,
                 } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
             selector.select_peaks(spectrum)?
