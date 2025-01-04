@@ -239,14 +239,17 @@ impl Spectrum {
     }
 
     /// Internal helper function to remove the water signal from the provided
-    /// intensities.
+    /// intensities by fitting a line through the boundaries.
     fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
-        let min_intensity = *intensities
-            .iter()
-            .min_by(|a, b| a.total_cmp(b))
-            .unwrap_or(&0.);
-        let water_region = &mut intensities[boundary_indices.0..boundary_indices.1];
-        water_region.fill(min_intensity);
+        let slope = (intensities[boundary_indices.1] - intensities[boundary_indices.0])
+            / f64::abs(boundary_indices.1 as f64 - boundary_indices.0 as f64);
+        let start = intensities[boundary_indices.0];
+        intensities[boundary_indices.0..boundary_indices.1]
+            .iter_mut()
+            .enumerate()
+            .for_each(|(index, intensity)| {
+                *intensity = slope * index as f64 + start;
+            });
     }
 
     /// Internal helper function to remove negative values from the provided
@@ -337,10 +340,10 @@ mod tests {
 
     #[test]
     fn remove_water_signal() {
-        let mut intensities = vec![1.0, 2.0, 3.0, 4.0, 5.0];
-        let water_boundaries_indices = (1, 4);
+        let mut intensities = vec![1.0, 15.0, 16.0, 15.0, 5.0];
+        let water_boundaries_indices = (0, 4);
         Spectrum::remove_water_signal(&mut intensities, water_boundaries_indices);
-        assert_eq!(intensities, vec![1.0, 1.0, 1.0, 1.0, 5.0]);
+        assert_eq!(intensities, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
     }
 
     #[test]
