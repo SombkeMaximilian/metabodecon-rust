@@ -29,7 +29,7 @@ impl ReducedSpectrum {
             .flat_map(|peak| {
                 vec![
                     spectrum.intensities()[peak.left()],
-                    spectrum.intensities()[peak.center()],
+                    spectrum.intensities_raw()[peak.center()],
                     spectrum.intensities()[peak.right()],
                 ]
             })
