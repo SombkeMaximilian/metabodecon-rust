@@ -5,9 +5,9 @@ use crate::spectrum::Spectrum;
 #[derive(Debug)]
 pub struct ReducedSpectrum {
     /// The chemical shifts of the reduced spectrum in ppm.
-    chemical_shifts: Vec<f64>,
+    chemical_shifts: Box<[f64]>,
     /// The intensities of the reduced spectrum in arbitrary units.
-    intensities: Vec<f64>,
+    intensities: Box<[f64]>,
 }
 
 impl ReducedSpectrum {
@@ -70,19 +70,19 @@ mod tests {
         let reduced = ReducedSpectrum::new(&spectrum, &peaks);
         assert_eq!(
             reduced.chemical_shifts,
-            vec![3., 4., 5., 5., 6., 7., 7., 8., 9.]
+            vec![3., 4., 5., 5., 6., 7., 7., 8., 9.].into_boxed_slice()
         );
         assert_eq!(
             reduced.intensities,
-            vec![8., 7., 6., 6., 5., 4., 4., 3., 2.]
+            vec![8., 7., 6., 6., 5., 4., 4., 3., 2.].into_boxed_slice()
         );
     }
 
     #[test]
     fn accessors() {
         let reduced = ReducedSpectrum {
-            chemical_shifts: vec![1., 2., 3.],
-            intensities: vec![4., 5., 6.],
+            chemical_shifts: vec![1., 2., 3.].into_boxed_slice(),
+            intensities: vec![4., 5., 6.].into_boxed_slice(),
         };
         assert_eq!(reduced.chemical_shifts(), vec![1., 2., 3.]);
         assert_eq!(reduced.intensities(), vec![4., 5., 6.]);
