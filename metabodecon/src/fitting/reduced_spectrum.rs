@@ -14,17 +14,25 @@ impl ReducedSpectrum {
     /// Extracts the chemical shifts and intensities of the peaks from the
     /// spectrum and constructs a `ReducedSpectrum` from them.
     pub fn new(spectrum: &Spectrum, peaks: &[Peak]) -> Self {
-        let positions = peaks
+        let chemical_shifts = peaks
             .iter()
-            .flat_map(|peak| vec![peak.left(), peak.center(), peak.right()])
-            .collect::<Vec<_>>();
-        let chemical_shifts = positions
-            .iter()
-            .map(|&pos| spectrum.chemical_shifts()[pos])
+            .flat_map(|peak| {
+                vec![
+                    spectrum.chemical_shifts()[peak.left()],
+                    spectrum.chemical_shifts()[peak.center()],
+                    spectrum.chemical_shifts()[peak.right()],
+                ]
+            })
             .collect();
-        let intensities = positions
-            .into_iter()
-            .map(|pos| spectrum.intensities()[pos])
+        let intensities = peaks
+            .iter()
+            .flat_map(|peak| {
+                vec![
+                    spectrum.intensities()[peak.left()],
+                    spectrum.intensities()[peak.center()],
+                    spectrum.intensities()[peak.right()],
+                ]
+            })
             .collect();
 
         Self {
