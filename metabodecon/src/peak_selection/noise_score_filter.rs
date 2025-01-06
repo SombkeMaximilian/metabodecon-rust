@@ -83,7 +83,7 @@ impl NoiseScoreFilter {
         let scorer = match self.scoring_algo {
             ScoringAlgo::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
         };
-        let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries);
+        let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries)?;
 
         if peaks[..boundaries.0].is_empty() && peaks[boundaries.1..].is_empty() {
             return Err(Error::new(Kind::EmptySignalFreeRegion).into());
@@ -107,17 +107,19 @@ impl NoiseScoreFilter {
 
     /// Computes the indices in the slice of `Peak`s that delimit the signal
     /// region.
-    fn peak_region_boundaries(peaks: &[Peak], signal_boundaries: (usize, usize)) -> (usize, usize) {
+    fn peak_region_boundaries(
+        peaks: &[Peak],
+        signal_boundaries: (usize, usize),
+    ) -> Result<(usize, usize)> {
         let left = peaks
             .iter()
             .position(|peak| peak.center() > signal_boundaries.0)
-            .unwrap();
+            .map_or(0, |i| i);
         let right = peaks[left..]
             .iter()
             .position(|peak| peak.center() > signal_boundaries.1)
-            .map(|i| left + i)
-            .unwrap();
-        (left, right)
+            .map_or(peaks.len() - 1, |i| left + i);
+        Ok((left, right))
     }
 
     /// Computes the mean and standard deviation of a vector of scores.
@@ -152,7 +154,7 @@ mod tests {
             .map(|i| Peak::new(i - 1, i, i + 1))
             .collect();
         assert_eq!(
-            NoiseScoreFilter::peak_region_boundaries(&peaks, signal_region_boundaries),
+            NoiseScoreFilter::peak_region_boundaries(&peaks, signal_region_boundaries).unwrap(),
             (1, 3)
         );
     }
