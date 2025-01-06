@@ -1,5 +1,6 @@
 use crate::bindings::{Deconvolution, Spectrum};
 use metabodecon::deconvolution;
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -11,21 +12,8 @@ pub struct Deconvoluter {
 #[pymethods]
 impl Deconvoluter {
     #[new]
-    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
-        Self {
-            inner: deconvolution::Deconvoluter::new(
-                deconvolution::SmoothingAlgo::MovingAverage {
-                    iterations: 0,
-                    window_size: 0,
-                },
-                deconvolution::SelectionAlgo::NoiseScoreFilter {
-                    scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
-                    threshold: 0.0,
-                },
-                deconvolution::FittingAlgo::Analytical { iterations: 0 },
-            ),
-        }
+        Default::default()
     }
 
     pub fn with_moving_average_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
@@ -52,19 +40,25 @@ impl Deconvoluter {
         *self
     }
 
-    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
-        Deconvolution::from_inner(
-            self.inner
-                .deconvolute_spectrum(spectrum.inner_mut())
-                .unwrap(),
-        )
+    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
+        match self.inner.deconvolute_spectrum(spectrum.inner_mut()) {
+            Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
-    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Deconvolution {
-        Deconvolution::from_inner(
-            self.inner
-                .par_deconvolute_spectrum(spectrum.inner_mut())
-                .unwrap(),
-        )
+    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
+        match self.inner.par_deconvolute_spectrum(spectrum.inner_mut()) {
+            Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+}
+
+impl Default for Deconvoluter {
+    fn default() -> Self {
+        Self {
+            inner: Default::default(),
+        }
     }
 }
