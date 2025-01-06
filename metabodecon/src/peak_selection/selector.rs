@@ -9,7 +9,6 @@ pub trait Selector {
     fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>>;
 }
 
-
 /// Peak selection methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]

@@ -41,14 +41,20 @@ impl Deconvoluter {
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
-        match self.inner.deconvolute_spectrum(spectrum.inner_mut()) {
+        match self
+            .inner
+            .deconvolute_spectrum(spectrum.inner_mut())
+        {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
 
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
-        match self.inner.par_deconvolute_spectrum(spectrum.inner_mut()) {
+        match self
+            .inner
+            .par_deconvolute_spectrum(spectrum.inner_mut())
+        {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
