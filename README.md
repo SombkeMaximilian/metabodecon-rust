@@ -5,8 +5,10 @@ limited version of this was already implemented in R [here](https://github.com/s
 aims to improve on that by providing a more efficient and flexible implementation in Rust as well as additional features
 that are not present in the R version.
 
-[![Build status](https://github.com/SombkeMaximilian/metabodecon-rust/actions/workflows/rust.yml/badge.svg)]
-(https://github.com/SombkeMaximilian/metabodecon-rust/actions/workflows/rust.yml)
+[![Build status][build-badge]][build-link]
+
+[build-badge]: https://github.com/SombkeMaximilian/metabodecon-rust/actions/workflows/rust.yml/badge.svg
+[build-link]: https://github.com/SombkeMaximilian/metabodecon-rust/actions
 
 ## Features
 
