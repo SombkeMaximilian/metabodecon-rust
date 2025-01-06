@@ -11,6 +11,9 @@ members = [
 [profile.release]
 lto = true
 
+[profile.bench]
+lto = true
+
 [workspace.lints.rust]
 unknown_lints = "allow"
 unused_imports = "warn"
