@@ -110,12 +110,14 @@ deconvoluter = md.Deconvoluter()
 # Deconvolute the spectrum
 deconvoluted_spectrum = deconvoluter.deconvolute(spectrum)
 
-# Extract the chemical shifts and intensities
-x = spectrum.chemical_shifts
-y = spectrum.intensities_raw
+# Extract the chemical shifts, intensities, signal boundaries and water boundaries
+x = blood.chemical_shifts
+y1 = blood.intensities_raw
+s = blood.signal_boundaries
+w = blood.water_boundaries
 
 # Compute the superposition of the deconvoluted peaks
-s = deconvoluted_spectrum.superposition_vec(spectrum.chemical_shifts)
+y2 = deconvolution.par_superposition_vec(blood.chemical_shifts)
 
 # Plot the spectrum with overlayed deconvoluted signal superposition
 plt.figure(figsize = (12, 8), dpi = 300)
