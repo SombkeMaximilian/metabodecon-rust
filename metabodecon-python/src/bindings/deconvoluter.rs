@@ -4,7 +4,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Deconvoluter {
     inner: deconvolution::Deconvoluter,
 }
@@ -57,14 +57,6 @@ impl Deconvoluter {
         {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-}
-
-impl Default for Deconvoluter {
-    fn default() -> Self {
-        Self {
-            inner: Default::default(),
         }
     }
 }
