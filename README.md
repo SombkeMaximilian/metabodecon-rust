@@ -186,4 +186,4 @@ This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) 
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
-defined in the GPL-3.0 license, shall be dual licensed as GPL-3.0, without any additional terms or conditions.
+defined in the GPL-3.0 license, shall be licensed as GPL-3.0, without any additional terms or conditions.
