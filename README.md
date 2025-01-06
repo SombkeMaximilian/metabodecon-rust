@@ -68,7 +68,7 @@ use metabodecon::{deconvolution, spectrum};
 
 fn main() {
     // Read a spectrum from Bruker TopSpin format
-    let spectrum = spectrum::BrukerReader.read_spectrum(
+    let mut spectrum = spectrum::BrukerReader.read_spectrum(
         "path/to/spectrum",
         // Experiment Number
         10,
@@ -84,7 +84,7 @@ fn main() {
     let deconvoluter: deconvolution::Deconvoluter = Default::default();
   
     // Deconvolute the spectrum
-    let deconvoluted_spectrum = deconvoluter.deconvolute(&spectrum).unwrap();
+    let deconvoluted_spectrum = deconvoluter.deconvolute_spectrum(&mut spectrum).unwrap();
   
     // WIP for now
 }
