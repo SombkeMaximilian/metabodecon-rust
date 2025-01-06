@@ -1,13 +1,19 @@
 use crate::{deconvolution, spectrum};
 
+/// A type alias for `Result<T, metabodecon::Error>`.
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// The error type for the crate.
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
+    /// An error occurred during spectrum processing.
     Spectrum(spectrum::Error),
+    /// An error occurred during deconvolution.
     Deconvolution(deconvolution::Error),
+    /// An I/O error occurred.
     IoError(std::io::Error),
+    /// An error occurred during HDF5 operation.
     Hdf5Error(hdf5::Error),
 }
 
