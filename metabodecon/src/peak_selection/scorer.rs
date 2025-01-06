@@ -1,21 +1,22 @@
 use crate::peak_selection::peak::Peak;
 
+/// Trait interface for peak scoring algorithms.
+pub trait Scorer {
+    /// Scores the given peak.
+    fn score_peak(&self, peak: &Peak) -> f64;
+}
+
 /// Scoring methods for the peaks.
 #[non_exhaustive]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub enum ScoringAlgo {
     /// Minimum Sum of the absolute second derivative.
     ///
     /// The minimum sum scorer computes the sum of the absolute second
     /// derivative values of the peak at the left and right sides of the
     /// peak center. The smaller of the two sums is the score of the peak.
+    #[default]
     MinimumSum,
-}
-
-/// Trait interface for peak scoring algorithms.
-pub trait Scorer {
-    /// Scores the given peak.
-    fn score_peak(&self, peak: &Peak) -> f64;
 }
 
 /// Peak scoring algorithm based on the sum of second derivative values.

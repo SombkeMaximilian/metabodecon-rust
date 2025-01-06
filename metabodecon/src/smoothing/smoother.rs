@@ -1,3 +1,9 @@
+/// Trait interface for smoothing algorithms.
+pub trait Smoother<Type> {
+    /// Smooths the given sequence of values in place.
+    fn smooth_values(&mut self, values: &mut [Type]);
+}
+
 /// Smoothing methods for the signal intensities.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
@@ -15,8 +21,11 @@ pub enum SmoothingAlgo {
     },
 }
 
-/// Trait interface for smoothing algorithms.
-pub trait Smoother<Type> {
-    /// Smooths the given sequence of values in place.
-    fn smooth_values(&mut self, values: &mut [Type]);
+impl Default for SmoothingAlgo {
+    fn default() -> Self {
+        SmoothingAlgo::MovingAverage {
+            iterations: 2,
+            window_size: 5,
+        }
+    }
 }

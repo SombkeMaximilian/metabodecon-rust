@@ -7,7 +7,7 @@ use crate::spectrum::Spectrum;
 
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting
 /// to a spectrum to deconvolute it into individual signals.
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct Deconvoluter {
     /// The smoothing algorithm to use.
     smoothing_algo: SmoothingAlgo,

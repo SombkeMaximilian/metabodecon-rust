@@ -3,6 +3,13 @@ use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 use crate::spectrum::Spectrum;
 
+/// Trait interface for peak selection algorithms.
+pub trait Selector {
+    /// Detects peaks in a spectrum and returns the ones that pass a filter.
+    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>>;
+}
+
+
 /// Peak selection methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
@@ -26,9 +33,11 @@ pub enum SelectionAlgo {
         threshold: f64,
     },
 }
-
-/// Trait interface for peak selection algorithms.
-pub trait Selector {
-    /// Detects peaks in a spectrum and returns the ones that pass a filter.
-    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>>;
+impl Default for SelectionAlgo {
+    fn default() -> Self {
+        SelectionAlgo::NoiseScoreFilter {
+            scoring_algo: Default::default(),
+            threshold: 6.4,
+        }
+    }
 }
