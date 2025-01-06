@@ -22,11 +22,13 @@ def main():
     print(f"Parallel {(t2 - t1) * 1000:.3f}ms")
 
     x = blood.chemical_shifts
-    y = deconvolution.par_superposition_vec(blood.chemical_shifts)
+    y1 = blood.intensities_raw
+    y2 = deconvolution.par_superposition_vec(blood.chemical_shifts)
     s = blood.signal_boundaries
     w = blood.water_boundaries
     plt.figure(figsize = (12, 8), dpi = 300)
-    plt.plot(x, y, label = "Deconvoluted Spectrum")
+    plt.plot(x, y1, label = "Original Spectrum")
+    plt.plot(x, y2, label = "Deconvoluted Spectrum", linewidth=0.5)
     plt.gca().invert_xaxis()
     plt.axvline(x = s[0], color = "black", label = "Signal Boundaries")
     plt.axvline(x = s[1], color = "black")
