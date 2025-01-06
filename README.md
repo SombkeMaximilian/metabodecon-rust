@@ -113,7 +113,7 @@ spectrum = md.Spectrum.from_bruker(
 deconvoluter = md.Deconvoluter()
 
 # Deconvolute the spectrum
-deconvoluted_spectrum = deconvoluter.deconvolute(spectrum)
+deconvolution = deconvoluter.deconvolute(spectrum)
 
 # Extract the chemical shifts, intensities, signal boundaries and water boundaries
 x = spectrum.chemical_shifts
