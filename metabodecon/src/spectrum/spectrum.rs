@@ -279,7 +279,7 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn accessors() {
@@ -331,9 +331,9 @@ mod tests {
         )
         .unwrap();
         spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
-        assert_approx_eq!(spectrum.step(), 1.0);
-        assert_approx_eq!(spectrum.width(), 4.0);
-        assert_approx_eq!(spectrum.center(), 3.0);
+        assert_approx_eq!(f64, spectrum.step(), 1.0);
+        assert_approx_eq!(f64, spectrum.width(), 4.0);
+        assert_approx_eq!(f64, spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
         assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
     }

@@ -139,29 +139,29 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn new() {
         let smoother = MovingAverage::<f64>::new(1, 3);
-        assert_approx_eq!(smoother.compute_average(), 0.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 0.0);
     }
 
     #[test]
     fn add_value() {
         let mut smoother = MovingAverage::<f64>::new(1, 3);
         smoother.add_value(1.0);
-        assert_approx_eq!(smoother.compute_average(), 1.0 / 1.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 1.0 / 1.0);
         smoother.add_value(2.0);
-        assert_approx_eq!(smoother.compute_average(), 3.0 / 2.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 3.0 / 2.0);
         smoother.add_value(3.0);
-        assert_approx_eq!(smoother.compute_average(), 6.0 / 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 6.0 / 3.0);
         smoother.add_value(4.0);
-        assert_approx_eq!(smoother.compute_average(), 9.0 / 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 9.0 / 3.0);
         smoother.add_value(5.0);
-        assert_approx_eq!(smoother.compute_average(), 12.0 / 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 12.0 / 3.0);
         smoother.add_value(6.0);
-        assert_approx_eq!(smoother.compute_average(), 15.0 / 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 15.0 / 3.0);
     }
 
     #[test]
@@ -170,12 +170,12 @@ mod tests {
         for i in 1..6 {
             smoother.add_value(i as f64);
         }
-        assert_approx_eq!(smoother.compute_average(), 12.0 / 3.0);
-        assert_approx_eq!(smoother.pop_last().unwrap(), 3.0);
-        assert_approx_eq!(smoother.compute_average(), 9.0 / 2.0);
-        assert_approx_eq!(smoother.pop_last().unwrap(), 4.0);
-        assert_approx_eq!(smoother.compute_average(), 5.0 / 1.0);
-        assert_approx_eq!(smoother.pop_last().unwrap(), 5.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 12.0 / 3.0);
+        assert_approx_eq!(f64, smoother.pop_last().unwrap(), 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 9.0 / 2.0);
+        assert_approx_eq!(f64, smoother.pop_last().unwrap(), 4.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 5.0 / 1.0);
+        assert_approx_eq!(f64, smoother.pop_last().unwrap(), 5.0);
         assert!(smoother.compute_average().is_nan());
         assert!(smoother.pop_last().is_none());
         assert!(smoother.compute_average().is_nan());
@@ -183,7 +183,7 @@ mod tests {
         assert!(smoother.compute_average().is_nan());
         assert!(smoother.pop_last().is_none());
         smoother.add_value(1.0);
-        assert_approx_eq!(smoother.compute_average(), 1.0 / 1.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 1.0 / 1.0);
     }
 
     #[test]
@@ -192,8 +192,8 @@ mod tests {
         for i in 1..4 {
             smoother.add_value(i as f64);
         }
-        assert_approx_eq!(smoother.compute_average(), 6.0 / 3.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 6.0 / 3.0);
         smoother.clear();
-        assert_approx_eq!(smoother.compute_average(), 0.0);
+        assert_approx_eq!(f64, smoother.compute_average(), 0.0);
     }
 }

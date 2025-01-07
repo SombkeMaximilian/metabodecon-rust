@@ -137,7 +137,7 @@ impl NoiseScoreFilter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn second_derivative() {
@@ -174,7 +174,7 @@ mod tests {
             .map(|peak| scorer.score_peak(peak))
             .collect();
         let (mean, sd) = NoiseScoreFilter::mean_sd_scores(scores_sfr);
-        assert_approx_eq!(mean, 4.0);
-        assert_approx_eq!(sd, 1.0);
+        assert_approx_eq!(f64, mean, 4.0);
+        assert_approx_eq!(f64, sd, 1.0);
     }
 }

@@ -89,7 +89,7 @@ impl Hdf5Reader {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use assert_approx_eq::assert_approx_eq;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn read_spectrum() {
