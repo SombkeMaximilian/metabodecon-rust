@@ -62,6 +62,12 @@ impl From<Kind> for Error {
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        write!(f, "{:?}", self.kind)
+        use self::Kind::*;
+        let description = match &self.kind {
+            NoPeaksDetected => "no peaks detected in the input data",
+            EmptySignalRegion => "no peaks found in the signal region of the spectrum",
+            EmptySignalFreeRegion => "no peaks found in the signal-free region of the spectrum",
+        };
+        write!(f, "{description}")
     }
 }
