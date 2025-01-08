@@ -2,7 +2,7 @@ use crate::error::Result;
 use crate::spectrum::{Error, Kind, Spectrum};
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
-use std::fs::{read_to_string, File};
+use std::fs::{File, read_to_string};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 

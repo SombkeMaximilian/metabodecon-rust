@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use metabodecon::spectrum::BrukerReader;
 
 fn read_spectrum(c: &mut Criterion) {
