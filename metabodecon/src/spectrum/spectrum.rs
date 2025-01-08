@@ -203,7 +203,7 @@ impl Spectrum {
 
     /// Computes the center of the spectrum in ppm.
     pub fn center(&self) -> f64 {
-        self.chemical_shifts.first().unwrap() + self.width() / 2.
+        self.chemical_shifts.first().unwrap() + self.width() / 2.0
     }
 
     /// Computes the indices of the chemical shifts that are closest to the

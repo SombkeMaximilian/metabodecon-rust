@@ -270,7 +270,7 @@ impl BrukerReader {
 
         match procs.data_type {
             Type::I32 => {
-                let mut temp = vec![0i32; procs.data_size];
+                let mut temp = vec![0_i32; procs.data_size];
                 match procs.endian {
                     Endian::Little => buffer
                         .as_slice()
@@ -282,11 +282,11 @@ impl BrukerReader {
                 temp.reverse();
                 Ok(temp
                     .into_iter()
-                    .map(|value| (value as f64) * 2f64.powi(procs.scaling_exponent))
+                    .map(|value| (value as f64) * 2_f64.powi(procs.scaling_exponent))
                     .collect::<Vec<f64>>())
             }
             Type::F64 => {
-                let mut temp = vec![0f64; procs.data_size];
+                let mut temp = vec![0_f64; procs.data_size];
                 match procs.endian {
                     Endian::Little => buffer
                         .as_slice()

@@ -59,7 +59,7 @@ impl NoiseScoreFilter {
     fn second_derivative(intensities: &[f64]) -> Vec<f64> {
         intensities
             .windows(3)
-            .map(|w| w[0] - 2. * w[1] + w[2])
+            .map(|w| w[0] - 2.0 * w[1] + w[2])
             .collect()
     }
 

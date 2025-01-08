@@ -20,9 +20,9 @@ impl Fitter for FitterAnalytical {
         let mut peak_data = peaks
             .iter()
             .map(|peak| {
-                let mut p = PeakStencilData::new(spectrum, peak);
-                p.mirror_shoulder();
-                p
+                let mut stencil = PeakStencilData::new(spectrum, peak);
+                stencil.mirror_shoulder();
+                stencil
             })
             .collect::<Vec<_>>();
         let mut lorentzians = peak_data
@@ -36,31 +36,31 @@ impl Fitter for FitterAnalytical {
             .collect::<Vec<_>>();
 
         for _ in 0..self.iterations {
-            let superposition =
+            let superpositions =
                 Lorentzian::superposition_vec(reduced_spectrum.chemical_shifts(), &lorentzians);
             let ratios = reduced_spectrum
                 .intensities()
                 .iter()
-                .zip(superposition.iter())
-                .map(|(a, b)| a / b)
+                .zip(superpositions.iter())
+                .map(|(intensity, superposition)| intensity / superposition)
                 .collect::<Vec<_>>();
             peak_data
                 .iter_mut()
                 .zip(ratios.chunks(3))
-                .for_each(|(p, r)| {
-                    p.set_y_1(p.y_1() * r[0]);
-                    p.set_y_2(p.y_2() * r[1]);
-                    p.set_y_3(p.y_3() * r[2]);
-                    p.mirror_shoulder();
+                .for_each(|(stencil, ratio)| {
+                    stencil.set_y_1(stencil.y_1() * ratio[0]);
+                    stencil.set_y_2(stencil.y_2() * ratio[1]);
+                    stencil.set_y_3(stencil.y_3() * ratio[2]);
+                    stencil.mirror_shoulder();
                 });
             lorentzians
                 .iter_mut()
                 .zip(peak_data.iter())
-                .for_each(|(l, p)| {
-                    let maxp = Self::maximum_position(p);
-                    let hw2 = Self::half_width2(p, maxp);
-                    let sfhw = Self::scale_factor_half_width(p, maxp, hw2);
-                    l.set_parameters(sfhw, hw2, maxp);
+                .for_each(|(lorentzian, stencil)| {
+                    let maxp = Self::maximum_position(stencil);
+                    let hw2 = Self::half_width2(stencil, maxp);
+                    let sfhw = Self::scale_factor_half_width(stencil, maxp, hw2);
+                    lorentzian.set_parameters(sfhw, hw2, maxp);
                 });
         }
 
@@ -75,9 +75,9 @@ impl Fitter for FitterAnalytical {
         let mut peak_data = peaks
             .iter()
             .map(|peak| {
-                let mut p = PeakStencilData::new(spectrum, peak);
-                p.mirror_shoulder();
-                p
+                let mut stencil = PeakStencilData::new(spectrum, peak);
+                stencil.mirror_shoulder();
+                stencil
             })
             .collect::<Vec<_>>();
         let mut lorentzians = peak_data
@@ -91,31 +91,31 @@ impl Fitter for FitterAnalytical {
             .collect::<Vec<_>>();
 
         for _ in 0..self.iterations {
-            let superposition =
+            let superpositions =
                 Lorentzian::par_superposition_vec(reduced_spectrum.chemical_shifts(), &lorentzians);
             let ratios = reduced_spectrum
                 .intensities()
                 .iter()
-                .zip(superposition.iter())
-                .map(|(a, b)| a / b)
+                .zip(superpositions.iter())
+                .map(|(intensity, superposition)| intensity / superposition)
                 .collect::<Vec<_>>();
             peak_data
                 .iter_mut()
                 .zip(ratios.chunks(3))
-                .for_each(|(p, r)| {
-                    p.set_y_1(p.y_1() * r[0]);
-                    p.set_y_2(p.y_2() * r[1]);
-                    p.set_y_3(p.y_3() * r[2]);
-                    p.mirror_shoulder();
+                .for_each(|(stencil, ratio)| {
+                    stencil.set_y_1(stencil.y_1() * ratio[0]);
+                    stencil.set_y_2(stencil.y_2() * ratio[1]);
+                    stencil.set_y_3(stencil.y_3() * ratio[2]);
+                    stencil.mirror_shoulder();
                 });
             lorentzians
                 .par_iter_mut()
                 .zip(peak_data.par_iter())
-                .for_each(|(l, p)| {
-                    let maxp = Self::maximum_position(p);
-                    let hw2 = Self::half_width2(p, maxp);
-                    let sfhw = Self::scale_factor_half_width(p, maxp, hw2);
-                    l.set_parameters(sfhw, hw2, maxp);
+                .for_each(|(lorentzian, stencil)| {
+                    let maxp = Self::maximum_position(stencil);
+                    let hw2 = Self::half_width2(stencil, maxp);
+                    let sfhw = Self::scale_factor_half_width(stencil, maxp, hw2);
+                    lorentzian.set_parameters(sfhw, hw2, maxp);
                 });
         }
 
@@ -135,9 +135,9 @@ impl FitterAnalytical {
         let numerator = p.x_1().powi(2) * p.y_1() * (p.y_2() - p.y_3())
             + p.x_2().powi(2) * p.y_2() * (p.y_3() - p.y_1())
             + p.x_3().powi(2) * p.y_3() * (p.y_1() - p.y_2());
-        let divisor = 2. * (p.x_1() - p.x_2()) * p.y_1() * p.y_2()
-            + 2. * (p.x_2() - p.x_3()) * p.y_2() * p.y_3()
-            + 2. * (p.x_3() - p.x_1()) * p.y_3() * p.y_1();
+        let divisor = 2.0 * (p.x_1() - p.x_2()) * p.y_1() * p.y_2()
+            + 2.0 * (p.x_2() - p.x_3()) * p.y_2() * p.y_3()
+            + 2.0 * (p.x_3() - p.x_1()) * p.y_3() * p.y_1();
         numerator / divisor
     }
 
@@ -148,7 +148,7 @@ impl FitterAnalytical {
             / (p.y_2() - p.y_1());
         let right = (p.y_2() * (p.x_2() - maxp).powi(2) - p.y_3() * (p.x_3() - maxp).powi(2))
             / (p.y_3() - p.y_2());
-        (left + right) / 2.
+        (left + right) / 2.0
     }
 
     /// Internal helper function to analytically compute the scale factor times

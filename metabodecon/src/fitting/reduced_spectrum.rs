@@ -68,7 +68,7 @@ mod tests {
                 .into_iter()
                 .map(|x| 10.0 - x as f64)
                 .collect(),
-            (2., 9.),
+            (2.0, 9.0),
             (5.45, 5.55),
         )
         .unwrap();

@@ -116,12 +116,12 @@ impl PeakStencilData {
             (true, _) => {
                 self.right_intensity = self.left_intensity;
                 self.right_chemical_shift =
-                    2. * self.center_chemical_shift - self.left_chemical_shift;
+                    2.0 * self.center_chemical_shift - self.left_chemical_shift;
             }
             (_, true) => {
                 self.left_intensity = self.right_intensity;
                 self.left_chemical_shift =
-                    2. * self.center_chemical_shift - self.right_chemical_shift;
+                    2.0 * self.center_chemical_shift - self.right_chemical_shift;
             }
             _ => (),
         }
