@@ -40,7 +40,7 @@ impl Error {
 ///
 /// [`Spectrum`]: crate::spectrum::Spectrum
 #[non_exhaustive]
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub enum Kind {
     /// The input data is empty.
     EmptyData {

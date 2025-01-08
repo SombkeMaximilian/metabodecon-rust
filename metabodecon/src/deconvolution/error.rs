@@ -32,7 +32,7 @@ impl Error {
 /// Marked as non-exhaustive to allow for new variants to be added in the future
 /// without breaking compatibility.
 #[non_exhaustive]
-#[derive(Clone, Eq, PartialEq, Debug)]
+#[derive(Clone, Debug)]
 pub enum Kind {
     /// No peaks were detected in the input data.
     NoPeaksDetected,
