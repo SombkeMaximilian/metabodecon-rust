@@ -63,7 +63,7 @@ mod tests {
         let peaks = [Peak::new(1, 3, 4), Peak::new(5, 6, 9)];
         let abs_second_derivative = vec![1.0, 2.0, 4.0, 2.0, 2.0, 5.0, 4.0, 3.0, 2.0];
         let scorer = ScorerMinimumSum::new(&abs_second_derivative);
-        let expected_scores = vec![6.0, 7.0];
+        let expected_scores = [6.0, 7.0];
         let computed_scores: Vec<f64> = peaks
             .iter()
             .map(|peak| scorer.score_peak(peak))

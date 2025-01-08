@@ -210,10 +210,9 @@ mod tests {
     fn evaluate() {
         let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
         let chemical_shifts = (0..11)
-            .into_iter()
             .map(|x| -5.0 + x as f64)
             .collect::<Vec<f64>>();
-        let expected_intensities = vec![
+        let expected_intensities = [
             1.0 / 26.0,
             1.0 / 17.0,
             1.0 / 10.0,
@@ -249,10 +248,9 @@ mod tests {
             Lorentzian::new(1.0, 0.5, 2.0),
         ];
         let chemical_shifts = (0..11)
-            .into_iter()
             .map(|x| -5.0 + x as f64)
             .collect::<Vec<f64>>();
-        let expected_intensities = vec![
+        let expected_intensities = [
             1.0 / 9.5 + 2.0 / 25.75 + 1.0 / 49.5,
             1.0 / 4.5 + 2.0 / 16.75 + 1.0 / 36.5,
             1.0 / 1.5 + 2.0 / 9.75 + 1.0 / 25.5,

@@ -142,7 +142,7 @@ mod tests {
     #[test]
     fn second_derivative() {
         let intensities = vec![1.0, 2.0, 3.0, 2.0, 1.0];
-        let expected_second_derivative = vec![0.0, -2.0, 0.0];
+        let expected_second_derivative = [0.0, -2.0, 0.0];
         let computed_second_derivative = NoiseScoreFilter::second_derivative(&intensities);
         computed_second_derivative
             .iter()

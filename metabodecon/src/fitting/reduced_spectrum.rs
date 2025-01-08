@@ -60,14 +60,8 @@ mod tests {
     #[test]
     fn new() {
         let mut spectrum = Spectrum::new(
-            (0..10)
-                .into_iter()
-                .map(|x| 1.0 + x as f64)
-                .collect(),
-            (0..10)
-                .into_iter()
-                .map(|x| 10.0 - x as f64)
-                .collect(),
+            (0..10).map(|x| 1.0 + x as f64).collect(),
+            (0..10).map(|x| 10.0 - x as f64).collect(),
             (2.0, 9.0),
             (5.45, 5.55),
         )
@@ -75,8 +69,8 @@ mod tests {
         spectrum.set_intensities(spectrum.intensities_raw().to_vec());
         let peaks = vec![Peak::new(2, 3, 4), Peak::new(4, 5, 6), Peak::new(6, 7, 8)];
         let reduced_spectrum = ReducedSpectrum::new(&spectrum, &peaks);
-        let expected_chemical_shifts = vec![3.0, 4.0, 5.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0];
-        let expected_intensities = vec![8.0, 7.0, 6.0, 6.0, 5.0, 4.0, 4.0, 3.0, 2.0];
+        let expected_chemical_shifts = [3.0, 4.0, 5.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0];
+        let expected_intensities = [8.0, 7.0, 6.0, 6.0, 5.0, 4.0, 4.0, 3.0, 2.0];
         reduced_spectrum
             .chemical_shifts()
             .iter()
