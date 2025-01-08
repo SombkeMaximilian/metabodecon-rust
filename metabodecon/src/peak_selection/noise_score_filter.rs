@@ -147,7 +147,7 @@ mod tests {
         computed_second_derivative
             .iter()
             .zip(expected_second_derivative.iter())
-            .for_each(|(&sdc, &sde)| assert_approx_eq!(f64, *sdc, *sde));
+            .for_each(|(&sdc, &sde)| assert_approx_eq!(f64, sdc, sde));
     }
 
     #[test]
