@@ -70,6 +70,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
     #[test]
     fn new() {
         let buffer: CircularBuffer<i32> = CircularBuffer::new(3);

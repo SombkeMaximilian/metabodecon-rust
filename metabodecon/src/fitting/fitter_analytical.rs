@@ -162,39 +162,16 @@ impl FitterAnalytical {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn maxp() {
-        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
-        let maxp = FitterAnalytical::maximum_position(&peak);
-        assert_eq!(maxp, 8.);
-    }
-
-    #[test]
-    fn hw2() {
-        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
-        let maxp = 8.;
-        let hw2 = FitterAnalytical::half_width2(&peak, maxp);
-        assert_eq!(hw2.sqrt(), 4.);
-    }
-
-    #[test]
-    fn sfhw() {
-        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
-        let maxp = 8.;
-        let hw2 = 16.;
-        let sfhw = FitterAnalytical::scale_factor_half_width(&peak, maxp, hw2);
-        assert_eq!(sfhw / hw2.sqrt(), 40.);
-    }
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn approximations() {
-        let peak = PeakStencilData::from_data(4., 8., 12., 5., 10., 5.);
+        let peak = PeakStencilData::from_data(4.0, 8.0, 12.0, 5.0, 10.0, 5.0);
         let maxp = FitterAnalytical::maximum_position(&peak);
         let hw2 = FitterAnalytical::half_width2(&peak, maxp);
         let sfhw = FitterAnalytical::scale_factor_half_width(&peak, maxp, hw2);
-        assert_eq!(maxp, 8.);
-        assert_eq!(hw2.sqrt(), 4.);
-        assert_eq!(sfhw / hw2.sqrt(), 40.);
+        assert_approx_eq!(f64, maxp, 8.0);
+        assert_approx_eq!(f64, hw2.sqrt(), 4.0);
+        assert_approx_eq!(f64, sfhw / hw2.sqrt(), 40.0);
     }
 }

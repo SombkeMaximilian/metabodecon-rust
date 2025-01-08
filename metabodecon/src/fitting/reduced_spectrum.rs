@@ -55,36 +55,41 @@ impl ReducedSpectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn new() {
         let mut spectrum = Spectrum::new(
-            vec![1., 2., 3., 4., 5., 6., 7., 8., 9., 10.],
-            vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.],
+            (0..10)
+                .into_iter()
+                .map(|x| 1.0 + x as f64)
+                .collect(),
+            (0..10)
+                .into_iter()
+                .map(|x| 10.0 - x as f64)
+                .collect(),
             (2., 9.),
             (5.45, 5.55),
         )
         .unwrap();
-        spectrum.set_intensities(vec![10., 9., 8., 7., 6., 5., 4., 3., 2., 1.]);
+        spectrum.set_intensities(spectrum.intensities_raw().to_vec());
         let peaks = vec![Peak::new(2, 3, 4), Peak::new(4, 5, 6), Peak::new(6, 7, 8)];
-        let reduced = ReducedSpectrum::new(&spectrum, &peaks);
-        assert_eq!(
-            reduced.chemical_shifts,
-            vec![3., 4., 5., 5., 6., 7., 7., 8., 9.].into_boxed_slice()
-        );
-        assert_eq!(
-            reduced.intensities,
-            vec![8., 7., 6., 6., 5., 4., 4., 3., 2.].into_boxed_slice()
-        );
-    }
-
-    #[test]
-    fn accessors() {
-        let reduced = ReducedSpectrum {
-            chemical_shifts: vec![1., 2., 3.].into_boxed_slice(),
-            intensities: vec![4., 5., 6.].into_boxed_slice(),
-        };
-        assert_eq!(reduced.chemical_shifts(), vec![1., 2., 3.]);
-        assert_eq!(reduced.intensities(), vec![4., 5., 6.]);
+        let reduced_spectrum = ReducedSpectrum::new(&spectrum, &peaks);
+        let expected_chemical_shifts = vec![3.0, 4.0, 5.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0];
+        let expected_intensities = vec![8.0, 7.0, 6.0, 6.0, 5.0, 4.0, 4.0, 3.0, 2.0];
+        reduced_spectrum
+            .chemical_shifts()
+            .iter()
+            .zip(expected_chemical_shifts.iter())
+            .for_each(|(&x, &xe)| {
+                assert_approx_eq!(f64, x, xe);
+            });
+        reduced_spectrum
+            .intensities()
+            .iter()
+            .zip(expected_intensities.iter())
+            .for_each(|(&y, &ye)| {
+                assert_approx_eq!(f64, y, ye);
+            });
     }
 }

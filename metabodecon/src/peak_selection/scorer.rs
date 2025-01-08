@@ -56,16 +56,21 @@ impl<'a> ScorerMinimumSum<'a> {
 mod tests {
     use super::*;
     use crate::peak_selection::Peak;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn minimum_sum() {
         let peaks = [Peak::new(1, 3, 4), Peak::new(5, 6, 9)];
-        let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
+        let abs_second_derivative = vec![1.0, 2.0, 4.0, 2.0, 2.0, 5.0, 4.0, 3.0, 2.0];
         let scorer = ScorerMinimumSum::new(&abs_second_derivative);
-        let scores: Vec<f64> = peaks
+        let expected_scores = vec![6.0, 7.0];
+        let computed_scores: Vec<f64> = peaks
             .iter()
             .map(|peak| scorer.score_peak(peak))
             .collect();
-        assert_eq!(scores, vec![6., 7.]);
+        computed_scores
+            .iter()
+            .zip(expected_scores.iter())
+            .for_each(|(&cs, &es)| assert_approx_eq!(f64, cs, es));
     }
 }

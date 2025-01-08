@@ -141,9 +141,13 @@ mod tests {
 
     #[test]
     fn second_derivative() {
-        let intensities = vec![1., 2., 3., 2., 1.];
-        let expected = vec![0., -2., 0.];
-        assert_eq!(NoiseScoreFilter::second_derivative(&intensities), expected);
+        let intensities = vec![1.0, 2.0, 3.0, 2.0, 1.0];
+        let expected_second_derivative = vec![0.0, -2.0, 0.0];
+        let computed_second_derivative = NoiseScoreFilter::second_derivative(&intensities);
+        computed_second_derivative
+            .iter()
+            .zip(expected_second_derivative.iter())
+            .for_each(|(&sdc, &sde)| assert_approx_eq!(f64, *sdc, *sde));
     }
 
     #[test]
@@ -165,7 +169,7 @@ mod tests {
             .into_iter()
             .map(|i| Peak::new(i - 1, i, i + 1))
             .collect();
-        let abs_second_derivative = vec![1., 2., 4., 2., 2., 5., 4., 3., 2.];
+        let abs_second_derivative = vec![1.0, 2.0, 4.0, 2.0, 2.0, 5.0, 4.0, 3.0, 2.0];
         let scorer = ScorerMinimumSum::new(&abs_second_derivative);
         let peak_region_boundaries = (1, 3);
         let scores_sfr: Vec<f64> = peaks[0..peak_region_boundaries.0]

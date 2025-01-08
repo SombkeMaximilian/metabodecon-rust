@@ -175,69 +175,108 @@ impl Lorentzian {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn accessors() {
-        let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
-        assert_eq!(lorentzian.sfhw(), 1.0);
-        assert_eq!(lorentzian.hw2(), 1.0);
-        assert_eq!(lorentzian.maxp(), 0.0);
-        assert_eq!(lorentzian.parameters(), (1.0, 1.0, 0.0));
-        assert_eq!(lorentzian.sf(), 1.0);
-        assert_eq!(lorentzian.hw(), 1.0);
-        assert_eq!(lorentzian.retransformed_parameters(), (1.0, 1.0, 0.0));
+        let lorentzian = Lorentzian::new(1.0, 0.25, 0.0);
+        assert_approx_eq!(f64, lorentzian.sfhw(), 1.0);
+        assert_approx_eq!(f64, lorentzian.hw2(), 0.25);
+        assert_approx_eq!(f64, lorentzian.maxp(), 0.0);
+        assert_approx_eq!(f64, lorentzian.sf(), 2.0);
+        assert_approx_eq!(f64, lorentzian.hw(), 0.5);
     }
 
     #[test]
     fn mutators() {
         let mut lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
-        lorentzian.set_sfhw(2.0);
-        lorentzian.set_hw2(2.0);
+        lorentzian.set_sfhw(1.5);
+        lorentzian.set_hw2(2.25);
         lorentzian.set_maxp(1.0);
-        assert_eq!(lorentzian.sfhw(), 2.0);
-        assert_eq!(lorentzian.hw2(), 2.0);
-        assert_eq!(lorentzian.maxp(), 1.0);
+        assert_approx_eq!(f64, lorentzian.sfhw(), 1.5);
+        assert_approx_eq!(f64, lorentzian.hw2(), 2.25);
+        assert_approx_eq!(f64, lorentzian.maxp(), 1.0);
+        assert_approx_eq!(f64, lorentzian.sf(), 1.0);
+        assert_approx_eq!(f64, lorentzian.hw(), 1.5);
         lorentzian.set_parameters(1.0, 1.0, 0.0);
-        assert_eq!(lorentzian.parameters(), (1.0, 1.0, 0.0));
+        assert_approx_eq!(f64, lorentzian.sfhw(), 1.0);
+        assert_approx_eq!(f64, lorentzian.hw2(), 1.0);
+        assert_approx_eq!(f64, lorentzian.maxp(), 0.0);
+        assert_approx_eq!(f64, lorentzian.sf(), 1.0);
+        assert_approx_eq!(f64, lorentzian.hw(), 1.0);
     }
 
     #[test]
     fn evaluate() {
         let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
-        assert_eq!(lorentzian.evaluate(0.0), 1.0);
-        assert_eq!(lorentzian.evaluate(1.0), 0.5);
-        assert_eq!(lorentzian.evaluate(2.0), 0.2);
-    }
-
-    #[test]
-    fn evaluate_vec() {
-        let lorentzian = Lorentzian::new(1.0, 1.0, 0.0);
-        assert_eq!(
-            lorentzian.evaluate_vec(&[0.0, 1.0, 2.0]),
-            vec![1.0, 0.5, 0.2]
-        );
+        let chemical_shifts = (0..11)
+            .into_iter()
+            .map(|x| -5.0 + x as f64)
+            .collect::<Vec<f64>>();
+        let expected_intensities = vec![
+            1.0 / 26.0,
+            1.0 / 17.0,
+            1.0 / 10.0,
+            1.0 / 5.0,
+            1.0 / 2.0,
+            1.0 / 1.0,
+            1.0 / 2.0,
+            1.0 / 5.0,
+            1.0 / 10.0,
+            1.0 / 17.0,
+            1.0 / 26.0,
+        ];
+        chemical_shifts
+            .iter()
+            .zip(expected_intensities.iter())
+            .for_each(|(&x, &y)| {
+                assert_approx_eq!(f64, lorentzian.evaluate(x), y);
+            });
+        let computed_intensities = lorentzian.evaluate_vec(&chemical_shifts);
+        computed_intensities
+            .iter()
+            .zip(expected_intensities.iter())
+            .for_each(|(&yc, &ye)| {
+                assert_approx_eq!(f64, yc, ye);
+            });
     }
 
     #[test]
     fn superposition() {
         let lorentzians = vec![
-            Lorentzian::new(1.0, 1.0, 0.0),
-            Lorentzian::new(1.0, 1.0, 2.0),
+            Lorentzian::new(1.0, 0.5, -2.0),
+            Lorentzian::new(2.0, 0.75, 0.0),
+            Lorentzian::new(1.0, 0.5, 2.0),
         ];
-        assert_eq!(Lorentzian::superposition(0.0, &lorentzians), 1.2);
-        assert_eq!(Lorentzian::superposition(1.0, &lorentzians), 1.0);
-        assert_eq!(Lorentzian::superposition(2.0, &lorentzians), 1.2);
-    }
-
-    #[test]
-    fn superposition_vec() {
-        let lorentzians = vec![
-            Lorentzian::new(1.0, 1.0, 0.0),
-            Lorentzian::new(1.0, 1.0, 2.0),
+        let chemical_shifts = (0..11)
+            .into_iter()
+            .map(|x| -5.0 + x as f64)
+            .collect::<Vec<f64>>();
+        let expected_intensities = vec![
+            1.0 / 9.5 + 2.0 / 25.75 + 1.0 / 49.5,
+            1.0 / 4.5 + 2.0 / 16.75 + 1.0 / 36.5,
+            1.0 / 1.5 + 2.0 / 9.75 + 1.0 / 25.5,
+            1.0 / 0.5 + 2.0 / 4.75 + 1.0 / 16.5,
+            1.0 / 1.5 + 2.0 / 1.75 + 1.0 / 9.5,
+            1.0 / 4.5 + 2.0 / 0.75 + 1.0 / 4.5,
+            1.0 / 9.5 + 2.0 / 1.75 + 1.0 / 1.5,
+            1.0 / 16.5 + 2.0 / 4.75 + 1.0 / 0.5,
+            1.0 / 25.5 + 2.0 / 9.75 + 1.0 / 1.5,
+            1.0 / 36.5 + 2.0 / 16.75 + 1.0 / 4.5,
+            1.0 / 49.5 + 2.0 / 25.75 + 1.0 / 9.5,
         ];
-        assert_eq!(
-            Lorentzian::superposition_vec(&[0.0, 1.0, 2.0], &lorentzians),
-            vec![1.2, 1.0, 1.2]
-        );
+        chemical_shifts
+            .iter()
+            .zip(expected_intensities.iter())
+            .for_each(|(&x, &y)| {
+                assert_approx_eq!(f64, Lorentzian::superposition(x, &lorentzians), y);
+            });
+        let computed_intensities = Lorentzian::superposition_vec(&chemical_shifts, &lorentzians);
+        computed_intensities
+            .iter()
+            .zip(expected_intensities.iter())
+            .for_each(|(&yc, &ye)| {
+                assert_approx_eq!(f64, yc, ye);
+            });
     }
 }

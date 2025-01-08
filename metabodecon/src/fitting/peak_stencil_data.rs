@@ -131,47 +131,76 @@ impl PeakStencilData {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn accessors() {
-        let peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
-        assert_eq!(peak.x_1(), 1.);
-        assert_eq!(peak.x_2(), 2.);
-        assert_eq!(peak.x_3(), 3.);
-        assert_eq!(peak.y_1(), 1.);
-        assert_eq!(peak.y_2(), 2.);
-        assert_eq!(peak.y_3(), 3.);
+        let peak = PeakStencilData {
+            left_chemical_shift: 1.0,
+            center_chemical_shift: 2.0,
+            right_chemical_shift: 3.0,
+            left_intensity: 1.0,
+            center_intensity: 2.0,
+            right_intensity: 3.0,
+        };
+        assert_approx_eq!(f64, peak.x_1(), 1.0);
+        assert_approx_eq!(f64, peak.x_2(), 2.0);
+        assert_approx_eq!(f64, peak.x_3(), 3.0);
+        assert_approx_eq!(f64, peak.y_1(), 1.0);
+        assert_approx_eq!(f64, peak.y_2(), 2.0);
+        assert_approx_eq!(f64, peak.y_3(), 3.0);
     }
 
     #[test]
     fn mutators() {
-        let mut peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
-        peak.set_y_1(3.);
-        peak.set_y_2(2.);
-        peak.set_y_3(1.);
-        assert_eq!(peak.y_1(), 3.);
-        assert_eq!(peak.y_2(), 2.);
-        assert_eq!(peak.y_3(), 1.);
+        let mut peak = PeakStencilData {
+            left_chemical_shift: 1.0,
+            center_chemical_shift: 2.0,
+            right_chemical_shift: 3.0,
+            left_intensity: 1.0,
+            center_intensity: 2.0,
+            right_intensity: 3.0,
+        };
+        peak.set_y_1(3.0);
+        peak.set_y_2(2.0);
+        peak.set_y_3(1.0);
+        assert_approx_eq!(f64, peak.y_1(), 3.0);
+        assert_approx_eq!(f64, peak.y_2(), 2.0);
+        assert_approx_eq!(f64, peak.y_3(), 1.0);
     }
 
     #[test]
     fn mirror_shoulder() {
-        let mut peak = PeakStencilData::from_data(1., 2., 3., 1., 2., 3.);
+        let mut peak = PeakStencilData {
+            left_chemical_shift: 1.0,
+            center_chemical_shift: 2.0,
+            right_chemical_shift: 3.0,
+            left_intensity: 1.0,
+            center_intensity: 2.0,
+            right_intensity: 3.0,
+        };
         peak.mirror_shoulder();
-        assert_eq!(peak.x_1(), 1.);
-        assert_eq!(peak.x_2(), 2.);
-        assert_eq!(peak.x_3(), 3.);
-        assert_eq!(peak.y_1(), 1.);
-        assert_eq!(peak.y_2(), 2.);
-        assert_eq!(peak.y_3(), 1.);
+        assert_approx_eq!(f64, peak.x_1(), 1.0);
+        assert_approx_eq!(f64, peak.x_2(), 2.0);
+        assert_approx_eq!(f64, peak.x_3(), 3.0);
+        assert_approx_eq!(f64, peak.y_1(), 1.0);
+        assert_approx_eq!(f64, peak.y_2(), 2.0);
+        assert_approx_eq!(f64, peak.y_3(), 1.0);
 
-        let mut peak = PeakStencilData::from_data(1., 2., 3., 3., 2., 1.);
+        let mut peak = PeakStencilData {
+            left_chemical_shift: 1.0,
+            center_chemical_shift: 2.0,
+            right_chemical_shift: 4.0,
+            left_intensity: 3.0,
+            center_intensity: 2.0,
+            right_intensity: 1.0,
+        };
         peak.mirror_shoulder();
-        assert_eq!(peak.x_1(), 1.);
-        assert_eq!(peak.x_2(), 2.);
-        assert_eq!(peak.x_3(), 3.);
-        assert_eq!(peak.y_1(), 1.);
-        assert_eq!(peak.y_2(), 2.);
-        assert_eq!(peak.y_3(), 1.);
+        assert_approx_eq!(f64, peak.x_1(), 0.0);
+        assert_approx_eq!(f64, peak.x_2(), 2.0);
+        assert_approx_eq!(f64, peak.x_3(), 4.0);
+        assert_approx_eq!(f64, peak.y_1(), 1.0);
+        assert_approx_eq!(f64, peak.y_2(), 2.0);
+        assert_approx_eq!(f64, peak.y_3(), 1.0);
     }
 }
