@@ -94,8 +94,6 @@ impl Spectrum {
             .windows(2)
             .position(|w| (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON)
         {
-            let _values = (chemical_shifts[position], chemical_shifts[position + 1]);
-            let _diff = (chemical_shifts[position + 1] - chemical_shifts[position]).abs();
             return Err(Error::new(Kind::NonUniformSpacing {
                 positions: (position, position + 1),
             })
