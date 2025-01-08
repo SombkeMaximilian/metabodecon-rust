@@ -79,12 +79,10 @@ impl Deconvoluter {
             };
             fitter.fit_lorentzian(spectrum, &peaks)
         };
-        let mse = Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians)
-            .into_iter()
-            .zip(spectrum.intensities_raw().iter())
-            .map(|(superposition, raw)| (superposition - raw).powi(2))
-            .sum::<f64>()
-            / spectrum.intensities_raw().len() as f64;
+        let mse = Self::compute_mse(
+            spectrum,
+            Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
+        );
 
         Ok(Deconvolution::new(
             lorentzians,
@@ -114,12 +112,10 @@ impl Deconvoluter {
             };
             fitter.par_fit_lorentzian(spectrum, &peaks)
         };
-        let mse = Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians)
-            .into_iter()
-            .zip(spectrum.intensities_raw().iter())
-            .map(|(superposition, raw)| (superposition - raw).powi(2))
-            .sum::<f64>()
-            / spectrum.intensities_raw().len() as f64;
+        let mse = Self::compute_mse(
+            spectrum,
+            Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
+        );
 
         Ok(Deconvolution::new(
             lorentzians,
@@ -128,5 +124,25 @@ impl Deconvoluter {
             self.fitting_algo,
             mse,
         ))
+    }
+
+    /// Internal helper function to compute the MSE within the signal region.
+    fn compute_mse(spectrum: &Spectrum, superpositions: Vec<f64>) -> f64 {
+        let signal_boundaries = spectrum.signal_boundaries_indices();
+        let water_boundaries = spectrum.water_boundaries_indices();
+        let left = superpositions[signal_boundaries.0..water_boundaries.0]
+            .iter()
+            .zip(spectrum.intensities_raw()[signal_boundaries.0..water_boundaries.0].iter())
+            .map(|(superposition, raw)| (superposition - raw).powi(2))
+            .sum::<f64>();
+        let right = superpositions[water_boundaries.1..signal_boundaries.1]
+            .iter()
+            .zip(spectrum.intensities_raw()[water_boundaries.1..signal_boundaries.1].iter())
+            .map(|(superposition, raw)| (superposition - raw).powi(2))
+            .sum::<f64>();
+        let length =
+            signal_boundaries.1 - water_boundaries.1 + water_boundaries.0 - signal_boundaries.0;
+
+        (left + right) / (length as f64)
     }
 }
