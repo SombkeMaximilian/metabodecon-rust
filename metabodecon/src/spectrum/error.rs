@@ -217,6 +217,12 @@ impl core::fmt::Display for Error {
                  water boundaries is {:?}",
                 chemical_shifts, signal_boundaries, water_boundaries
             ),
+            NonUniformSpacing { positions } => format!(
+                "chemical shifts are not uniformly spaced \
+                 values at index {} or {} are either not uniformly spaced, \
+                 not normal numbers, or their difference is near zero",
+                positions.0, positions.1
+            ),
             MissingAcqus { path } => format!(
                 "missing acqus file \
                  expected at {:?}",
@@ -242,11 +248,6 @@ impl core::fmt::Display for Error {
                  expected in file at {:?} \
                  with regex {}",
                 path, regex
-            ),
-            NonUniformSpacing { positions } => format!(
-                "chemical shifts are not uniformly spaced \
-                 step size at indices ({}, {}) differs from previous step",
-                positions.0, positions.1
             ),
         };
         write!(f, "{description}")
