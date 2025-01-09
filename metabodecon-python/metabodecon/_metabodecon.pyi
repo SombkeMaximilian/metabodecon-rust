@@ -42,6 +42,10 @@ class Lorentzian:
     def __init__(self, sf: float, hw: float, maxp: float) -> None:
         ...
 
+    @staticmethod
+    def from_transformed(sfhw: float, hw2: float, maxp: float) -> "Lorentzian":
+        ...
+
     def evaluate(self, x: float) -> float:
         ...
 
