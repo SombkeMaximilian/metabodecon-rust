@@ -56,6 +56,30 @@ pub enum Kind {
         /// The number of elements in the intensities vector.
         intensities: usize,
     },
+    /// The signal boundaries are invalid.
+    ///
+    /// This occurs when the signal boundaries are either not within the range
+    /// of the chemical shifts, or if the difference between the upper and lower
+    /// bound is very close to zero or not a number.
+    InvalidSignalBoundaries {
+        /// The signal boundaries of the spectrum.
+        signal_boundaries: (f64, f64),
+        /// The range of the chemical shifts.
+        chemical_shifts_range: (f64, f64),
+    },
+    /// The water boundaries are invalid
+    ///
+    /// This occurs when the water boundaries are either not within the range
+    /// of the chemical shifts, or if the difference between the upper and lower
+    /// bound is very close to zero or not a number.
+    InvalidWaterBoundaries {
+        /// The water boundaries of the spectrum.
+        water_boundaries: (f64, f64),
+        /// The signal boundaries of the spectrum.
+        signal_boundaries: (f64, f64),
+        /// The range of the chemical shifts.
+        chemical_shifts_range: (f64, f64),
+    },
     /// The input data is not consistently ordered according to the same
     /// [`Monotonicity`].
     ///
@@ -161,6 +185,26 @@ impl core::fmt::Display for Error {
                  chemical shifts has {} elements, \
                  intensities has {} elements",
                 chemical_shifts, intensities
+            ),
+            InvalidSignalBoundaries {
+                signal_boundaries,
+                chemical_shifts_range,
+            } => format!(
+                "signal boundaries are invalid \
+                 boundaries are {:?}, \
+                 spectrum range is {:?}",
+                signal_boundaries, chemical_shifts_range
+            ),
+            InvalidWaterBoundaries {
+                water_boundaries,
+                signal_boundaries,
+                chemical_shifts_range,
+            } => format!(
+                "water boundaries are invalid \
+                 boundaries are {:?}, \
+                 signal boundaries are {:?} \
+                 spectrum range is {:?}",
+                water_boundaries, signal_boundaries, chemical_shifts_range
             ),
             MonotonicityMismatch {
                 chemical_shifts,
