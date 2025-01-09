@@ -27,11 +27,14 @@ impl Monotonicity {
     /// or cannot be compared, a [`NonUniformSpacing`] error is returned.
     ///
     /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
-    pub(crate) fn from_f64s(first: f64, second: f64) -> Result<Self> {
+    pub(crate) fn from_f64s(first: f64, second: f64) -> Option<Self> {
+        if f64::abs(first - second) < 100.0 * f64::EPSILON || !(first - second).is_normal() {
+            return None;
+        }
         match first.partial_cmp(&second) {
-            Some(std::cmp::Ordering::Less) => Ok(Self::Increasing),
-            Some(std::cmp::Ordering::Greater) => Ok(Self::Decreasing),
-            _ => Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into()),
+            Some(std::cmp::Ordering::Less) => Some(Self::Increasing),
+            Some(std::cmp::Ordering::Greater) => Some(Self::Decreasing),
+            _ => None,
         }
     }
 }
@@ -69,57 +72,16 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
         water_boundaries: (f64, f64),
     ) -> Result<Self> {
-        if chemical_shifts.is_empty() && intensities.is_empty() {
-            return Err(Error::new(Kind::EmptyData {
-                chemical_shifts: chemical_shifts.len(),
-                intensities: intensities.len(),
-            })
-            .into());
-        }
-
-        if chemical_shifts.len() != intensities.len() {
-            return Err(Error::new(Kind::DataLengthMismatch {
-                chemical_shifts: chemical_shifts.len(),
-                intensities: intensities.len(),
-            })
-            .into());
-        }
-
-        let step_size = chemical_shifts[1] - chemical_shifts[0];
-        if step_size.abs() < f64::EPSILON {
-            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into());
-        }
-
-        if let Some(position) = chemical_shifts
-            .windows(2)
-            .position(|w| (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON)
-        {
-            return Err(Error::new(Kind::NonUniformSpacing {
-                positions: (position, position + 1),
-            })
-            .into());
-        }
-
-        let monotonicity = {
-            let chemical_shifts_monotonicity =
-                Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])?;
-            let signal_boundaries_monotonicity =
-                Monotonicity::from_f64s(signal_boundaries.0, signal_boundaries.1)?;
-            let water_boundaries_monotonicity =
-                Monotonicity::from_f64s(water_boundaries.0, water_boundaries.1)?;
-
-            if chemical_shifts_monotonicity != signal_boundaries_monotonicity
-                || chemical_shifts_monotonicity != water_boundaries_monotonicity
-            {
-                return Err(Error::new(Kind::MonotonicityMismatch {
-                    chemical_shifts: chemical_shifts_monotonicity,
-                    signal_boundaries: signal_boundaries_monotonicity,
-                    water_boundaries: water_boundaries_monotonicity,
-                })
-                .into());
-            }
-            chemical_shifts_monotonicity
-        };
+        Self::validate_lengths(&chemical_shifts, &intensities)?;
+        Self::validate_spacing(&chemical_shifts)?;
+        let monotonicity =
+            Self::validate_monotonicity(&chemical_shifts, signal_boundaries, water_boundaries)?;
+        Self::validate_boundaries(
+            monotonicity,
+            &chemical_shifts,
+            signal_boundaries,
+            water_boundaries,
+        )?;
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
@@ -271,6 +233,149 @@ impl Spectrum {
                 smoother.smooth_values(intensities);
             }
         }
+    }
+
+    /// Internal helper function to validate the lengths of the input data.
+    /// Returns an error if either the chemical shifts or intensities are empty,
+    /// or if their lengths do not match.
+    fn validate_lengths(chemical_shifts: &[f64], intensities: &[f64]) -> Result<()> {
+        if chemical_shifts.is_empty() && intensities.is_empty() {
+            return Err(Error::new(Kind::EmptyData {
+                chemical_shifts: chemical_shifts.len(),
+                intensities: intensities.len(),
+            })
+            .into());
+        }
+
+        if chemical_shifts.len() != intensities.len() {
+            return Err(Error::new(Kind::DataLengthMismatch {
+                chemical_shifts: chemical_shifts.len(),
+                intensities: intensities.len(),
+            })
+            .into());
+        }
+
+        Ok(())
+    }
+
+    /// Internal helper function to validate the spacing of the chemical shifts.
+    /// Returns an error if the step size is smaller than 100 times the floating
+    /// point precision, or if a value is not normal, or if the spacing is not
+    /// uniform.
+    fn validate_spacing(chemical_shifts: &[f64]) -> Result<()> {
+        let step_size = chemical_shifts[1] - chemical_shifts[0];
+        if step_size.abs() < 100.0 * f64::EPSILON {
+            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into());
+        }
+
+        if let Some(position) = chemical_shifts.windows(2).position(|w| {
+            (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON || !(w[1] - w[0]).is_normal()
+        }) {
+            return Err(Error::new(Kind::NonUniformSpacing {
+                positions: (position, position + 1),
+            })
+            .into());
+        }
+
+        Ok(())
+    }
+
+    /// Internal helper function to validate the monotonicity of the spectrum.
+    /// Returns an error if the chemical shifts, signal boundaries, and water
+    /// boundaries do not have the same monotonicity, or if the monotonicity
+    /// cannot be determined due to non-uniform spacing or non-comparable
+    /// values.
+    fn validate_monotonicity(
+        chemical_shifts: &[f64],
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> Result<Monotonicity> {
+        let chemical_shifts_monotonicity =
+            Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
+                .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
+        let signal_boundaries_monotonicity =
+            Monotonicity::from_f64s(signal_boundaries.0, signal_boundaries.1).ok_or_else(|| {
+                Error::new(Kind::InvalidSignalBoundaries {
+                    signal_boundaries,
+                    chemical_shifts_range: (chemical_shifts[0], *chemical_shifts.last().unwrap()),
+                })
+            })?;
+        let water_boundaries_monotonicity =
+            Monotonicity::from_f64s(water_boundaries.0, water_boundaries.1).ok_or_else(|| {
+                Error::new(Kind::InvalidWaterBoundaries {
+                    water_boundaries,
+                    signal_boundaries,
+                    chemical_shifts_range: (chemical_shifts[0], *chemical_shifts.last().unwrap()),
+                })
+            })?;
+
+        if chemical_shifts_monotonicity != signal_boundaries_monotonicity
+            || chemical_shifts_monotonicity != water_boundaries_monotonicity
+        {
+            return Err(Error::new(Kind::MonotonicityMismatch {
+                chemical_shifts: chemical_shifts_monotonicity,
+                signal_boundaries: signal_boundaries_monotonicity,
+                water_boundaries: water_boundaries_monotonicity,
+            })
+            .into());
+        }
+
+        Ok(chemical_shifts_monotonicity)
+    }
+
+    fn validate_boundaries(
+        monotonicity: Monotonicity,
+        chemical_shifts: &[f64],
+        signal_boundaries: (f64, f64),
+        water_boundaries: (f64, f64),
+    ) -> Result<()> {
+        let chemical_shifts_range = (chemical_shifts[0], *chemical_shifts.last().unwrap());
+        match monotonicity {
+            Monotonicity::Increasing => {
+                if signal_boundaries.0 < chemical_shifts_range.0
+                    || signal_boundaries.1 > chemical_shifts_range.1
+                {
+                    return Err(Error::new(Kind::InvalidSignalBoundaries {
+                        signal_boundaries,
+                        chemical_shifts_range,
+                    })
+                    .into());
+                }
+                if water_boundaries.0 < signal_boundaries.0
+                    || water_boundaries.1 > signal_boundaries.1
+                {
+                    return Err(Error::new(Kind::InvalidWaterBoundaries {
+                        water_boundaries,
+                        signal_boundaries,
+                        chemical_shifts_range,
+                    })
+                    .into());
+                }
+            }
+            Monotonicity::Decreasing => {
+                if signal_boundaries.0 > chemical_shifts_range.0
+                    || signal_boundaries.1 < chemical_shifts_range.1
+                {
+                    return Err(Error::new(Kind::InvalidSignalBoundaries {
+                        signal_boundaries,
+                        chemical_shifts_range,
+                    })
+                    .into());
+                }
+                if water_boundaries.0 > signal_boundaries.0
+                    || water_boundaries.1 < signal_boundaries.1
+                {
+                    return Err(Error::new(Kind::InvalidWaterBoundaries {
+                        water_boundaries,
+                        signal_boundaries,
+                        chemical_shifts_range,
+                    })
+                    .into());
+                }
+            }
+        }
+
+        Ok(())
     }
 }
 
