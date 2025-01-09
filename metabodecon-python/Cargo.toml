@@ -24,7 +24,7 @@ categories = [
 publish = false
 
 [lib]
-name = "metabodecon"
+name = "_metabodecon"
 crate-type = ["cdylib"]
 
 [dependencies]
