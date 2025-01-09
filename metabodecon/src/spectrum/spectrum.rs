@@ -4,10 +4,10 @@ use crate::spectrum::error::{Error, Kind};
 
 /// Represents the ordering of 1D NMR spectrum data.
 ///
-/// Typically, 1D NMR data is ordered in [`Decreasing`] order of chemical
-/// shifts, but this is not always the case. Additionally, it is often simpler
-/// to work with the data if it is ordered in [`Increasing`] order, and only
-/// reorder it for display purposes.
+/// Typically, 1D NMR data is ordered in `Decreasing` order of chemical shifts,
+/// but this is not always the case. Additionally, it is often simpler to work
+/// with the data if it is ordered in `Increasing` order, and only reorder it
+/// for display purposes.
 ///
 /// [`Increasing`]: Monotonicity::Increasing
 /// [`Decreasing`]: Monotonicity::Decreasing
@@ -21,10 +21,11 @@ pub enum Monotonicity {
 }
 
 impl Monotonicity {
-    /// Helper function to determine the [`Monotonicity`] of a [`Spectrum`].
+    /// Helper function to determine the `Monotonicity` of a [`Spectrum`].
     /// Checks for the ordering of two floating point numbers and returns the
-    /// corresponding [`Monotonicity`] variant. If the two numbers are equal
-    /// or cannot be compared, a [`NonUniformSpacing`] error is returned.
+    /// corresponding `Some(Monotonicity)` variant. If the two numbers differ by
+    /// less than 100 times the floating point precision, or are not normal
+    /// numbers, or cannot be compared, `None` is returned.
     ///
     /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
     pub(crate) fn from_f64s(first: f64, second: f64) -> Option<Self> {
