@@ -63,8 +63,8 @@ class Lorentzian:
 
 class Spectrum:
     chemical_shifts: np.ndarray
-    intensities_raw: np.ndarray
     intensities: np.ndarray
+    intensities_raw: np.ndarray
     signal_boundaries: tuple[float, float]
     water_boundaries: tuple[float, float]
 
