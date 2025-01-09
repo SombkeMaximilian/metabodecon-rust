@@ -5,7 +5,9 @@ authors = ["Maximilian Sombke <sombkemaximilian@gmail.com>"]
 edition = "2021"
 rust-version = "1.78.0"
 description = """
-    An implementation of the 1D NMR spectra deconvolution algorithm by Koh et al. (2009) in Rust.
+    A library for 1D NMR spectra, offering data structure definitions,
+    common NMR file format parsing (Bruker TopSpin, JCAMP-DX, HDF5),
+    preprocessing, signal deconvolution, and spectrum alignment.
 """
 readme = "../README.md"
 repository = "https://github.com/SombkeMaximilian/metabodecon-rust"
