@@ -383,7 +383,221 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::error::Error;
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn new() {
+        let spectrum_increasing = Spectrum::new(
+            vec![1.0, 2.0, 3.0],
+            vec![1.0, 2.0, 3.0],
+            (1.0, 3.0),
+            (2.0, 2.5),
+        );
+        let spectrum_decreasing = Spectrum::new(
+            vec![3.0, 2.0, 1.0],
+            vec![3.0, 2.0, 1.0],
+            (3.0, 1.0),
+            (2.5, 2.0),
+        );
+        assert!(spectrum_increasing.is_ok());
+        assert!(spectrum_decreasing.is_ok());
+    }
+
+    #[test]
+    fn empty_data() {
+        let s = (1.0, 3.0);
+        let w = (2.0, 2.5);
+        let errors = [
+            Spectrum::new(vec![], vec![1.0], s, w).unwrap_err(),
+            Spectrum::new(vec![1.0], vec![], s, w).unwrap_err(),
+            Spectrum::new(vec![], vec![], s, w).unwrap_err(),
+        ];
+        let expected_context = [(0, 1), (1, 0), (0, 0)];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::EmptyData {
+                            chemical_shifts,
+                            intensities,
+                        } => {
+                            assert_eq!(*chemical_shifts, context.0);
+                            assert_eq!(*intensities, context.1);
+                        }
+                        _ => panic!("Unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("Unexpected error: {:?}", error),
+                };
+            });
+    }
+
+    #[test]
+    fn data_length_mismatch() {
+        let s = (1.0, 3.0);
+        let w = (2.0, 2.5);
+        let errors = [
+            Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0], s, w).unwrap_err(),
+            Spectrum::new(vec![1.0, 2.0], vec![1.0, 2.0, 3.0], s, w).unwrap_err(),
+        ];
+        let expected_context = [(3, 2), (2, 3)];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::DataLengthMismatch {
+                            chemical_shifts,
+                            intensities,
+                        } => {
+                            assert_eq!(*chemical_shifts, context.0);
+                            assert_eq!(*intensities, context.1);
+                        }
+                        _ => panic!("Unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("Unexpected error: {:?}", error),
+                };
+            })
+    }
+
+    #[test]
+    fn invalid_signal_boundaries() {
+        let d = vec![1.0, 2.0, 3.0];
+        let r = (1.0, 3.0);
+        let w = (2.0, 2.5);
+        let errors = [
+            Spectrum::new(d.clone(), d.clone(), (0.0, 3.0), w).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (1.0, 4.0), w).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (2.0, 2.0), w).unwrap_err(),
+        ];
+        let expected_contest = [((0.0, 3.0), r), ((1.0, 4.0), r), ((2.0, 2.0), r)];
+        errors
+            .into_iter()
+            .zip(expected_contest)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::InvalidSignalBoundaries {
+                            signal_boundaries,
+                            chemical_shifts_range,
+                        } => {
+                            assert_eq!(*signal_boundaries, context.0);
+                            assert_eq!(*chemical_shifts_range, context.1);
+                        }
+                        _ => panic!("Unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("Unexpected error: {:?}", error),
+                };
+            });
+    }
+
+    #[test]
+    fn invalid_water_boundaries() {
+        let d = vec![1.0, 2.0, 3.0];
+        let r = (1.0, 3.0);
+        let s = (1.0, 3.0);
+        let errors = [
+            Spectrum::new(d.clone(), d.clone(), s, (0.0, 2.5)).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), s, (2.0, 4.0)).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), s, (2.0, 2.0)).unwrap_err(),
+        ];
+        let expected_contest = [((0.0, 2.5), s, r), ((2.0, 4.0), s, r), ((2.0, 2.0), s, r)];
+        errors
+            .into_iter()
+            .zip(expected_contest)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::InvalidWaterBoundaries {
+                            water_boundaries,
+                            signal_boundaries,
+                            chemical_shifts_range,
+                        } => {
+                            assert_eq!(*water_boundaries, context.0);
+                            assert_eq!(*signal_boundaries, context.1);
+                            assert_eq!(*chemical_shifts_range, context.2);
+                        }
+                        _ => panic!("Unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("Unexpected error: {:?}", error),
+                };
+            });
+    }
+
+    #[test]
+    fn monotonicity_mismatch() {
+        let d = vec![1.0, 2.0, 3.0];
+        // i = increasing, d = decreasing
+        let di = vec![1.0, 2.0, 3.0];
+        let dd = vec![3.0, 2.0, 1.0];
+        let si = (1.0, 3.0);
+        let sd = (3.0, 1.0);
+        let wi = (2.0, 2.5);
+        let wd = (2.5, 2.0);
+        let errors = [
+            Spectrum::new(di.clone(), d.clone(), si, wd).unwrap_err(),
+            Spectrum::new(di.clone(), d.clone(), sd, wi).unwrap_err(),
+            Spectrum::new(di.clone(), d.clone(), sd, wd).unwrap_err(),
+            Spectrum::new(dd.clone(), d.clone(), si, wd).unwrap_err(),
+            Spectrum::new(dd.clone(), d.clone(), sd, wi).unwrap_err(),
+            Spectrum::new(dd.clone(), d.clone(), si, wi).unwrap_err(),
+        ];
+        let expected_context = [
+            (
+                Monotonicity::Increasing,
+                Monotonicity::Increasing,
+                Monotonicity::Decreasing,
+            ),
+            (
+                Monotonicity::Increasing,
+                Monotonicity::Decreasing,
+                Monotonicity::Increasing,
+            ),
+            (
+                Monotonicity::Increasing,
+                Monotonicity::Decreasing,
+                Monotonicity::Decreasing,
+            ),
+            (
+                Monotonicity::Decreasing,
+                Monotonicity::Increasing,
+                Monotonicity::Decreasing,
+            ),
+            (
+                Monotonicity::Decreasing,
+                Monotonicity::Decreasing,
+                Monotonicity::Increasing,
+            ),
+            (
+                Monotonicity::Decreasing,
+                Monotonicity::Increasing,
+                Monotonicity::Increasing,
+            ),
+        ];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::MonotonicityMismatch {
+                            chemical_shifts,
+                            signal_boundaries,
+                            water_boundaries,
+                        } => {
+                            assert_eq!(*chemical_shifts, context.0);
+                            assert_eq!(*signal_boundaries, context.1);
+                            assert_eq!(*water_boundaries, context.2);
+                        }
+                        _ => panic!("Unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("Unexpected error: {:?}", error),
+                };
+            });
+    }
 
     #[test]
     fn accessors() {
