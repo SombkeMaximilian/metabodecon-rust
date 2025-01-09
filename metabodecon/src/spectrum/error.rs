@@ -1,6 +1,5 @@
 use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
-use std::sync::Arc;
 
 /// An `Error` that occurred while constructing a [`Spectrum`] or reading 1D NMR
 /// data.
@@ -15,9 +14,6 @@ use std::sync::Arc;
 pub struct Error {
     /// The `Kind` of error that occurred.
     kind: Kind,
-    /// The source of the error, if any. Internal errors have no source, while
-    /// I/O errors and HDF5 errors have a source.
-    source: Option<Arc<dyn std::error::Error>>,
 }
 
 impl Error {
@@ -152,15 +148,11 @@ pub enum Kind {
     },
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.source.as_ref().map(|s| &**s as _)
-    }
-}
+impl std::error::Error for Error {}
 
 impl From<Kind> for Error {
     fn from(kind: Kind) -> Self {
-        Self { kind, source: None }
+        Self { kind }
     }
 }
 

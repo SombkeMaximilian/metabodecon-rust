@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 /// An `Error` that occurred during the deconvolution process.
 ///
 /// This type of error is generally unrecoverable and indicates a problem with
@@ -10,9 +8,6 @@ use std::sync::Arc;
 pub struct Error {
     /// The `Kind` of error that occurred.
     kind: Kind,
-    /// The source of the error, if any. Internal errors have no source, while
-    /// I/O errors and HDF5 errors have a source.
-    source: Option<Arc<dyn std::error::Error>>,
 }
 
 impl Error {
@@ -48,15 +43,11 @@ pub enum Kind {
     EmptySignalFreeRegion,
 }
 
-impl std::error::Error for Error {
-    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        self.source.as_ref().map(|s| &**s as _)
-    }
-}
+impl std::error::Error for Error {}
 
 impl From<Kind> for Error {
     fn from(kind: Kind) -> Self {
-        Self { kind, source: None }
+        Self { kind }
     }
 }
 
