@@ -9,7 +9,15 @@ classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
-dynamic = ["version"]
+dynamic = [
+    "version",
+    "readme",
+    "description",
+]
+
 [tool.maturin]
+bindings = "pyo3"
+module-name = "metabodecon._metabodecon"
 features = ["pyo3/extension-module"]
