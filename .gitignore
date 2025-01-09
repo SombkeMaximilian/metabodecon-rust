@@ -22,3 +22,6 @@ Cargo.lock
 
 # Environments
 .venv
+
+# Shared object files
+*.so
