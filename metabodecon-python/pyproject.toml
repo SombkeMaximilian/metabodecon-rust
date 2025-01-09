@@ -11,6 +11,9 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: PyPy",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
 ]
+dependencies = [
+    "numpy >=2.0.0",
+]
 dynamic = [
     "version",
     "readme",
