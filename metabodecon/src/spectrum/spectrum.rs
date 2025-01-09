@@ -240,7 +240,7 @@ impl Spectrum {
     /// Returns an error if either the chemical shifts or intensities are empty,
     /// or if their lengths do not match.
     fn validate_lengths(chemical_shifts: &[f64], intensities: &[f64]) -> Result<()> {
-        if chemical_shifts.is_empty() && intensities.is_empty() {
+        if chemical_shifts.is_empty() || intensities.is_empty() {
             return Err(Error::new(Kind::EmptyData {
                 chemical_shifts: chemical_shifts.len(),
                 intensities: intensities.len(),
