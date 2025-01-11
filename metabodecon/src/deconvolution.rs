@@ -1,3 +1,5 @@
+//! The Metabodecon deconvolution algorithm.
+
 mod deconvoluter;
 mod deconvolution;
 mod error;
