@@ -35,7 +35,7 @@ pub enum SelectionAlgo {
 impl Default for SelectionAlgo {
     fn default() -> Self {
         SelectionAlgo::NoiseScoreFilter {
-            scoring_algo: Default::default(),
+            scoring_algo: ScoringAlgo::default(),
             threshold: 6.4,
         }
     }

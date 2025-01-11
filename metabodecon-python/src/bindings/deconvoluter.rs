@@ -13,7 +13,7 @@ pub struct Deconvoluter {
 impl Deconvoluter {
     #[new]
     pub fn new() -> Self {
-        Default::default()
+        Deconvoluter::default()
     }
 
     pub fn with_moving_average_smoother(&mut self, iterations: usize, window_size: usize) -> Self {

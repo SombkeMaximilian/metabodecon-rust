@@ -6,17 +6,7 @@ use common::store_deconvolution;
 pub fn run_deconvolution(path: &str, dataset: &str) -> metabodecon::Result<Deconvolution> {
     let reader = Hdf5Reader::new();
     let mut spectrum = reader.read_spectrum(path, dataset)?;
-    let deconvoluter = Deconvoluter::new(
-        SmoothingAlgo::MovingAverage {
-            iterations: 2,
-            window_size: 5,
-        },
-        SelectionAlgo::NoiseScoreFilter {
-            scoring_algo: ScoringAlgo::MinimumSum,
-            threshold: 6.4,
-        },
-        FittingAlgo::Analytical { iterations: 10 },
-    );
+    let deconvoluter = Deconvoluter::default();
     deconvoluter.deconvolute_spectrum(&mut spectrum)
 }
 
