@@ -125,32 +125,78 @@ impl Spectrum {
         self.monotonicity
     }
 
-    /// Sets the chemical shifts of the spectrum. This currently does not
-    /// perform any monotonicity validation on the input data.
-    pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) {
+    /// Sets the chemical shifts of the spectrum.
+    pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) -> Result<()> {
+        Self::validate_lengths(&chemical_shifts, self.intensities_raw())?;
+        Self::validate_spacing(&chemical_shifts)?;
+        Self::validate_monotonicity(
+            &chemical_shifts,
+            self.signal_boundaries,
+            self.water_boundaries,
+        )?;
+        Self::validate_boundaries(
+            self.monotonicity,
+            &chemical_shifts,
+            self.signal_boundaries,
+            self.water_boundaries,
+        )?;
         self.chemical_shifts = chemical_shifts.into_boxed_slice();
+
+        Ok(())
     }
 
     /// Sets the preprocessed intensities of the spectrum.
-    pub fn set_intensities(&mut self, intensities: Vec<f64>) {
+    pub fn set_intensities(&mut self, intensities: Vec<f64>) -> Result<()> {
+        Self::validate_lengths(self.chemical_shifts(), &intensities)?;
+        Self::validate_intensities(&intensities)?;
         self.intensities = intensities.into_boxed_slice();
+
+        Ok(())
     }
 
     /// Sets the raw intensities of the spectrum.
-    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) {
+    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) -> Result<()> {
+        Self::validate_lengths(self.chemical_shifts(), &intensities_raw)?;
+        Self::validate_intensities(&intensities_raw)?;
         self.intensities_raw = intensities_raw.into_boxed_slice();
+
+        Ok(())
     }
 
-    /// Sets the signal region boundaries of the spectrum. This currently does
-    /// not perform any monotonicity validation on the input data.
-    pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
+    /// Sets the signal region boundaries of the spectrum.
+    pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> Result<()> {
+        Self::validate_monotonicity(
+            self.chemical_shifts(),
+            signal_boundaries,
+            self.water_boundaries,
+        )?;
+        Self::validate_boundaries(
+            self.monotonicity,
+            self.chemical_shifts(),
+            signal_boundaries,
+            self.water_boundaries,
+        )?;
         self.signal_boundaries = signal_boundaries;
+
+        Ok(())
     }
 
-    /// Sets the water artifact boundaries of the spectrum. This currently does
-    /// not perform any monotonicity validation on the input data.
-    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) {
+    /// Sets the water artifact boundaries of the spectrum.
+    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) -> Result<()> {
+        Self::validate_monotonicity(
+            self.chemical_shifts(),
+            self.signal_boundaries,
+            water_boundaries,
+        )?;
+        Self::validate_boundaries(
+            self.monotonicity,
+            self.chemical_shifts(),
+            self.signal_boundaries,
+            water_boundaries,
+        )?;
         self.water_boundaries = water_boundaries;
+
+        Ok(())
     }
 
     /// Computes the step size between two consecutive chemical shifts in ppm.
@@ -191,13 +237,15 @@ impl Spectrum {
     /// 1. Removing the water signal from the intensities.
     /// 2. Removing negative values from the intensities.
     /// 3. Smoothing the intensities using the specified [`SmoothingAlgo`].
-    pub fn apply_preprocessing(&mut self, smoothing_algo: SmoothingAlgo) {
+    pub fn apply_preprocessing(&mut self, smoothing_algo: SmoothingAlgo) -> Result<()> {
         let water_boundaries_indices = self.water_boundaries_indices();
         let mut intensities = self.intensities_raw().to_vec();
         Self::remove_water_signal(&mut intensities, water_boundaries_indices);
         Self::remove_negative_values(&mut intensities);
         Self::smooth_intensities(&mut intensities, smoothing_algo);
-        self.set_intensities(intensities);
+        self.set_intensities(intensities)?;
+
+        Ok(())
     }
 
     /// Internal helper function to remove the water signal from the provided
@@ -622,11 +670,21 @@ mod tests {
             (2.0, 2.5),
         )
         .unwrap();
-        assert_eq!(spectrum.chemical_shifts(), &[1.0, 2.0, 3.0]);
-        assert_eq!(spectrum.intensities(), &[]);
-        assert_eq!(spectrum.intensities_raw(), &[1.0, 2.0, 3.0]);
-        assert_eq!(spectrum.signal_boundaries(), (1.0, 3.0));
-        assert_eq!(spectrum.water_boundaries(), (2.0, 2.5));
+        spectrum
+            .chemical_shifts()
+            .iter()
+            .zip([1.0, 2.0, 3.0])
+            .for_each(|(&xc, xe)| assert_approx_eq!(f64, xc, xe));
+        spectrum
+            .intensities()
+            .iter()
+            .zip([1.0, 2.0, 3.0])
+            .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
+        assert_eq!(spectrum.intensities().len(), 0);
+        assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
+        assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.0);
+        assert_approx_eq!(f64, spectrum.water_boundaries().0, 2.0);
+        assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.5);
     }
 
     #[test]
@@ -638,19 +696,47 @@ mod tests {
             (2.0, 2.5),
         )
         .unwrap();
-        spectrum.set_chemical_shifts(vec![1.0, 2.0, 3.0, 4.0]);
-        spectrum.set_intensities_raw(vec![1.0, 2.0, 3.0, 4.0]);
-        spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0]);
-        spectrum.set_signal_boundaries((1.0, 4.0));
-        spectrum.set_water_boundaries((2.5, 3.0));
-        spectrum.set_intensities(
-            spectrum
-                .intensities()
-                .iter()
-                .map(|intensity| -intensity)
-                .collect(),
-        );
-        assert_eq!(spectrum.intensities(), &[-1.0, -2.0, -3.0, -4.0]);
+        spectrum
+            .set_chemical_shifts(vec![0.0, 2.0, 4.0])
+            .unwrap();
+        spectrum
+            .set_intensities_raw(vec![0.0, 2.0, 4.0])
+            .unwrap();
+        spectrum
+            .set_intensities(vec![1.0, 2.0, 3.0])
+            .unwrap();
+        spectrum
+            .set_signal_boundaries((0.5, 3.5))
+            .unwrap();
+        spectrum.set_water_boundaries((1.5, 2.5)).unwrap();
+        spectrum
+            .set_intensities(
+                spectrum
+                    .intensities()
+                    .iter()
+                    .map(|intensity| -intensity)
+                    .collect(),
+            )
+            .unwrap();
+        spectrum
+            .chemical_shifts()
+            .iter()
+            .zip([0.0, 2.0, 4.0])
+            .for_each(|(&xc, xe)| assert_approx_eq!(f64, xc, xe));
+        spectrum
+            .intensities_raw()
+            .iter()
+            .zip([0.0, 2.0, 4.0])
+            .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
+        spectrum
+            .intensities()
+            .iter()
+            .zip([-1.0, -2.0, -3.0])
+            .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
+        assert_approx_eq!(f64, spectrum.signal_boundaries().0, 0.5);
+        assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.5);
+        assert_approx_eq!(f64, spectrum.water_boundaries().0, 1.5);
+        assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.5);
     }
 
     #[test]
@@ -662,7 +748,9 @@ mod tests {
             (2.5, 3.5),
         )
         .unwrap();
-        spectrum.set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+        spectrum
+            .set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0])
+            .unwrap();
         assert_approx_eq!(f64, spectrum.step(), 1.0);
         assert_approx_eq!(f64, spectrum.width(), 4.0);
         assert_approx_eq!(f64, spectrum.center(), 3.0);
@@ -675,14 +763,22 @@ mod tests {
         let mut intensities = vec![1.0, 15.0, 16.0, 15.0, 5.0];
         let water_boundaries_indices = (0, 4);
         Spectrum::remove_water_signal(&mut intensities, water_boundaries_indices);
-        assert_eq!(intensities, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+        intensities.iter().zip([1.0, 2.0, 3.0, 4.0, 5.0]).for_each(
+            |(&yc, ye)| {
+                assert_approx_eq!(f64, yc, ye);
+            },
+        );
     }
 
     #[test]
     fn remove_negative_values() {
         let mut intensities = vec![1.0, -2.0, 3.0, -4.0, 5.0];
         Spectrum::remove_negative_values(&mut intensities);
-        assert_eq!(intensities, vec![1.0, 2.0, 3.0, 4.0, 5.0]);
+        intensities.iter().zip([1.0, 2.0, 3.0, 4.0, 5.0]).for_each(
+            |(&yc, ye)| {
+                assert_approx_eq!(f64, yc, ye);
+            },
+        );
     }
 
     #[test]
@@ -693,6 +789,10 @@ mod tests {
             window_size: 3,
         };
         Spectrum::smooth_intensities(&mut intensities, algorithm);
-        assert_eq!(intensities, vec![1.5, 1.5, 1.75, 1.75, 1.875]);
+        intensities.iter().zip([1.5, 1.5, 1.75, 1.75, 1.875]).for_each(
+            |(&yc, ye)| {
+                assert_approx_eq!(f64, yc, ye);
+            },
+        );
     }
 }

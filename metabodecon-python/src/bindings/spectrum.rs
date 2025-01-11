@@ -127,31 +127,53 @@ impl Spectrum {
     }
 
     #[setter]
-    pub fn set_chemical_shifts(&mut self, chemical_shifts: PyReadonlyArray1<'_, f64>) {
+    pub fn set_chemical_shifts(
+        &mut self,
+        chemical_shifts: PyReadonlyArray1<'_, f64>,
+    ) -> PyResult<()> {
         self.inner
-            .set_chemical_shifts(chemical_shifts.as_slice().unwrap().to_vec());
+            .set_chemical_shifts(chemical_shifts.as_slice()?.to_vec())
+            .unwrap();
+
+        Ok(())
     }
 
     #[setter]
-    pub fn set_intensities(&mut self, intensities: PyReadonlyArray1<'_, f64>) {
+    pub fn set_intensities(&mut self, intensities: PyReadonlyArray1<'_, f64>) -> PyResult<()> {
         self.inner
-            .set_intensities(intensities.as_slice().unwrap().to_vec());
+            .set_intensities(intensities.as_slice()?.to_vec())
+            .unwrap();
+
+        Ok(())
     }
 
     #[setter]
-    pub fn set_intensities_raw(&mut self, intensities_raw: PyReadonlyArray1<'_, f64>) {
+    pub fn set_intensities_raw(
+        &mut self,
+        intensities_raw: PyReadonlyArray1<'_, f64>,
+    ) -> PyResult<()> {
         self.inner
-            .set_intensities_raw(intensities_raw.as_slice().unwrap().to_vec());
+            .set_intensities_raw(intensities_raw.as_slice()?.to_vec())
+            .unwrap();
+
+        Ok(())
     }
 
     #[setter]
-    pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) {
+    pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> PyResult<()> {
         self.inner
-            .set_signal_boundaries(signal_boundaries);
+            .set_signal_boundaries(signal_boundaries)
+            .unwrap();
+
+        Ok(())
     }
 
     #[setter]
-    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) {
-        self.inner.set_water_boundaries(water_boundaries);
+    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) -> PyResult<()> {
+        self.inner
+            .set_water_boundaries(water_boundaries)
+            .unwrap();
+
+        Ok(())
     }
 }

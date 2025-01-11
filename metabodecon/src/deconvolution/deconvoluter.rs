@@ -63,7 +63,7 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing(self.smoothing_algo);
+        spectrum.apply_preprocessing(self.smoothing_algo)?;
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
@@ -96,7 +96,7 @@ impl Deconvoluter {
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing(self.smoothing_algo);
+        spectrum.apply_preprocessing(self.smoothing_algo)?;
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
