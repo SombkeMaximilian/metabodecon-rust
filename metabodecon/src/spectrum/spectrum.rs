@@ -29,7 +29,7 @@ impl Monotonicity {
     ///
     /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
     pub(crate) fn from_f64s(first: f64, second: f64) -> Option<Self> {
-        if f64::abs(first - second) < 100.0 * f64::EPSILON || !(first - second).is_normal() {
+        if f64::abs(first - second) < 100.0 * f64::EPSILON || !(first - second).is_finite() {
             return None;
         }
         match first.partial_cmp(&second) {
@@ -271,7 +271,7 @@ impl Spectrum {
         }
 
         if let Some(position) = chemical_shifts.windows(2).position(|w| {
-            (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON || !(w[1] - w[0]).is_normal()
+            (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON || !(w[1] - w[0]).is_finite()
         }) {
             return Err(Error::new(Kind::NonUniformSpacing {
                 positions: (position, position + 1),
@@ -287,7 +287,7 @@ impl Spectrum {
     fn validate_intensities(intensities: &[f64]) -> Result<()> {
         if let Some(position) = intensities
             .iter()
-            .position(|intensity| !intensity.is_normal())
+            .position(|intensity| !intensity.is_finite())
         {
             return Err(Error::new(Kind::InvalidIntensities { position }).into());
         }
