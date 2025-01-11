@@ -1,3 +1,5 @@
+//! Error types for the deconvolution process.
+
 /// An `Error` that occurred during the deconvolution process.
 ///
 /// This type of error is generally unrecoverable and indicates a problem with

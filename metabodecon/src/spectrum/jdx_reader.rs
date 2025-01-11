@@ -1,5 +1,6 @@
 use crate::error::Result;
-use crate::spectrum::{Error, Kind, Spectrum};
+use crate::spectrum::Spectrum;
+use crate::spectrum::error::{Error, Kind};
 use regex::Regex;
 use std::fs::read_to_string;
 use std::path::Path;

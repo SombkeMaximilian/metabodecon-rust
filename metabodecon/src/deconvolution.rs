@@ -2,7 +2,6 @@
 
 mod deconvoluter;
 mod deconvolution;
-mod error;
 
 pub use deconvoluter::Deconvoluter;
 pub use deconvolution::Deconvolution;
@@ -13,4 +12,4 @@ pub use crate::smoothing::SmoothingAlgo;
 
 pub use crate::fitting::Lorentzian;
 
-pub use error::{Error, Kind};
+pub mod error;

@@ -1,3 +1,7 @@
+//! Error types for [`Spectrum`] data structure.
+//!
+//! [`Spectrum`]: crate::spectrum::Spectrum
+
 use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
 

@@ -1,4 +1,4 @@
-use crate::deconvolution::{Error, Kind};
+use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 use crate::peak_selection::detector::Detector;
 use crate::peak_selection::peak::Peak;
