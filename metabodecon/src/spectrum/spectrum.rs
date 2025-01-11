@@ -1104,8 +1104,10 @@ mod tests {
                             signal_boundaries,
                             chemical_shifts_range,
                         } => {
-                            assert_eq!(*signal_boundaries, context.0);
-                            assert_eq!(*chemical_shifts_range, context.1);
+                            assert_approx_eq!(f64, *signal_boundaries.0, context.0.0);
+                            assert_approx_eq!(f64, *signal_boundaries.1, context.0.1);
+                            assert_approx_eq!(f64, *chemical_shifts_range.0, context.1.0);
+                            assert_approx_eq!(f64, *chemical_shifts_range.1, context.1.1);
                         }
                         _ => panic!("Unexpected kind: {:?}", inner),
                     },
@@ -1136,9 +1138,12 @@ mod tests {
                             signal_boundaries,
                             chemical_shifts_range,
                         } => {
-                            assert_eq!(*water_boundaries, context.0);
-                            assert_eq!(*signal_boundaries, context.1);
-                            assert_eq!(*chemical_shifts_range, context.2);
+                            assert_approx_eq!(f64, *water_boundaries.0, context.0.0);
+                            assert_approx_eq!(f64, *water_boundaries.1, context.0.1);
+                            assert_approx_eq!(f64, *signal_boundaries.0, context.1.0);
+                            assert_approx_eq!(f64, *signal_boundaries.1, context.1.1);
+                            assert_approx_eq!(f64, *chemical_shifts_range.0, context.2.0);
+                            assert_approx_eq!(f64, *chemical_shifts_range.1, context.2.1);
                         }
                         _ => panic!("Unexpected kind: {:?}", inner),
                     },
