@@ -125,9 +125,7 @@ impl BrukerReader {
         Self
     }
 
-    /// Reads the spectrum in the provided dataset from a Bruker TopSpin
-    /// directory at the provided path and returns it. Any errors are
-    /// propagated to the caller.
+    /// Reads the spectrum from a Bruker TopSpin format directory.
     pub fn read_spectrum<P: AsRef<Path>>(
         &self,
         path: P,
@@ -174,8 +172,8 @@ impl BrukerReader {
         Ok(spectrum)
     }
 
-    /// Reads all spectra in Bruker TopSpin format in subdirectories of the
-    /// provided path and returns them. Any errors are propagated to the caller.
+    /// Reads all spectra from the Bruker TopSpin format directories under the
+    /// given path.
     pub fn read_spectra<P: AsRef<Path>>(
         &self,
         path: P,

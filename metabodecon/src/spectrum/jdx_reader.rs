@@ -34,10 +34,12 @@ struct MetaData {
 }
 
 impl JdxReader {
+    /// Constructs a new `JdxReader`.
     pub fn new() -> Self {
         Self
     }
 
+    /// Reads the spectrum from a JCAMP-DX file.
     pub fn read_spectrum<P: AsRef<Path>>(
         &self,
         path: P,
