@@ -2,7 +2,7 @@ use crate::error::Result;
 use crate::spectrum::Spectrum;
 use std::path::Path;
 
-/// Unit struct for reading 1D NMR spectra from HDF5 files.
+/// Interface for reading 1D NMR spectra from HDF5 files.
 ///
 /// The HDF5 files are expected to have the following structure:
 /// ```markdown

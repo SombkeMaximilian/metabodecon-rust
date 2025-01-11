@@ -6,7 +6,7 @@ use std::fs::{File, read_to_string};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-/// Unit struct for reading 1D NMR spectra in the Bruker TopSpin format.
+/// Interface for reading 1D NMR spectra in the Bruker TopSpin format.
 ///
 /// The Bruker TopSpin file format stores metadata and data in various files.
 /// Most of the stored information is not used in this implementation, but the

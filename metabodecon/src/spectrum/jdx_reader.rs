@@ -4,7 +4,7 @@ use regex::Regex;
 use std::fs::read_to_string;
 use std::path::Path;
 
-/// Unit struct for reading 1D NMR spectra in JCAMP-DX format.
+/// Interface for reading 1D NMR spectra in JCAMP-DX format.
 ///
 /// The JCAMP-DX format is a text-based format for storing 1D NMR spectra. Both
 /// the metadata and the data are stored in the same file, which can be divided
