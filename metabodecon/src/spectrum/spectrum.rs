@@ -75,6 +75,7 @@ impl Spectrum {
     ) -> Result<Self> {
         Self::validate_lengths(&chemical_shifts, &intensities)?;
         Self::validate_spacing(&chemical_shifts)?;
+        Self::validate_intensities(&intensities)?;
         let monotonicity =
             Self::validate_monotonicity(&chemical_shifts, signal_boundaries, water_boundaries)?;
         Self::validate_boundaries(
@@ -276,6 +277,19 @@ impl Spectrum {
                 positions: (position, position + 1),
             })
             .into());
+        }
+
+        Ok(())
+    }
+
+    /// Internal helper function to validate the intensities. Returns an error
+    /// if any of the intensities are not normal numbers.
+    fn validate_intensities(intensities: &[f64]) -> Result<()> {
+        if let Some(position) = intensities
+            .iter()
+            .position(|intensity| !intensity.is_normal())
+        {
+            return Err(Error::new(Kind::InvalidIntensities { position }).into());
         }
 
         Ok(())

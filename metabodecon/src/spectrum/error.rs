@@ -52,6 +52,39 @@ pub enum Kind {
         /// The number of elements in the intensities vector.
         intensities: usize,
     },
+    /// The chemical shifts are not uniformly spaced.
+    ///
+    /// This occurs when a step size between two chemical shifts is not
+    /// equal to the expected step size. This may indicate that the data is
+    /// corrupted (incorrectly computed, duplicate or missing chemical shifts).
+    NonUniformSpacing {
+        /// The positions of the non-uniformly spaced chemical shifts.
+        positions: (usize, usize),
+    },
+    /// The intensities contain invalid values.
+    InvalidIntensities {
+        /// The position of the first invalid intensity that was found.
+        position: usize,
+    },
+    /// The input data is not consistently ordered according to the same
+    /// [`Monotonicity`].
+    ///
+    /// This occurs when the chemical shifts, signal boundaries, and water
+    /// boundaries are provided with mismatched monotonicity. For example, if
+    /// the chemical shifts are in decreasing order but the boundary tuples are
+    /// in increasing order, it is likely that the intensities are also ordered
+    /// incorrectly relative to the chemical shifts. This is unlikely to be
+    /// intentional and is likely a mistake in the input data. Therefore, it is
+    /// better to return an error in this case than to silently continue with
+    /// potentially incorrect data.
+    MonotonicityMismatch {
+        /// The ordering of the chemical shifts vector.
+        chemical_shifts: Monotonicity,
+        /// The ordering of the signal boundaries vector.
+        signal_boundaries: Monotonicity,
+        /// The ordering of the water boundaries vector.
+        water_boundaries: Monotonicity,
+    },
     /// The signal boundaries are invalid.
     ///
     /// This occurs when the signal boundaries are either not within the range
@@ -75,34 +108,6 @@ pub enum Kind {
         signal_boundaries: (f64, f64),
         /// The range of the chemical shifts.
         chemical_shifts_range: (f64, f64),
-    },
-    /// The input data is not consistently ordered according to the same
-    /// [`Monotonicity`].
-    ///
-    /// This occurs when the chemical shifts, signal boundaries, and water
-    /// boundaries are provided with mismatched monotonicity. For example, if
-    /// the chemical shifts are in decreasing order but the boundary tuples are
-    /// in increasing order, it is likely that the intensities are also ordered
-    /// incorrectly relative to the chemical shifts. This is unlikely to be
-    /// intentional and is likely a mistake in the input data. Therefore, it is
-    /// better to return an error in this case than to silently continue with
-    /// potentially incorrect data.
-    MonotonicityMismatch {
-        /// The ordering of the chemical shifts vector.
-        chemical_shifts: Monotonicity,
-        /// The ordering of the signal boundaries vector.
-        signal_boundaries: Monotonicity,
-        /// The ordering of the water boundaries vector.
-        water_boundaries: Monotonicity,
-    },
-    /// The chemical shifts are not uniformly spaced.
-    ///
-    /// This occurs when a step size between two chemical shifts is not
-    /// equal to the expected step size. This may indicate that the data is
-    /// corrupted (incorrectly computed, duplicate or missing chemical shifts).
-    NonUniformSpacing {
-        /// The positions of the non-uniformly spaced chemical shifts.
-        positions: (usize, usize),
     },
 
     /// The acqus file of the Bruker TopSpin format is missing.
@@ -178,6 +183,28 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
+            NonUniformSpacing { positions } => format!(
+                "chemical shifts are not uniformly spaced \
+                 values at index {} or {} are either not uniformly spaced, \
+                 not normal numbers, or their difference is near zero",
+                positions.0, positions.1
+            ),
+            InvalidIntensities { position } => format!(
+                "intensities contain invalid values \
+                 value at index {} is not a normal number",
+                position
+            ),
+            MonotonicityMismatch {
+                chemical_shifts,
+                signal_boundaries,
+                water_boundaries,
+            } => format!(
+                "input data is not monotonic (intensities may be incorrect) \
+                 chemical shifts is {:?}, \
+                 signal boundaries is {:?}, \
+                 water boundaries is {:?}",
+                chemical_shifts, signal_boundaries, water_boundaries
+            ),
             InvalidSignalBoundaries {
                 signal_boundaries,
                 chemical_shifts_range,
@@ -197,23 +224,6 @@ impl core::fmt::Display for Error {
                  signal boundaries are {:?} \
                  spectrum range is {:?}",
                 water_boundaries, signal_boundaries, chemical_shifts_range
-            ),
-            MonotonicityMismatch {
-                chemical_shifts,
-                signal_boundaries,
-                water_boundaries,
-            } => format!(
-                "input data is not monotonic (intensities may be incorrect) \
-                 chemical shifts is {:?}, \
-                 signal boundaries is {:?}, \
-                 water boundaries is {:?}",
-                chemical_shifts, signal_boundaries, water_boundaries
-            ),
-            NonUniformSpacing { positions } => format!(
-                "chemical shifts are not uniformly spaced \
-                 values at index {} or {} are either not uniformly spaced, \
-                 not normal numbers, or their difference is near zero",
-                positions.0, positions.1
             ),
             MissingAcqus { path } => format!(
                 "missing acqus file \
