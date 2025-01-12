@@ -4,8 +4,11 @@ use std::path::Path;
 
 /// Interface for reading 1D NMR spectra from HDF5 files.
 ///
+/// # Format
+///
 /// The HDF5 files are expected to have the following structure:
-/// ```markdown
+///
+/// ```text
 /// file.h5
 /// └── dataset_01
 ///     └── spectrum
@@ -16,6 +19,7 @@ use std::path::Path;
 ///             ├── signal_boundaries
 ///             └── water_boundaries
 /// ```
+///
 /// `file.h5` and `dataset_01` are the file and dataset names, respectively.
 /// There can be any number of datasets in one file and their names do not need
 /// to follow a pattern. For example, blood_01 and sim_01 would be valid dataset
@@ -23,6 +27,44 @@ use std::path::Path;
 /// groups, which contain the raw data and metadata, respectively. The
 /// `spectrum` group contains the `data` and `meta` groups, which contain the
 /// raw data and metadata, respectively.
+///
+/// # Example: Reading a Spectrum
+///
+/// ```
+/// use metabodecon::spectrum::Hdf5Reader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let reader = Hdf5Reader::new();
+/// let path = "path/to/file.h5";
+/// # let path = "../data/hdf5/blood.h5";
+/// let dataset = "dataset_01";
+/// # let dataset = "blood_01";
+///
+/// // Read a single spectrum from a Bruker TopSpin format directory.
+/// let spectrum = reader.read_spectrum(path, dataset)?;
+///
+/// // Do something with the spectrum...
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Example: Reading Multiple Spectra
+///
+/// ```
+/// use metabodecon::spectrum::Hdf5Reader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let reader = Hdf5Reader::new();
+/// let path = "path/to/file.h5";
+/// # let path = "../data/hdf5/blood.h5";
+///
+/// // Read all spectra from Bruker TopSpin format directories within the root.
+/// let spectra = reader.read_spectra(path)?;
+///
+/// // Do something with the spectra...
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Default)]
 pub struct Hdf5Reader;
 
@@ -32,15 +74,91 @@ impl Hdf5Reader {
         Self
     }
 
-    /// Reads the spectrum in the provided dataset from an HDF5 file at the
-    /// provided path and returns it.
+    /// Reads the spectrum in the provided dataset from an HDF5 file.
+    ///
+    /// ```text
+    /// file.h5 ← the path needs to point to this file
+    /// └── dataset_01
+    ///     └── spectrum
+    ///         ├── data
+    ///         │   ├── chemical_shifts
+    ///         │   └── signal_intensities
+    ///         └── meta
+    ///             ├── signal_boundaries
+    ///             └── water_boundaries
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// Internally uses [`Spectrum::new`] to create the spectrum, which
+    /// validates the data itself and returns a [`Error::Spectrum`] if any of
+    /// the checks fail. This error type contains a [`spectrum::error::Error`],
+    /// which can be matched against the [`spectrum::error::Kind`] enum to
+    /// handle the specific error.
+    ///
+    /// [`Error::Spectrum`]: crate::Error::Spectrum
+    /// [`spectrum::error::Error`]: crate::spectrum::error::Error
+    /// [`spectrum::error::Kind`]: crate::spectrum::error::Kind
+    ///
+    /// ## HDF5 Error
+    ///
+    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
+    ///
+    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
+    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
+
         Self::read_from_file(&file, dataset)
     }
 
-    /// Reads all spectra from an HDF5 file at the provided path and returns
-    /// them.
+    /// Reads all spectra from an HDF5 file.
+    ///
+    /// ```text
+    /// file.h5 ← the path needs to point to this file
+    /// ├── dataset_01
+    /// │   └── spectrum
+    /// │       ├── data
+    /// │       │   ├── chemical_shifts
+    /// │       │   └── signal_intensities
+    /// │       └── meta
+    /// │           ├── signal_boundaries
+    /// │           └── water_boundaries
+    /// ├── dataset_02
+    /// │   └── spectrum
+    /// │       ├── data
+    /// │       │   ├── chemical_shifts
+    /// │       │   └── signal_intensities
+    /// │       └── meta
+    /// │           ├── signal_boundaries
+    /// │           └── water_boundaries
+    /// ·
+    /// ·
+    /// ·
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// Internally uses [`Spectrum::new`] to create the spectra, which
+    /// validates the data itself and returns a [`Error::Spectrum`] if any of
+    /// the checks fail. This error type contains a [`spectrum::error::Error`],
+    /// which can be matched against the [`spectrum::error::Kind`] enum to
+    /// handle the specific error.
+    ///
+    /// [`Error::Spectrum`]: crate::Error::Spectrum
+    /// [`spectrum::error::Error`]: crate::spectrum::error::Error
+    /// [`spectrum::error::Kind`]: crate::spectrum::error::Kind
+    ///
+    /// ## HDF5 Error
+    ///
+    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
+    ///
+    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
+    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
     pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
@@ -54,6 +172,22 @@ impl Hdf5Reader {
 
     /// Internal helper function to read the spectrum in the provided dataset
     /// from the provided HDF5 file handle and return it.
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// Uses [`Spectrum::new`] to create the spectrum, which validates the data
+    /// itself and returns a [`Error::Spectrum`] if any of the checks fail. This
+    /// error type contains a [`spectrum::error::Error`], which can be matched
+    /// against the [`spectrum::error::Kind`] enum to handle the specific error.
+    ///
+    /// ## HDF5 Error
+    ///
+    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
+    ///
+    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
+    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
     fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;

@@ -1,8 +1,8 @@
 //! The Metabodecon 1D NMR [`Spectrum`] data structure and related utilities.
 
-mod macros;
 mod bruker_reader;
 mod hdf5_reader;
+mod macros;
 #[rustfmt::skip] #[allow(dead_code)] mod jdx_reader;
 mod spectrum;
 

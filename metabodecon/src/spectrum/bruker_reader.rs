@@ -10,11 +10,13 @@ use std::path::{Path, PathBuf};
 
 /// Interface for reading 1D NMR spectra in the Bruker TopSpin format.
 ///
+/// # Format
+///
 /// The Bruker TopSpin file format stores metadata and data in various files.
 /// Most of the stored information is not used in this implementation, but the
 /// following files are required to read a spectrum:
 ///
-/// ```markdown
+/// ```text
 /// name
 /// └── name_01
 ///     └── experiment
@@ -32,7 +34,7 @@ use std::path::{Path, PathBuf};
 /// experiment. `pdata` is the processing data directory and `processing` is
 /// the processing number, which is an arbitrary integer.
 ///
-/// # Metadata
+/// ## Metadata
 ///
 /// The `acqus` and `procs` files contain the acquisition and processing
 /// parameters, respectively. They are plain text files with key-value pairs,
@@ -64,10 +66,66 @@ use std::path::{Path, PathBuf};
 ///   integers, it is scaled by 2 to the power of this value. If the data is
 ///   stored as floats, this value is unused.
 ///
-/// # Raw Data
+/// ## Raw Data
 ///
 /// The raw data is stored in the `1r` file in binary format. The metadata
 /// specifies how the data has to be read.
+///
+/// # Example: Reading a Spectrum
+///
+/// ```
+/// use metabodecon::spectrum::BrukerReader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let reader = BrukerReader::new();
+/// let path = "path/to/spectrum";
+/// # let path = "../data/bruker/blood/blood_01";
+///
+/// // Read a single spectrum from a Bruker TopSpin format directory.
+/// let spectrum = reader.read_spectrum(
+///     path,
+///     // Experiment number
+///     10,
+///     // Processing number
+///     10,
+///     // Signal boundaries
+///     (-2.2, 11.8),
+///     // Water boundaries
+///     (4.7, 4.9),
+/// )?;
+///
+/// // Do something with the spectrum...
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Example: Reading Multiple Spectra
+///
+/// ```
+/// use metabodecon::spectrum::BrukerReader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let reader = BrukerReader::new();
+/// let path = "path/to/root";
+/// # let path = "../data/bruker/blood";
+///
+/// // Read all spectra from Bruker TopSpin format directories within the root.
+/// let spectra = reader.read_spectra(
+///     path,
+///     // Experiment number
+///     10,
+///     // Processing number
+///     10,
+///     // Signal boundaries
+///     (-2.2, 11.8),
+///     // Water boundaries
+///     (4.7, 4.9),
+/// )?;
+///
+/// // Do something with the spectra...
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Default)]
 pub struct BrukerReader;
 
@@ -128,6 +186,79 @@ impl BrukerReader {
     }
 
     /// Reads the spectrum from a Bruker TopSpin format directory.
+    ///
+    /// ```text
+    /// name
+    /// └── name_01 ← the path needs to point to this directory
+    ///     └── experiment
+    ///         ├── pdata
+    ///         │   └── processing
+    ///         │       ├── 1r
+    ///         │       └── procs
+    ///         └── acqus
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// Internally uses [`Spectrum::new`] to create the spectrum, which
+    /// validates the data itself and returns a [`Error::Spectrum`] if any of
+    /// the checks fail. Additionally, if the required files are missing, or if
+    /// parsing the metadata fails, a [`Error::Spectrum`] is also returned. This
+    /// error type contains a [`spectrum::error::Error`], which can be matched
+    /// against the [`spectrum::error::Kind`] enum to handle the specific error.
+    ///
+    /// [`Error::Spectrum`]: crate::Error::Spectrum
+    /// [`spectrum::error::Error`]: Error
+    /// [`spectrum::error::Kind`]: Kind
+    ///
+    /// Aside from the checks performed in [`Spectrum::new`], the following
+    /// additional errors can occur while parsing the data:
+    /// * [`MissingAcqus`]: The `acqus` file is missing.
+    /// * [`MissingProcs`]: The `procs` file is missing.
+    /// * [`Missing1r`]: The `1r` file is missing.
+    /// * [`MissingMetaData`]: A required key-value pair is missing from the
+    ///   metadata files.
+    ///
+    /// [`MissingAcqus`]: Kind::MissingAcqus
+    /// [`MissingProcs`]: Kind::MissingProcs
+    /// [`Missing1r`]: Kind::Missing1r
+    /// [`MissingMetaData`]: Kind::MissingMetadata
+    ///
+    /// ## IO Error
+    ///
+    /// Errors from [`std::io`] are converted to [`Error::IoError`].
+    ///
+    /// [`Error::IoError`]: crate::Error::IoError
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/spectrum";
+    /// # let path = "../data/bruker/blood/blood_01";
+    ///
+    /// // Read a single spectrum from a Bruker TopSpin format directory.
+    /// let spectrum = reader.read_spectrum(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    ///     // Water boundaries
+    ///     (4.7, 4.9),
+    /// )?;
+    ///
+    /// // Do something with the spectrum...
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn read_spectrum<P: AsRef<Path>>(
         &self,
         path: P,
@@ -176,6 +307,91 @@ impl BrukerReader {
 
     /// Reads all spectra from the Bruker TopSpin format directories under the
     /// given path.
+    ///
+    /// ```text
+    /// name ← the path needs to point to this directory
+    /// ├── name_01
+    /// │   └── experiment
+    /// │       ├── pdata
+    /// │       │   └── processing
+    /// │       │       ├── 1r
+    /// │       │       └── procs
+    /// │       └── acqus
+    /// ├── name_02
+    /// │   └── experiment
+    /// │       ├── pdata
+    /// │       │   └── processing
+    /// │       │       ├── 1r
+    /// │       │       └── procs
+    /// │       └── acqus
+    /// ·
+    /// ·
+    /// ·
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Errors
+    ///
+    /// Internally uses [`Spectrum::new`] to create the spectra, which validates
+    /// the data itself and returns a [`Error::Spectrum`] if any of the checks
+    /// fail. Additionally, if the required files are missing, or if parsing the
+    /// metadata fails, a [`Error::Spectrum`] is also returned. Note that this
+    /// function will also fail if any of the subdirectories under the root
+    /// directory are not Bruker TopSpin format directories. This error type
+    /// contains a [`spectrum::error::Error`], which can be matched against the
+    /// [`spectrum::error::Kind`] enum to handle the specific error.
+    ///
+    /// [`Error::Spectrum`]: crate::Error::Spectrum
+    /// [`spectrum::error::Error`]: Error
+    /// [`spectrum::error::Kind`]: Kind
+    ///
+    /// Aside from the checks performed in [`Spectrum::new`], the following
+    /// additional errors can occur while parsing the data:
+    /// * [`MissingAcqus`]: The `acqus` file is missing.
+    /// * [`MissingProcs`]: The `procs` file is missing.
+    /// * [`Missing1r`]: The `1r` file is missing.
+    /// * [`MissingMetaData`]: A required key-value pair is missing from the
+    ///   metadata files.
+    ///
+    /// [`MissingAcqus`]: Kind::MissingAcqus
+    /// [`MissingProcs`]: Kind::MissingProcs
+    /// [`Missing1r`]: Kind::Missing1r
+    /// [`MissingMetaData`]: Kind::MissingMetadata
+    ///
+    /// ## IO Errors
+    ///
+    /// Errors from [`std::io`] are converted to [`Error::IoError`].
+    ///
+    /// [`Error::IoError`]: crate::Error::IoError
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/root";
+    /// # let path = "../data/bruker/blood";
+    ///
+    /// // Read all spectra from Bruker TopSpin format directories within the root.
+    /// let spectra = reader.read_spectra(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    ///     // Water boundaries
+    ///     (4.7, 4.9),
+    /// )?;
+    ///
+    /// // Do something with the spectra...
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn read_spectra<P: AsRef<Path>>(
         &self,
         path: P,
@@ -209,6 +425,22 @@ impl BrukerReader {
 
     /// Internal helper function to read the acquisition parameters from the
     /// `acqus` file and return them.
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// The following errors can occur while reading the acquisition parameters:
+    /// * [`MissingMetaData`]: A required key-value pair is missing from the
+    ///   `acqus` file.
+    ///
+    /// [`MissingMetaData`]: Kind::MissingMetadata
+    ///
+    /// ## IO Error
+    ///
+    /// Errors from [`std::io`] are converted to [`Error::IoError`].
+    ///
+    /// [`Error::IoError`]: crate::Error::IoError
     fn read_acquisition_parameters<P: AsRef<Path>>(
         &self,
         path: P,
@@ -223,6 +455,22 @@ impl BrukerReader {
 
     /// Internal helper function to read the processing parameters from the
     /// `procs` file and return them.
+    ///
+    /// # Errors
+    ///
+    /// ## Spectrum Error
+    ///
+    /// The following errors can occur while reading the acquisition parameters:
+    /// * [`MissingMetaData`]: A required key-value pair is missing from the
+    ///   `procs` file.
+    ///
+    /// [`MissingMetaData`]: Kind::MissingMetadata
+    ///
+    /// ## IO Errors
+    ///
+    /// Errors from [`std::io`] are converted to [`Error::IoError`].
+    ///
+    /// [`Error::IoError`]: crate::Error::IoError
     fn read_processing_parameters<P: AsRef<Path>>(&self, path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
@@ -256,6 +504,14 @@ impl BrukerReader {
     /// return it as a vector of floating point numbers. As working with
     /// chemical shifts in increasing order is generally simpler, the vector is
     /// reversed before being returned.
+    ///
+    /// # Errors
+    ///
+    /// ## IO Errors
+    ///
+    /// Errors from [`std::io`] are converted to [`Error::IoError`].
+    ///
+    /// [`Error::IoError`]: crate::Error::IoError
     fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
         let mut one_r = File::open(path)?;
         let mut buffer = vec![
