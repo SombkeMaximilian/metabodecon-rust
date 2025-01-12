@@ -63,4 +63,6 @@ macro_rules! check_sim_spectrum {
 }
 
 pub(crate) use extract_capture;
+
+#[cfg(test)]
 pub(crate) use check_sim_spectrum;
