@@ -40,7 +40,7 @@ use std::path::Path;
 /// let dataset = "dataset_01";
 /// # let dataset = "blood_01";
 ///
-/// // Read a single spectrum from a Bruker TopSpin format directory.
+/// // Read a single spectrum from the HDF5 file.
 /// let spectrum = reader.read_spectrum(path, dataset)?;
 ///
 /// // Do something with the spectrum...
@@ -58,7 +58,7 @@ use std::path::Path;
 /// let path = "path/to/file.h5";
 /// # let path = "../data/hdf5/blood.h5";
 ///
-/// // Read all spectra from Bruker TopSpin format directories within the root.
+/// // Read all spectra from the HDF5 file.
 /// let spectra = reader.read_spectra(path)?;
 ///
 /// // Do something with the spectra...
@@ -108,6 +108,26 @@ impl Hdf5Reader {
     ///
     /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
     /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Hdf5Reader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let reader = Hdf5Reader::new();
+    /// let path = "path/to/file.h5";
+    /// # let path = "../data/hdf5/blood.h5";
+    /// let dataset = "dataset_01";
+    /// # let dataset = "blood_01";
+    ///
+    /// // Read a single spectrum from the HDF5 file.
+    /// let spectrum = reader.read_spectrum(path, dataset)?;
+    ///
+    /// // Do something with the spectrum...
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
 
@@ -159,6 +179,24 @@ impl Hdf5Reader {
     ///
     /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
     /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Hdf5Reader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let reader = Hdf5Reader::new();
+    /// let path = "path/to/file.h5";
+    /// # let path = "../data/hdf5/blood.h5";
+    ///
+    /// // Read all spectra from the HDF5 file.
+    /// let spectra = reader.read_spectra(path)?;
+    ///
+    /// // Do something with the spectra...
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
