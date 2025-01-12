@@ -1,19 +1,26 @@
 use crate::{deconvolution, spectrum};
 
-/// A type alias for `Result<T, metabodecon::Error>`.
+/// A specialized [`Result`] type for the Metabodecon library.
+///
+/// This type alias is used to avoid writing out `Result<T, metabodecon::Error>`
+/// directly, and is broadly used across the library.
 pub type Result<T> = std::result::Result<T, Error>;
 
-/// The error type for the crate.
+/// Errors encountered by the Metabodecon library.
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
-    /// An error occurred during spectrum processing.
+    /// An error that occurred during [`Spectrum`] construction or parsing.
+    ///
+    /// [`Spectrum`]: spectrum::Spectrum
     Spectrum(spectrum::error::Error),
-    /// An error occurred during deconvolution.
+    /// An error that occurred during the [`deconvolution`] process.
     Deconvolution(deconvolution::error::Error),
-    /// An I/O error occurred.
+    /// Wrapper for errors from [`std::io`].
     IoError(std::io::Error),
-    /// An error occurred during HDF5 operation.
+    /// Wrapper for errors from the [hdf5 crate].
+    ///
+    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
     Hdf5Error(hdf5::Error),
 }
 
