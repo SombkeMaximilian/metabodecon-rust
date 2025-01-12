@@ -1,6 +1,5 @@
 //! The Metabodecon 1D NMR [`Spectrum`] data structure and related utilities.
 
-#[macro_use]
 mod macros;
 mod bruker_reader;
 mod hdf5_reader;

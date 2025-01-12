@@ -61,3 +61,6 @@ macro_rules! check_sim_spectrum {
         );
     };
 }
+
+pub(crate) use extract_capture;
+pub(crate) use check_sim_spectrum;

@@ -89,6 +89,7 @@ impl Hdf5Reader {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::spectrum::macros::check_sim_spectrum;
     use float_cmp::assert_approx_eq;
 
     #[test]
