@@ -1,19 +1,21 @@
-//! Error types for [`Spectrum`] data structure.
+//! Error types for [`Spectrum`] data structure module.
 //!
 //! [`Spectrum`]: crate::spectrum::Spectrum
 
 use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
 
-/// An `Error` that occurred while constructing a [`Spectrum`] or reading 1D NMR
-/// data.
-///
-/// This type of error is generally unrecoverable and indicates a problem with
-/// the input data itself or the file format it is stored in. For example,
-/// if the input data is empty, a file of the Bruker TopSpin format is missing,
-/// or metadata within one of these files is missing.
+/// The `Error` type for constructing a [`Spectrum`] or parsing 1D NMR data from
+/// files.
 ///
 /// [`Spectrum`]: crate::spectrum::Spectrum
+///
+/// This type of error is generally unrecoverable and indicates a problem with
+/// the input data itself or the file format it is stored in. For example, the
+/// input data is empty, a file of the Bruker TopSpin format is missing, or
+/// metadata within one of the files is missing.
+///
+/// See the [`Kind`] enum for the different kinds of errors that can occur.
 #[derive(Clone, Debug)]
 pub struct Error {
     /// The `Kind` of error that occurred.
@@ -43,6 +45,11 @@ impl Error {
 #[derive(Clone, Debug)]
 pub enum Kind {
     /// The input data is empty.
+    ///
+    /// The length of a [`Spectrum`] is not intended to be changed after it is
+    /// constructed, so an empty [`Spectrum`] is simply not useful.
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
     EmptyData {
         /// The number of elements in the chemical shifts vector.
         chemical_shifts: usize,
@@ -50,6 +57,12 @@ pub enum Kind {
         intensities: usize,
     },
     /// The input data lengths are mismatched.
+    ///
+    /// The length of a [`Spectrum`] is not intended to be changed after it is
+    /// constructed. A mismatch in the lengths of the chemical shifts and raw
+    /// intensities vectors would create an inconsistent [`Spectrum`].
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
     DataLengthMismatch {
         /// The number of elements in the chemical shifts vector.
         chemical_shifts: usize,
@@ -58,9 +71,14 @@ pub enum Kind {
     },
     /// The chemical shifts are not uniformly spaced.
     ///
-    /// This occurs when a step size between two chemical shifts is not
-    /// equal to the expected step size. This may indicate that the data is
-    /// corrupted (incorrectly computed, duplicate or missing chemical shifts).
+    /// The step size between two consecutive chemical shift values needs to be
+    /// consistent throughout the entire [`Spectrum`]. A situation where this is
+    /// not the case can arise due to
+    /// * an inconsistent step size between two values
+    /// * the difference between two values being very close to zero
+    /// * non-finite values in the chemical shifts
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
     NonUniformSpacing {
         /// The positions of the non-uniformly spaced chemical shifts.
         positions: (usize, usize),
@@ -73,14 +91,18 @@ pub enum Kind {
     /// The input data is not consistently ordered according to the same
     /// [`Monotonicity`].
     ///
-    /// This occurs when the chemical shifts, signal boundaries, and water
-    /// boundaries are provided with mismatched monotonicity. For example, if
-    /// the chemical shifts are in decreasing order but the boundary tuples are
-    /// in increasing order, it is likely that the intensities are also ordered
-    /// incorrectly relative to the chemical shifts. This is unlikely to be
-    /// intentional and is likely a mistake in the input data. Therefore, it is
-    /// better to return an error in this case than to silently continue with
-    /// potentially incorrect data.
+    /// This error is mostly to catch user mistakes when constructing the input
+    /// data. When the chemical shifts, signal boundaries, and water boundaries
+    /// are provided with mismatched monotonicity, it is likely that the data is
+    /// not ordered in the way the user intended. For example, if the chemical
+    /// shifts are in increasing order but the boundary tuples are in decreasing
+    /// order, it is possible that the intensities are also ordered incorrectly
+    /// relative to the chemical shifts. While this generally doesn't pose a
+    /// large problem for the [`deconvolution`] algorithm, it can lead to
+    /// problems in further processing steps. Therefore, this state is
+    /// considered inconsistent and results in an error.
+    ///
+    /// [`deconvolution`]: crate::deconvolution
     MonotonicityMismatch {
         /// The ordering of the chemical shifts vector.
         chemical_shifts: Monotonicity,
@@ -91,9 +113,15 @@ pub enum Kind {
     },
     /// The signal boundaries are invalid.
     ///
-    /// This occurs when the signal boundaries are either not within the range
-    /// of the chemical shifts, or if the difference between the upper and lower
-    /// bound is very close to zero or not a number.
+    /// A certain structure is expected from a 1D NMR [`Spectrum`] with respect
+    /// to the regions of interest. The region where signals are expected to be
+    /// found is in the center of the [`Spectrum`], with signal free regions on
+    /// either side. The following conditions are checked:
+    /// * The signal boundaries are finite values
+    /// * The signal boundaries are within the range of the chemical shifts
+    /// * The signal region width is not close to zero
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
     InvalidSignalBoundaries {
         /// The signal boundaries of the spectrum.
         signal_boundaries: (f64, f64),
@@ -102,9 +130,15 @@ pub enum Kind {
     },
     /// The water boundaries are invalid
     ///
-    /// This occurs when the water boundaries are either not within the range
-    /// of the chemical shifts, or if the difference between the upper and lower
-    /// bound is very close to zero or not a number.
+    /// A certain structure is expected from a 1D NMR [`Spectrum`] with respect
+    /// to the regions of interest. At the center of the [`Spectrum`], there
+    /// should be a water artifact. This region is also expected to be within
+    /// the signal region. The following conditions are checked:
+    /// * The water boundaries are finite values
+    /// * The water region is within the signal region
+    /// * The water region width is not close to zero
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
     InvalidWaterBoundaries {
         /// The water boundaries of the spectrum.
         water_boundaries: (f64, f64),
@@ -116,39 +150,48 @@ pub enum Kind {
 
     /// The acqus file of the Bruker TopSpin format is missing.
     ///
-    /// This indicates corruption or misplacement of the input data, or
-    /// that an incorrect path was provided.
+    /// Spectra stored in the Bruker TopSpin format require 3 files to be
+    /// present: `acqus`, `procs`, and `1r`. If the `acqus` file is missing, the
+    /// spectrum cannot be read. This indicates corruption or misplacement of
+    /// the input data, or that an incorrect path was provided.
     MissingAcqus {
         /// The path where the acqus file was expected.
         path: PathBuf,
     },
     /// The procs file of the Bruker TopSpin format is missing.
     ///
-    /// This indicates corruption or misplacement of the input data, or
-    /// that an incorrect path was provided.
+    /// Spectra stored in the Bruker TopSpin format require 3 files to be
+    /// present: `acqus`, `procs`, and `1r`. If the `procs` file is missing, the
+    /// spectrum cannot be read. This indicates corruption or misplacement of
+    /// the input data, or that an incorrect path was provided.
     MissingProcs {
         /// The path where the procs file was expected.
         path: PathBuf,
     },
     /// The 1r file of the Bruker TopSpin format is missing.
     ///
-    /// This indicates corruption or misplacement of the input data, or
-    /// that an incorrect path was provided.
+    /// Spectra stored in the Bruker TopSpin format require 3 files to be
+    /// present: `acqus`, `procs`, and `1r`. If the `1r` file is missing, the
+    /// spectrum cannot be read. This indicates corruption or misplacement of
+    /// the input data, or that an incorrect path was provided.
     Missing1r {
         /// The path where the 1r file was expected.
         path: PathBuf,
     },
     /// The file of the JDX format is missing.
     ///
-    /// This indicates that an incorrect path was provided.
+    /// This occurs when the JDX file is not present at the provided path.
     MissingJdx {
         /// The path where the JDX file was expected.
         path: PathBuf,
     },
     /// Metadata is missing from a file.
     ///
-    /// This indicates that the stored data was corrupted or that the
-    /// format of the file is not as expected.
+    /// This indicates that the stored data was corrupted or that the format of
+    /// the file is not as expected. If you have a dataset that you believe
+    /// should be parsable but is not, open an [issue] and provide the dataset.
+    ///
+    /// [issue]: https://github.com/SombkeMaximilian/metabodecon-rust/issues
     MissingMetadata {
         /// The path to the file where the metadata was expected.
         path: PathBuf,
@@ -190,12 +233,12 @@ impl core::fmt::Display for Error {
             NonUniformSpacing { positions } => format!(
                 "chemical shifts are not uniformly spaced \
                  values at index {} or {} are either not uniformly spaced, \
-                 not normal numbers, or their difference is near zero",
+                 not finite numbers, or their difference is near zero",
                 positions.0, positions.1
             ),
             InvalidIntensities { position } => format!(
                 "intensities contain invalid values \
-                 value at index {} is not a normal number",
+                 value at index {} is not a finite number",
                 position
             ),
             MonotonicityMismatch {
