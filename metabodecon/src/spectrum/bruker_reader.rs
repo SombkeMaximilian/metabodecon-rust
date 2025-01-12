@@ -213,17 +213,10 @@ impl BrukerReader {
     /// [`spectrum::error::Error`]: Error
     /// [`spectrum::error::Kind`]: Kind
     ///
-    /// Aside from the checks performed in [`Spectrum::new`], the following
-    /// additional errors can occur while parsing the data:
-    /// * [`MissingAcqus`]: The `acqus` file is missing.
-    /// * [`MissingProcs`]: The `procs` file is missing.
-    /// * [`Missing1r`]: The `1r` file is missing.
-    /// * [`MissingMetaData`]: A required key-value pair is missing from the
-    ///   metadata files.
+    /// Aside from the checks performed in [`Spectrum::new`],
+    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
+    /// the metadata files.
     ///
-    /// [`MissingAcqus`]: Kind::MissingAcqus
-    /// [`MissingProcs`]: Kind::MissingProcs
-    /// [`Missing1r`]: Kind::Missing1r
     /// [`MissingMetaData`]: Kind::MissingMetadata
     ///
     /// ## IO Error
@@ -270,21 +263,12 @@ impl BrukerReader {
         let acqus_path = path
             .as_ref()
             .join(format!("{}/acqus", experiment));
-        if !acqus_path.is_file() {
-            return Err(Error::new(Kind::MissingAcqus { path: acqus_path }).into());
-        }
         let procs_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/procs", experiment, processing));
-        if !procs_path.is_file() {
-            return Err(Error::new(Kind::MissingProcs { path: procs_path }).into());
-        }
         let one_r_path = path
             .as_ref()
             .join(format!("{}/pdata/{}/1r", experiment, processing));
-        if !one_r_path.is_file() {
-            return Err(Error::new(Kind::Missing1r { path: one_r_path }).into());
-        }
 
         let acqus = self.read_acquisition_parameters(acqus_path)?;
         let procs = self.read_processing_parameters(procs_path)?;
@@ -346,17 +330,10 @@ impl BrukerReader {
     /// [`spectrum::error::Error`]: Error
     /// [`spectrum::error::Kind`]: Kind
     ///
-    /// Aside from the checks performed in [`Spectrum::new`], the following
-    /// additional errors can occur while parsing the data:
-    /// * [`MissingAcqus`]: The `acqus` file is missing.
-    /// * [`MissingProcs`]: The `procs` file is missing.
-    /// * [`Missing1r`]: The `1r` file is missing.
-    /// * [`MissingMetaData`]: A required key-value pair is missing from the
-    ///   metadata files.
+    /// Aside from the checks performed in [`Spectrum::new`],
+    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
+    /// the metadata files.
     ///
-    /// [`MissingAcqus`]: Kind::MissingAcqus
-    /// [`MissingProcs`]: Kind::MissingProcs
-    /// [`Missing1r`]: Kind::Missing1r
     /// [`MissingMetaData`]: Kind::MissingMetadata
     ///
     /// ## IO Errors
@@ -430,9 +407,8 @@ impl BrukerReader {
     ///
     /// ## Spectrum Error
     ///
-    /// The following errors can occur while reading the acquisition parameters:
-    /// * [`MissingMetaData`]: A required key-value pair is missing from the
-    ///   `acqus` file.
+    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
+    /// the `acqus`.
     ///
     /// [`MissingMetaData`]: Kind::MissingMetadata
     ///
@@ -460,11 +436,8 @@ impl BrukerReader {
     ///
     /// ## Spectrum Error
     ///
-    /// The following errors can occur while reading the acquisition parameters:
-    /// * [`MissingMetaData`]: A required key-value pair is missing from the
-    ///   `procs` file.
-    ///
-    /// [`MissingMetaData`]: Kind::MissingMetadata
+    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
+    /// the `procs`.
     ///
     /// ## IO Errors
     ///
@@ -506,8 +479,6 @@ impl BrukerReader {
     /// reversed before being returned.
     ///
     /// # Errors
-    ///
-    /// ## IO Errors
     ///
     /// Errors from [`std::io`] are converted to [`Error::IoError`].
     ///

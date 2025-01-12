@@ -148,44 +148,7 @@ pub enum Kind {
         chemical_shifts_range: (f64, f64),
     },
 
-    /// The acqus file of the Bruker TopSpin format is missing.
-    ///
-    /// Spectra stored in the Bruker TopSpin format require 3 files to be
-    /// present: `acqus`, `procs`, and `1r`. If the `acqus` file is missing, the
-    /// spectrum cannot be read. This indicates corruption or misplacement of
-    /// the input data, or that an incorrect path was provided.
-    MissingAcqus {
-        /// The path where the acqus file was expected.
-        path: PathBuf,
-    },
-    /// The procs file of the Bruker TopSpin format is missing.
-    ///
-    /// Spectra stored in the Bruker TopSpin format require 3 files to be
-    /// present: `acqus`, `procs`, and `1r`. If the `procs` file is missing, the
-    /// spectrum cannot be read. This indicates corruption or misplacement of
-    /// the input data, or that an incorrect path was provided.
-    MissingProcs {
-        /// The path where the procs file was expected.
-        path: PathBuf,
-    },
-    /// The 1r file of the Bruker TopSpin format is missing.
-    ///
-    /// Spectra stored in the Bruker TopSpin format require 3 files to be
-    /// present: `acqus`, `procs`, and `1r`. If the `1r` file is missing, the
-    /// spectrum cannot be read. This indicates corruption or misplacement of
-    /// the input data, or that an incorrect path was provided.
-    Missing1r {
-        /// The path where the 1r file was expected.
-        path: PathBuf,
-    },
-    /// The file of the JDX format is missing.
-    ///
-    /// This occurs when the JDX file is not present at the provided path.
-    MissingJdx {
-        /// The path where the JDX file was expected.
-        path: PathBuf,
-    },
-    /// Metadata is missing from a file.
+    /// Metadata is missing from a file of the various formats.
     ///
     /// This indicates that the stored data was corrupted or that the format of
     /// the file is not as expected. If you have a dataset that you believe
@@ -271,26 +234,6 @@ impl core::fmt::Display for Error {
                  signal boundaries are {:?} \
                  spectrum range is {:?}",
                 water_boundaries, signal_boundaries, chemical_shifts_range
-            ),
-            MissingAcqus { path } => format!(
-                "missing acqus file \
-                 expected at {:?}",
-                path
-            ),
-            MissingProcs { path } => format!(
-                "missing procs file \
-                 expected at {:?}",
-                path
-            ),
-            Missing1r { path } => format!(
-                "missing 1r file \
-                 expected at {:?}",
-                path
-            ),
-            MissingJdx { path } => format!(
-                "missing jdx file \
-                 expected at {:?}",
-                path
             ),
             MissingMetadata { path, regex } => format!(
                 "missing metadata \
