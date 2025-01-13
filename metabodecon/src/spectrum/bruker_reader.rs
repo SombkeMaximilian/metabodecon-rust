@@ -431,6 +431,8 @@ impl BrukerReader {
     /// [`MissingMetaData`] occurs if a required key-value pair is missing from
     /// the `procs`.
     ///
+    /// [`MissingMetaData`]: Kind::MissingMetadata
+    ///
     /// ## IO Errors
     ///
     /// Errors from [`std::io`] are converted to [`Error::IoError`].

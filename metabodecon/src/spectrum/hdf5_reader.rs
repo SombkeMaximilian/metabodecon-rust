@@ -208,9 +208,9 @@ impl Hdf5Reader {
     /// ## Spectrum Error
     ///
     /// Uses [`Spectrum::new`] to create the spectrum, which validates the data
-    /// itself and returns a [`Error::Spectrum`] if any of the checks fail. This
-    /// error type contains a [`spectrum::error::Error`], which can be matched
-    /// against the [`spectrum::error::Kind`] enum to handle the specific error.
+    /// itself and returns a [`Error::Spectrum`] if any of the checks fail.
+    ///
+    /// [`Error::Spectrum`]: crate::Error::Spectrum
     ///
     /// ## HDF5 Error
     ///

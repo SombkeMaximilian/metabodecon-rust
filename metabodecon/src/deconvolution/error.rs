@@ -31,7 +31,7 @@ impl Error {
 /// Marked as non-exhaustive to allow for new variants to be added in the future
 /// without breaking compatibility.
 ///
-/// [`deconvolution´]: crate::deconvolution
+/// [`deconvolution`]: crate::deconvolution
 #[non_exhaustive]
 #[derive(Clone, Debug)]
 pub enum Kind {
