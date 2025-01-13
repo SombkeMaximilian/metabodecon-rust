@@ -93,8 +93,6 @@ use std::path::{Path, PathBuf};
 ///     // Water boundaries
 ///     (4.7, 4.9),
 /// )?;
-///
-/// // Do something with the spectrum...
 /// # Ok(())
 /// # }
 /// ```
@@ -121,8 +119,6 @@ use std::path::{Path, PathBuf};
 ///     // Water boundaries
 ///     (4.7, 4.9),
 /// )?;
-///
-/// // Do something with the spectra...
 /// # Ok(())
 /// # }
 /// ```
@@ -247,8 +243,6 @@ impl BrukerReader {
     ///     // Water boundaries
     ///     (4.7, 4.9),
     /// )?;
-    ///
-    /// // Do something with the spectrum...
     /// # Ok(())
     /// # }
     /// ```
@@ -364,8 +358,6 @@ impl BrukerReader {
     ///     // Water boundaries
     ///     (4.7, 4.9),
     /// )?;
-    ///
-    /// // Do something with the spectra...
     /// # Ok(())
     /// # }
     /// ```

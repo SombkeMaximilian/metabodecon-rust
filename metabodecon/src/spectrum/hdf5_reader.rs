@@ -42,8 +42,6 @@ use std::path::Path;
 ///
 /// // Read a single spectrum from the HDF5 file.
 /// let spectrum = reader.read_spectrum(path, dataset)?;
-///
-/// // Do something with the spectrum...
 /// # Ok(())
 /// # }
 /// ```
@@ -60,8 +58,6 @@ use std::path::Path;
 ///
 /// // Read all spectra from the HDF5 file.
 /// let spectra = reader.read_spectra(path)?;
-///
-/// // Do something with the spectra...
 /// # Ok(())
 /// # }
 /// ```
@@ -123,8 +119,6 @@ impl Hdf5Reader {
     ///
     /// // Read a single spectrum from the HDF5 file.
     /// let spectrum = reader.read_spectrum(path, dataset)?;
-    ///
-    /// // Do something with the spectrum...
     /// # Ok(())
     /// # }
     /// ```
@@ -192,8 +186,6 @@ impl Hdf5Reader {
     ///
     /// // Read all spectra from the HDF5 file.
     /// let spectra = reader.read_spectra(path)?;
-    ///
-    /// // Do something with the spectra...
     /// # Ok(())
     /// # }
     /// ```

@@ -1,6 +1,4 @@
 //! Error types for the spectrum module.
-//!
-//! [`Spectrum`]: crate::spectrum::Spectrum
 
 use crate::spectrum::Monotonicity;
 use std::path::PathBuf;

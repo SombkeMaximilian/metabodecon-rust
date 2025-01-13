@@ -80,11 +80,13 @@
 //!     // Water boundaries
 //!     (4.7, 4.9),
 //! )?;
-//!
-//! // Do something with the spectra...
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! # Example: Reading multiple spectra from JCAMP-DX files
+//!
+//! WIP
 //!
 //! # Example: Reading multiple spectra from an HDF5 file
 //!
@@ -102,8 +104,6 @@
 //!
 //! // Read all spectra from the HDF5 file.
 //! let spectra = reader.read_spectra(path)?;
-//!
-//! // Do something with the spectra...
 //! # Ok(())
 //! # }
 //! ```
