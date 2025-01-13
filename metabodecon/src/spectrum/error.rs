@@ -1,4 +1,4 @@
-//! Error types for [`Spectrum`] data structure module.
+//! Error types for the spectrum module.
 //!
 //! [`Spectrum`]: crate::spectrum::Spectrum
 
