@@ -99,10 +99,16 @@ impl NoiseScoreFilter {
             .collect();
         let (mean, sd) = Self::mean_sd_scores(scores_sfr);
 
-        Ok(peaks
+        peaks = peaks
             .drain(boundaries.0..boundaries.1)
             .filter(|peak| scorer.score_peak(peak) >= mean + self.threshold * sd)
-            .collect())
+            .collect();
+
+        if peaks.is_empty() {
+            return Err(Error::new(Kind::EmptySignalRegion).into());
+        }
+
+        Ok(peaks)
     }
 
     /// Computes the indices in the slice of `Peak`s that delimit the signal
