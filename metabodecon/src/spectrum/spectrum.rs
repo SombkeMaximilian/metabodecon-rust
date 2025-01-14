@@ -1,5 +1,4 @@
 use crate::error::Result;
-use crate::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::spectrum::error::{Error, Kind};
 
 /// Represents the ordering of 1D NMR spectrum data.
@@ -298,7 +297,10 @@ impl Spectrum {
     /// assert_eq!(spectrum.intensities().len(), 3);
     ///
     /// // Scale the intensities by a factor of 10.
-    /// spectrum.intensities_mut().iter_mut().for_each(|y| *y *= 10.0);
+    /// spectrum
+    ///     .intensities_mut()
+    ///     .iter_mut()
+    ///     .for_each(|y| *y *= 10.0);
     /// assert_eq!(spectrum.intensities().len(), 3);
     /// assert_eq!(spectrum.intensities()[0], 10.0);
     /// assert_eq!(spectrum.intensities()[1], 20.0);
@@ -759,9 +761,8 @@ impl Spectrum {
     /// stores the result in the intensities.
     ///
     /// The preprocessing steps are:
-    /// 1. Removing the water signal from the intensities.
-    /// 2. Removing negative values from the intensities.
-    /// 3. Smoothing the intensities using the specified [`SmoothingAlgo`].
+    /// 1. Removing negative values from the intensities.
+    /// 2. Removing the water signal from the intensities.
     ///
     /// # Errors
     ///
@@ -781,23 +782,23 @@ impl Spectrum {
     ///     (2.0, 4.0),
     ///     (2.95, 3.05), // Water boundaries
     /// )?;
-    /// spectrum.apply_preprocessing(SmoothingAlgo::default())?;
+    /// spectrum.apply_preprocessing()?;
+    /// println!("{:?}", spectrum.intensities());
     ///
     /// assert_eq!(spectrum.intensities().len(), 5);
-    /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.232638, epsilon = 1e-6);
-    /// assert_approx_eq!(f64, spectrum.intensities()[1], 1.276041, epsilon = 1e-6);
-    /// assert_approx_eq!(f64, spectrum.intensities()[2], 1.279166, epsilon = 1e-6);
-    /// assert_approx_eq!(f64, spectrum.intensities()[3], 1.338541, epsilon = 1e-6);
-    /// assert_approx_eq!(f64, spectrum.intensities()[4], 1.357638, epsilon = 1e-6);
+    /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.25);
+    /// assert_approx_eq!(f64, spectrum.intensities()[1], 1.75);
+    /// assert_approx_eq!(f64, spectrum.intensities()[2], 1.875);
+    /// assert_approx_eq!(f64, spectrum.intensities()[3], 2.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[4], 1.75);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn apply_preprocessing(&mut self, smoothing_algo: SmoothingAlgo) -> Result<()> {
+    pub fn apply_preprocessing(&mut self) -> Result<()> {
         let water_boundaries_indices = self.water_boundaries_indices();
         let mut intensities = self.intensities_raw().to_vec();
-        Self::remove_water_signal(&mut intensities, water_boundaries_indices);
         Self::remove_negative_values(&mut intensities);
-        Self::smooth_intensities(&mut intensities, smoothing_algo);
+        Self::remove_water_signal(&mut intensities, water_boundaries_indices);
         self.set_intensities(intensities)?;
 
         Ok(())
@@ -824,20 +825,6 @@ impl Spectrum {
             .iter_mut()
             .filter(|intensity| **intensity < 0.0)
             .for_each(|intensity| *intensity = -*intensity);
-    }
-
-    /// Internal helper function to smooth the intensities using the specified
-    /// algorithm.
-    fn smooth_intensities(intensities: &mut [f64], algorithm: SmoothingAlgo) {
-        match algorithm {
-            SmoothingAlgo::MovingAverage {
-                iterations,
-                window_size,
-            } => {
-                let mut smoother = MovingAverage::<f64>::new(iterations, window_size);
-                smoother.smooth_values(intensities);
-            }
-        }
     }
 
     /// Internal helper function to validate the lengths of the input data and
@@ -1381,22 +1368,6 @@ mod tests {
         intensities
             .iter()
             .zip([1.0, 2.0, 3.0, 4.0, 5.0])
-            .for_each(|(&yc, ye)| {
-                assert_approx_eq!(f64, yc, ye);
-            });
-    }
-
-    #[test]
-    fn smooth_intensities() {
-        let mut intensities = vec![1.25, 1.75, 1.5, 2.0, 1.75];
-        let algorithm = SmoothingAlgo::MovingAverage {
-            iterations: 1,
-            window_size: 3,
-        };
-        Spectrum::smooth_intensities(&mut intensities, algorithm);
-        intensities
-            .iter()
-            .zip([1.5, 1.5, 1.75, 1.75, 1.875])
             .for_each(|(&yc, ye)| {
                 assert_approx_eq!(f64, yc, ye);
             });

@@ -2,7 +2,7 @@ use crate::deconvolution::Deconvolution;
 use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
 use crate::peak_selection::{NoiseScoreFilter, SelectionAlgo, Selector};
-use crate::smoothing::SmoothingAlgo;
+use crate::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::spectrum::Spectrum;
 
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting
@@ -63,7 +63,14 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing(self.smoothing_algo)?;
+        spectrum.apply_preprocessing()?;
+        let mut smoother = match self.smoothing_algo {
+            SmoothingAlgo::MovingAverage {
+                iterations,
+                window_size,
+            } => MovingAverage::new(iterations, window_size),
+        };
+        smoother.smooth_values(spectrum.intensities_mut());
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
@@ -96,7 +103,14 @@ impl Deconvoluter {
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing(self.smoothing_algo)?;
+        spectrum.apply_preprocessing()?;
+        let mut smoother = match self.smoothing_algo {
+            SmoothingAlgo::MovingAverage {
+                iterations,
+                window_size,
+            } => MovingAverage::new(iterations, window_size),
+        };
+        smoother.smooth_values(spectrum.intensities_mut());
         let peaks = {
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
