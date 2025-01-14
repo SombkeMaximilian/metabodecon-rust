@@ -270,6 +270,46 @@ impl Spectrum {
         &self.intensities
     }
 
+    /// Returns the preprocessed intensities of the `Spectrum` as a mutable
+    /// slice.
+    ///
+    /// This field is empty when the `Spectrum` is created and gets populated
+    /// after applying the [`deconvolution`] algorithm. This method can be used
+    /// to perform preprocessing steps manually.
+    ///
+    /// [`deconvolution`]: crate::deconvolution
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0],
+    ///     vec![1.0, 2.0, 3.0], // Raw intensities
+    ///     (1.0, 3.0),
+    ///     (2.0, 2.5),
+    /// )?;
+    ///
+    /// // Populate the preprocessed intensities with the raw intensities.
+    /// assert!(spectrum.intensities().is_empty());
+    /// spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
+    /// assert_eq!(spectrum.intensities().len(), 3);
+    ///
+    /// // Scale the intensities by a factor of 10.
+    /// spectrum.intensities_mut().iter_mut().for_each(|y| *y *= 10.0);
+    /// assert_eq!(spectrum.intensities().len(), 3);
+    /// assert_eq!(spectrum.intensities()[0], 10.0);
+    /// assert_eq!(spectrum.intensities()[1], 20.0);
+    /// assert_eq!(spectrum.intensities()[2], 30.0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn intensities_mut(&mut self) -> &mut [f64] {
+        &mut self.intensities
+    }
+
     /// Returns the raw intensities of the `Spectrum` as a slice.
     ///
     /// # Example
