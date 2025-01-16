@@ -757,76 +757,6 @@ impl Spectrum {
         )
     }
 
-    /// Applies preprocessing to the raw intensities of the `Spectrum` and
-    /// stores the result in the intensities.
-    ///
-    /// The preprocessing steps are:
-    /// 1. Removing negative values from the intensities.
-    /// 2. Removing the water signal from the intensities.
-    ///
-    /// # Errors
-    ///
-    /// Performs the same checks as [`Spectrum::new`] on the computed
-    /// intensities, using the chemical shifts of the `Spectrum`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use float_cmp::assert_approx_eq;
-    /// use metabodecon::{deconvolution::SmoothingAlgo, spectrum::Spectrum};
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let mut spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0, 4.0, 5.0],
-    ///     vec![1.25, 1.75, -1.5, -2.0, 1.75], // Raw intensities
-    ///     (2.0, 4.0),
-    ///     (2.95, 3.05), // Water boundaries
-    /// )?;
-    /// spectrum.apply_preprocessing()?;
-    /// println!("{:?}", spectrum.intensities());
-    ///
-    /// assert_eq!(spectrum.intensities().len(), 5);
-    /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.25);
-    /// assert_approx_eq!(f64, spectrum.intensities()[1], 1.75);
-    /// assert_approx_eq!(f64, spectrum.intensities()[2], 1.875);
-    /// assert_approx_eq!(f64, spectrum.intensities()[3], 2.0);
-    /// assert_approx_eq!(f64, spectrum.intensities()[4], 1.75);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn apply_preprocessing(&mut self) -> Result<()> {
-        let water_boundaries_indices = self.water_boundaries_indices();
-        let mut intensities = self.intensities_raw().to_vec();
-        Self::remove_negative_values(&mut intensities);
-        Self::remove_water_signal(&mut intensities, water_boundaries_indices);
-        self.set_intensities(intensities)?;
-
-        Ok(())
-    }
-
-    /// Internal helper function to remove the water signal from the provided
-    /// intensities by fitting a line through the boundaries.
-    fn remove_water_signal(intensities: &mut [f64], boundary_indices: (usize, usize)) {
-        let slope = (intensities[boundary_indices.1] - intensities[boundary_indices.0])
-            / f64::abs(boundary_indices.1 as f64 - boundary_indices.0 as f64);
-        let start = intensities[boundary_indices.0];
-        intensities[boundary_indices.0..boundary_indices.1]
-            .iter_mut()
-            .enumerate()
-            .for_each(|(index, intensity)| {
-                *intensity = slope * index as f64 + start;
-            });
-    }
-
-    /// Internal helper function to remove negative values from the provided
-    /// intensities.
-    fn remove_negative_values(intensities: &mut [f64]) {
-        intensities
-            .iter_mut()
-            .filter(|intensity| **intensity < 0.0)
-            .for_each(|intensity| *intensity = -*intensity);
-    }
-
     /// Internal helper function to validate the lengths of the input data and
     /// return an error if the checks fail.
     ///
@@ -1346,30 +1276,5 @@ mod tests {
         assert_approx_eq!(f64, spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
         assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
-    }
-
-    #[test]
-    fn remove_water_signal() {
-        let mut intensities = vec![1.0, 15.0, 16.0, 15.0, 5.0];
-        let water_boundaries_indices = (0, 4);
-        Spectrum::remove_water_signal(&mut intensities, water_boundaries_indices);
-        intensities
-            .iter()
-            .zip([1.0, 2.0, 3.0, 4.0, 5.0])
-            .for_each(|(&yc, ye)| {
-                assert_approx_eq!(f64, yc, ye);
-            });
-    }
-
-    #[test]
-    fn remove_negative_values() {
-        let mut intensities = vec![1.0, -2.0, 3.0, -4.0, 5.0];
-        Spectrum::remove_negative_values(&mut intensities);
-        intensities
-            .iter()
-            .zip([1.0, 2.0, 3.0, 4.0, 5.0])
-            .for_each(|(&yc, ye)| {
-                assert_approx_eq!(f64, yc, ye);
-            });
     }
 }

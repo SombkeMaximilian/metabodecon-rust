@@ -63,7 +63,7 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing()?;
+        spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
         let mut smoother = match self.smoothing_algo {
             SmoothingAlgo::MovingAverage {
                 iterations,
@@ -103,7 +103,7 @@ impl Deconvoluter {
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.apply_preprocessing()?;
+        spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
         let mut smoother = match self.smoothing_algo {
             SmoothingAlgo::MovingAverage {
                 iterations,
