@@ -90,15 +90,15 @@ pub enum Kind {
     /// [`Monotonicity`].
     ///
     /// This error is mostly to catch user mistakes when constructing the input
-    /// data. When the chemical shifts, signal boundaries, and water boundaries
-    /// are provided with mismatched monotonicity, it is likely that the data is
-    /// not ordered in the way the user intended. For example, if the chemical
-    /// shifts are in increasing order but the boundary tuples are in decreasing
-    /// order, it is possible that the intensities are also ordered incorrectly
-    /// relative to the chemical shifts. While this generally doesn't pose a
-    /// large problem for the [`deconvolution`] algorithm, it can lead to
-    /// problems in further processing steps. Therefore, this state is
-    /// considered inconsistent and results in an error.
+    /// data. When the chemical shifts and signal boundaries are provided with
+    /// mismatched monotonicity, it is likely that the data is not ordered in
+    /// the way the user intended. For example, if the chemical shifts are in
+    /// increasing order but the boundaries are in decreasing order, it is
+    /// possible that the intensities are also ordered incorrectly relative to
+    /// the chemical shifts. While this generally doesn't pose a large problem
+    /// for the [`deconvolution`] algorithm, it can lead to problems in further
+    /// processing steps. Therefore, this state is considered inconsistent and
+    /// results in an error.
     ///
     /// [`deconvolution`]: crate::deconvolution
     MonotonicityMismatch {
@@ -106,8 +106,6 @@ pub enum Kind {
         chemical_shifts: Monotonicity,
         /// The ordering of the signal boundaries vector.
         signal_boundaries: Monotonicity,
-        /// The ordering of the water boundaries vector.
-        water_boundaries: Monotonicity,
     },
     /// The signal boundaries are invalid.
     ///
@@ -121,25 +119,6 @@ pub enum Kind {
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     InvalidSignalBoundaries {
-        /// The signal boundaries of the spectrum.
-        signal_boundaries: (f64, f64),
-        /// The range of the chemical shifts.
-        chemical_shifts_range: (f64, f64),
-    },
-    /// The water boundaries are invalid
-    ///
-    /// A certain structure is expected from a 1D NMR [`Spectrum`] with respect
-    /// to the regions of interest. At the center of the [`Spectrum`], there
-    /// should be a water artifact. This region is also expected to be within
-    /// the signal region. The following conditions are checked:
-    /// * The water boundaries are finite values
-    /// * The water region is within the signal region
-    /// * The water region width is not close to zero
-    ///
-    /// [`Spectrum`]: crate::spectrum::Spectrum
-    InvalidWaterBoundaries {
-        /// The water boundaries of the spectrum.
-        water_boundaries: (f64, f64),
         /// The signal boundaries of the spectrum.
         signal_boundaries: (f64, f64),
         /// The range of the chemical shifts.
@@ -205,13 +184,11 @@ impl core::fmt::Display for Error {
             MonotonicityMismatch {
                 chemical_shifts,
                 signal_boundaries,
-                water_boundaries,
             } => format!(
                 "input data is not monotonic (intensities may be incorrect) \
                  chemical shifts is {:?}, \
-                 signal boundaries is {:?}, \
-                 water boundaries is {:?}",
-                chemical_shifts, signal_boundaries, water_boundaries
+                 signal boundaries is {:?}",
+                chemical_shifts, signal_boundaries
             ),
             InvalidSignalBoundaries {
                 signal_boundaries,
@@ -221,17 +198,6 @@ impl core::fmt::Display for Error {
                  boundaries are {:?}, \
                  spectrum range is {:?}",
                 signal_boundaries, chemical_shifts_range
-            ),
-            InvalidWaterBoundaries {
-                water_boundaries,
-                signal_boundaries,
-                chemical_shifts_range,
-            } => format!(
-                "water boundaries are invalid \
-                 boundaries are {:?}, \
-                 signal boundaries are {:?} \
-                 spectrum range is {:?}",
-                water_boundaries, signal_boundaries, chemical_shifts_range
             ),
             MissingMetadata { path, regex } => format!(
                 "missing metadata \

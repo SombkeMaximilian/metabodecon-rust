@@ -7,10 +7,10 @@ fn read_spectrum(c: &mut Criterion) {
     let blood_path = "data/bruker/blood/blood_01";
 
     c.bench_function("read_bruker_sim_spectrum", |b| {
-        b.iter(|| reader.read_spectrum(sim_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
+        b.iter(|| reader.read_spectrum(sim_path, 10, 10, (0.0, 0.1)))
     });
     c.bench_function("read_bruker_blood_spectrum", |b| {
-        b.iter(|| reader.read_spectrum(blood_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
+        b.iter(|| reader.read_spectrum(blood_path, 10, 10, (0.0, 0.1)))
     });
 }
 
@@ -20,10 +20,10 @@ fn read_spectra(c: &mut Criterion) {
     let blood_path = "data/bruker/blood";
 
     c.bench_function("read_bruker_sim_spectra", |b| {
-        b.iter(|| reader.read_spectra(sim_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
+        b.iter(|| reader.read_spectra(sim_path, 10, 10, (0.0, 0.1)))
     });
     c.bench_function("read_bruker_blood_spectra", |b| {
-        b.iter(|| reader.read_spectra(blood_path, 10, 10, (0.0, 0.1), (0.0, 0.1)))
+        b.iter(|| reader.read_spectra(blood_path, 10, 10, (0.0, 0.1)))
     });
 }
 

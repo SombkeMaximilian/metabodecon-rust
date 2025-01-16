@@ -143,20 +143,13 @@ impl Deconvoluter {
     /// Internal helper function to compute the MSE within the signal region.
     fn compute_mse(spectrum: &Spectrum, superpositions: Vec<f64>) -> f64 {
         let signal_boundaries = spectrum.signal_boundaries_indices();
-        let water_boundaries = spectrum.water_boundaries_indices();
-        let left = superpositions[signal_boundaries.0..water_boundaries.0]
+        let residuals = superpositions[signal_boundaries.0..signal_boundaries.1]
             .iter()
-            .zip(spectrum.intensities_raw()[signal_boundaries.0..water_boundaries.0].iter())
+            .zip(spectrum.intensities_raw()[signal_boundaries.0..signal_boundaries.1].iter())
             .map(|(superposition, raw)| (superposition - raw).powi(2))
             .sum::<f64>();
-        let right = superpositions[water_boundaries.1..signal_boundaries.1]
-            .iter()
-            .zip(spectrum.intensities_raw()[water_boundaries.1..signal_boundaries.1].iter())
-            .map(|(superposition, raw)| (superposition - raw).powi(2))
-            .sum::<f64>();
-        let length =
-            signal_boundaries.1 - water_boundaries.1 + water_boundaries.0 - signal_boundaries.0;
+        let length = signal_boundaries.1 - signal_boundaries.0;
 
-        (left + right) / (length as f64)
+        residuals / (length as f64)
     }
 }

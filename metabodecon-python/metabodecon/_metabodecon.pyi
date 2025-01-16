@@ -70,20 +70,18 @@ class Spectrum:
     intensities: np.ndarray
     intensities_raw: np.ndarray
     signal_boundaries: tuple[float, float]
-    water_boundaries: tuple[float, float]
 
-    def __init__(self, chemical_shifts: np.ndarray, intensities: np.ndarray, signal_boundaries: tuple[float, float],
-                 water_boundaries: tuple[float, float]) -> None:
+    def __init__(self, chemical_shifts: np.ndarray, intensities: np.ndarray,
+                 signal_boundaries: tuple[float, float]) -> None:
         ...
 
     @staticmethod
-    def from_bruker(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float],
-                    water_boundaries: tuple[float, float]) -> "Spectrum":
+    def from_bruker(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float]) -> "Spectrum":
         ...
 
     @staticmethod
-    def from_bruker_set(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float],
-                        water_boundaries: tuple[float, float]) -> list["Spectrum"]:
+    def from_bruker_set(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float]) -> list[
+        "Spectrum"]:
         ...
 
     @staticmethod

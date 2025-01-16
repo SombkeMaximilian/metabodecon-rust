@@ -46,10 +46,9 @@ impl JdxReader {
         &self,
         path: P,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64)
     ) -> Result<Spectrum> {
         let _meta = self.read_meta_data(path.as_ref())?;
-        let spectrum = Spectrum::new(Vec::new(), Vec::new(), signal_boundaries, water_boundaries)?;
+        let spectrum = Spectrum::new(Vec::new(), Vec::new(), signal_boundaries)?;
 
         Ok(spectrum)
     }

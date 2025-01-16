@@ -16,8 +16,7 @@ use std::path::Path;
 ///         │   ├── chemical_shifts
 ///         │   └── signal_intensities
 ///         └── meta
-///             ├── signal_boundaries
-///             └── water_boundaries
+///             └── signal_boundaries
 /// ```
 ///
 /// `file.h5` and `dataset_01` are the file and dataset names, respectively.
@@ -80,8 +79,7 @@ impl Hdf5Reader {
     ///         │   ├── chemical_shifts
     ///         │   └── signal_intensities
     ///         └── meta
-    ///             ├── signal_boundaries
-    ///             └── water_boundaries
+    ///             └── signal_boundaries
     /// ```
     ///
     /// # Errors
@@ -138,16 +136,14 @@ impl Hdf5Reader {
     /// │       │   ├── chemical_shifts
     /// │       │   └── signal_intensities
     /// │       └── meta
-    /// │           ├── signal_boundaries
-    /// │           └── water_boundaries
+    /// │           └── signal_boundaries
     /// ├── dataset_02
     /// │   └── spectrum
     /// │       ├── data
     /// │       │   ├── chemical_shifts
     /// │       │   └── signal_intensities
     /// │       └── meta
-    /// │           ├── signal_boundaries
-    /// │           └── water_boundaries
+    /// │           └── signal_boundaries
     /// ·
     /// ·
     /// ·
@@ -235,15 +231,10 @@ impl Hdf5Reader {
             .dataset("signal_boundaries")?
             .read_1d()?
             .to_vec();
-        let water_boundaries = meta_group
-            .dataset("water_boundaries")?
-            .read_1d()?
-            .to_vec();
         let spectrum = Spectrum::new(
             chemical_shifts,
             intensities,
             (signal_boundaries[0], signal_boundaries[1]),
-            (water_boundaries[0], water_boundaries[1]),
         )?;
 
         Ok(spectrum)

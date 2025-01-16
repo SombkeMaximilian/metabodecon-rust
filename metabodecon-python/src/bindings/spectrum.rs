@@ -22,16 +22,10 @@ impl Spectrum {
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Self {
         Spectrum {
-            inner: spectrum::Spectrum::new(
-                chemical_shifts,
-                intensities,
-                signal_boundaries,
-                water_boundaries,
-            )
-            .unwrap(),
+            inner: spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries)
+                .unwrap(),
         }
     }
 
@@ -41,16 +35,9 @@ impl Spectrum {
         experiment: u32,
         processing: u32,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> PyResult<Self> {
         let reader = spectrum::BrukerReader::new();
-        match reader.read_spectrum(
-            path,
-            experiment,
-            processing,
-            signal_boundaries,
-            water_boundaries,
-        ) {
+        match reader.read_spectrum(path, experiment, processing, signal_boundaries) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -62,16 +49,9 @@ impl Spectrum {
         experiment: u32,
         processing: u32,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> PyResult<Vec<Self>> {
         let reader = spectrum::BrukerReader::new();
-        match reader.read_spectra(
-            path,
-            experiment,
-            processing,
-            signal_boundaries,
-            water_boundaries,
-        ) {
+        match reader.read_spectra(path, experiment, processing, signal_boundaries) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
                 .map(|spectrum| Spectrum { inner: spectrum })
@@ -121,11 +101,6 @@ impl Spectrum {
         self.inner.signal_boundaries()
     }
 
-    #[getter]
-    pub fn water_boundaries(&self) -> (f64, f64) {
-        self.inner.water_boundaries()
-    }
-
     #[setter]
     pub fn set_chemical_shifts(
         &mut self,
@@ -163,15 +138,6 @@ impl Spectrum {
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> PyResult<()> {
         self.inner
             .set_signal_boundaries(signal_boundaries)
-            .unwrap();
-
-        Ok(())
-    }
-
-    #[setter]
-    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) -> PyResult<()> {
-        self.inner
-            .set_water_boundaries(water_boundaries)
             .unwrap();
 
         Ok(())

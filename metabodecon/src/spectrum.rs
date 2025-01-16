@@ -33,24 +33,17 @@
 //!     .map(|x| {
 //!         // Left signal centered at 3 ppm.
 //!         1.0 * 0.25 / (0.25_f64.powi(2) + (x - 3.0).powi(2))
-//!             // Mock water artifact centered at 5 ppm (not a realistic shape).
-//!             + 0.1 * 0.05 / (0.05_f64.powi(2) + (x - 5.0).powi(2))
 //!             // Right signal centered at 7 ppm.
 //!             + 1.0 * 0.25 / (0.25_f64.powi(2) + (x - 7.0).powi(2))
 //!     })
 //!     .collect::<Vec<f64>>();
 //!
-//! // Define the signal region and water artifact boundaries.
+//! // Define the signal region.
 //! let signal_boundaries = (1.0, 9.0);
-//! let water_boundaries = (4.5, 5.5);
 //!
 //! // Create a Spectrum object.
-//! let spectrum = Spectrum::new(
-//!     chemical_shifts,
-//!     intensities,
-//!     signal_boundaries,
-//!     water_boundaries,
-//! )?;
+//! let spectrum =
+//!     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 //! # Ok(())
 //! # }
 //! ```
@@ -77,8 +70,6 @@
 //!     10,
 //!     // Signal boundaries
 //!     (-2.2, 11.8),
-//!     // Water boundaries
-//!     (4.7, 4.9),
 //! )?;
 //! # Ok(())
 //! # }

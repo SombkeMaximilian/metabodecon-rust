@@ -90,8 +90,6 @@ use std::path::{Path, PathBuf};
 ///     10,
 ///     // Signal boundaries
 ///     (-2.2, 11.8),
-///     // Water boundaries
-///     (4.7, 4.9),
 /// )?;
 /// # Ok(())
 /// # }
@@ -116,8 +114,6 @@ use std::path::{Path, PathBuf};
 ///     10,
 ///     // Signal boundaries
 ///     (-2.2, 11.8),
-///     // Water boundaries
-///     (4.7, 4.9),
 /// )?;
 /// # Ok(())
 /// # }
@@ -240,8 +236,6 @@ impl BrukerReader {
     ///     10,
     ///     // Signal boundaries
     ///     (-2.2, 11.8),
-    ///     // Water boundaries
-    ///     (4.7, 4.9),
     /// )?;
     /// # Ok(())
     /// # }
@@ -252,7 +246,6 @@ impl BrukerReader {
         experiment: u32,
         processing: u32,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Result<Spectrum> {
         let acqus_path = path
             .as_ref()
@@ -273,12 +266,7 @@ impl BrukerReader {
             })
             .collect::<Vec<f64>>();
         let intensities = self.read_one_r(one_r_path, procs)?;
-        let spectrum = Spectrum::new(
-            chemical_shifts,
-            intensities,
-            signal_boundaries,
-            water_boundaries,
-        )?;
+        let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 
         Ok(spectrum)
     }
@@ -355,8 +343,6 @@ impl BrukerReader {
     ///     10,
     ///     // Signal boundaries
     ///     (-2.2, 11.8),
-    ///     // Water boundaries
-    ///     (4.7, 4.9),
     /// )?;
     /// # Ok(())
     /// # }
@@ -367,7 +353,6 @@ impl BrukerReader {
         experiment: u32,
         processing: u32,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Result<Vec<Spectrum>> {
         let spectra_roots = path
             .as_ref()
@@ -378,15 +363,7 @@ impl BrukerReader {
             .collect::<Vec<PathBuf>>();
         let spectra = spectra_roots
             .into_iter()
-            .map(|root| {
-                self.read_spectrum(
-                    root,
-                    experiment,
-                    processing,
-                    signal_boundaries,
-                    water_boundaries,
-                )
-            })
+            .map(|root| self.read_spectrum(root, experiment, processing, signal_boundaries))
             .collect::<Result<Vec<Spectrum>>>()?;
 
         Ok(spectra)
@@ -534,7 +511,7 @@ mod tests {
         let path = "../data/bruker/sim/sim_01";
         let reader = BrukerReader::new();
         let spectrum = reader
-            .read_spectrum(path, 10, 10, (3.339007, 3.553942), (3.444939, 3.448010))
+            .read_spectrum(path, 10, 10, (3.339007, 3.553942))
             .unwrap();
         check_sim_spectrum!(spectrum);
     }
@@ -544,7 +521,7 @@ mod tests {
         let path = "../data/bruker/sim";
         let reader = BrukerReader::new();
         let spectra = reader
-            .read_spectra(path, 10, 10, (3.339007, 3.553942), (3.444939, 3.448010))
+            .read_spectra(path, 10, 10, (3.339007, 3.553942))
             .unwrap();
         assert_eq!(spectra.len(), 16);
         spectra.iter().for_each(|spectrum| {

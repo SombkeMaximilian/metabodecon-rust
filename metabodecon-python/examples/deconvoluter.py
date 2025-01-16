@@ -6,7 +6,6 @@ import time
 def main():
     blood = md.Spectrum.from_hdf5("../../data/hdf5/blood.h5", "blood_01")
     blood.signal_boundaries = (-2.208611, 11.807918)
-    blood.water_boundaries = (4.699535, 4.899771)
 
     deconvoluter = (md.Deconvoluter()
                         .with_moving_average_smoother(2, 5)
@@ -25,7 +24,7 @@ def main():
     y1 = blood.intensities_raw
     y2 = deconvolution.par_superposition_vec(blood.chemical_shifts)
     s = blood.signal_boundaries
-    w = blood.water_boundaries
+    w = (4.699535, 4.899771)
     plt.figure(figsize = (12, 8), dpi = 300)
     plt.plot(x, y1, label = "Original Spectrum")
     plt.plot(x, y2, label = "Deconvoluted Spectrum", linewidth=0.5)

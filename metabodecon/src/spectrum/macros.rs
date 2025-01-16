@@ -47,18 +47,6 @@ macro_rules! check_sim_spectrum {
             3.553942,
             epsilon = 1e-6
         );
-        assert_approx_eq!(
-            f64,
-            $spectrum.water_boundaries().0,
-            3.444939,
-            epsilon = 1e-6
-        );
-        assert_approx_eq!(
-            f64,
-            $spectrum.water_boundaries().1,
-            3.448010,
-            epsilon = 1e-6
-        );
     };
 }
 

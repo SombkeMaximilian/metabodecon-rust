@@ -63,7 +63,6 @@ mod tests {
             (0..10).map(|x| 1.0 + x as f64).collect(),
             (0..10).map(|x| 10.0 - x as f64).collect(),
             (2.0, 9.0),
-            (5.45, 5.55),
         )
         .unwrap();
         spectrum

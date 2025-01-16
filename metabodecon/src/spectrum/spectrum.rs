@@ -43,8 +43,7 @@ impl Monotonicity {
 /// `Spectrum` is a container that holds the chemical shifts, raw intensities,
 /// preprocessed intensities and metadata of a 1D NMR spectrum. Preprocessed
 /// intensities are empty when the `Spectrum` is created. 1D NMR spectra
-/// typically contain signal free regions on both ends of the frequency range,
-/// and a water artifact within the signal region.
+/// typically contain signal free regions on both ends of the frequency range.
 ///
 /// # Example: Constructing a `Spectrum` manually
 ///
@@ -64,24 +63,17 @@ impl Monotonicity {
 ///     .map(|x| {
 ///         // Left signal centered at 3 ppm.
 ///         1.0 * 0.25 / (0.25_f64.powi(2) + (x - 3.0).powi(2))
-///             // Mock water artifact centered at 5 ppm (not a realistic shape).
-///             + 0.1 * 0.05 / (0.05_f64.powi(2) + (x - 5.0).powi(2))
 ///             // Right signal centered at 7 ppm.
 ///             + 1.0 * 0.25 / (0.25_f64.powi(2) + (x - 7.0).powi(2))
 ///     })
 ///     .collect::<Vec<f64>>();
 ///
-/// // Define the signal region and water artifact boundaries.
+/// // Define the signal region.
 /// let signal_boundaries = (1.0, 9.0);
-/// let water_boundaries = (4.5, 5.5);
 ///
 /// // Create a Spectrum object.
-/// let spectrum = Spectrum::new(
-///     chemical_shifts,
-///     intensities,
-///     signal_boundaries,
-///     water_boundaries,
-/// )?;
+/// let spectrum =
+///     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -95,8 +87,6 @@ pub struct Spectrum {
     intensities_raw: Box<[f64]>,
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
-    /// The boundaries of the water artifact.
-    water_boundaries: (f64, f64),
     /// The monotonicity of the data. Used internally for validation.
     monotonicity: Monotonicity,
 }
@@ -130,14 +120,11 @@ impl Spectrum {
     ///   difference between two consecutive values is different from the prior
     ///   step size or less than 100 times the floating-point precision.
     /// - [`InvalidIntensities`]: Some intensity value is not finite.
-    /// - [`MonotonicityMismatch`]: The chemical shifts, signal boundaries, and
-    ///   water boundaries are not sorted in the same order or if the
-    ///   monotonicity cannot be determined due to non-uniform spacing or
-    ///   non-comparable values.
+    /// - [`MonotonicityMismatch`]: The chemical shifts and signal boundaries
+    ///   are not sorted in the same order or if the monotonicity cannot be
+    ///   determined due to non-uniform spacing or non-comparable values.
     /// - [`InvalidSignalBoundaries`]: The signal region boundaries are not
     ///   within the range of the chemical shifts.
-    /// - [`InvalidWaterBoundaries`]: The water artifact boundaries are not
-    ///   within the signal region boundaries.
     ///
     /// [`EmptyData`]: Kind::EmptyData
     /// [`DataLengthMismatch`]: Kind::DataLengthMismatch
@@ -145,7 +132,6 @@ impl Spectrum {
     /// [`InvalidIntensities`]: Kind::InvalidIntensities
     /// [`MonotonicityMismatch`]: Kind::MonotonicityMismatch
     /// [`InvalidSignalBoundaries`]: Kind::InvalidSignalBoundaries
-    /// [`InvalidWaterBoundaries`]: Kind::InvalidWaterBoundaries
     ///
     /// # Example
     ///
@@ -165,24 +151,17 @@ impl Spectrum {
     ///     .map(|x| {
     ///         // Left signal centered at 3 ppm.
     ///         1.0 * 0.25 / (0.25_f64.powi(2) + (x - 3.0).powi(2))
-    ///             // Mock water artifact centered at 5 ppm (not a realistic shape).
-    ///             + 0.1 * 0.05 / (0.05_f64.powi(2) + (x - 5.0).powi(2))
     ///             // Right signal centered at 7 ppm.
     ///             + 1.0 * 0.25 / (0.25_f64.powi(2) + (x - 7.0).powi(2))
     ///     })
     ///     .collect::<Vec<f64>>();
     ///
-    /// // Define the signal region and water artifact boundaries.
+    /// // Define the signal region.
     /// let signal_boundaries = (1.0, 9.0);
-    /// let water_boundaries = (4.5, 5.5);
     ///
     /// // Create a `Spectrum`.
-    /// let spectrum = Spectrum::new(
-    ///     chemical_shifts,
-    ///     intensities,
-    ///     signal_boundaries,
-    ///     water_boundaries,
-    /// )?;
+    /// let spectrum =
+    ///     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -190,26 +169,18 @@ impl Spectrum {
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Result<Self> {
         Self::validate_lengths(&chemical_shifts, &intensities)?;
         Self::validate_spacing(&chemical_shifts)?;
         Self::validate_intensities(&intensities)?;
-        let monotonicity =
-            Self::validate_monotonicity(&chemical_shifts, signal_boundaries, water_boundaries)?;
-        Self::validate_boundaries(
-            monotonicity,
-            &chemical_shifts,
-            signal_boundaries,
-            water_boundaries,
-        )?;
+        let monotonicity = Self::validate_monotonicity(&chemical_shifts, signal_boundaries)?;
+        Self::validate_boundaries(monotonicity, &chemical_shifts, signal_boundaries)?;
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
             intensities: Box::new([]),
             intensities_raw: intensities.into_boxed_slice(),
             signal_boundaries,
-            water_boundaries,
             monotonicity,
         })
     }
@@ -227,7 +198,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_eq!(spectrum.chemical_shifts().len(), 3);
@@ -254,12 +224,8 @@ impl Spectrum {
     /// use metabodecon::spectrum::Spectrum;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
-    /// )?;
+    /// let spectrum =
+    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
     ///
     /// assert!(spectrum.intensities().is_empty());
     /// # Ok(())
@@ -288,7 +254,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0],
     ///     vec![1.0, 2.0, 3.0], // Raw intensities
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// // Populate the preprocessed intensities with the raw intensities.
@@ -325,7 +290,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0],
     ///     vec![1.0, 2.0, 3.0], // Raw intensities
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_eq!(spectrum.intensities_raw().len(), 3);
@@ -352,7 +316,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0],
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0), // Signal boundaries
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
@@ -364,31 +327,6 @@ impl Spectrum {
         self.signal_boundaries
     }
 
-    /// Returns the water artifact boundaries as a tuple.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use float_cmp::assert_approx_eq;
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
-    ///     (2.0, 2.5), // Water boundaries
-    /// )?;
-    ///
-    /// assert_approx_eq!(f64, spectrum.water_boundaries().0, 2.0);
-    /// assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.5);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn water_boundaries(&self) -> (f64, f64) {
-        self.water_boundaries
-    }
-
     /// Returns the monotonicity of the `Spectrum`.
     ///
     /// # Example
@@ -397,18 +335,10 @@ impl Spectrum {
     /// use metabodecon::spectrum::{Monotonicity, Spectrum};
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum_increasing = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
-    /// )?;
-    /// let spectrum_decreasing = Spectrum::new(
-    ///     vec![3.0, 2.0, 1.0],
-    ///     vec![3.0, 2.0, 1.0],
-    ///     (3.0, 1.0),
-    ///     (2.5, 2.0),
-    /// )?;
+    /// let spectrum_increasing =
+    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
+    /// let spectrum_decreasing =
+    ///     Spectrum::new(vec![3.0, 2.0, 1.0], vec![3.0, 2.0, 1.0], (3.0, 1.0))?;
     ///
     /// assert_eq!(spectrum_increasing.monotonicity(), Monotonicity::Increasing);
     /// assert_eq!(spectrum_decreasing.monotonicity(), Monotonicity::Decreasing);
@@ -437,7 +367,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     /// spectrum.set_chemical_shifts(vec![0.0, 2.0, 4.0])?;
     ///
@@ -450,17 +379,8 @@ impl Spectrum {
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) -> Result<()> {
         Self::validate_lengths(&chemical_shifts, self.intensities_raw())?;
         Self::validate_spacing(&chemical_shifts)?;
-        Self::validate_monotonicity(
-            &chemical_shifts,
-            self.signal_boundaries,
-            self.water_boundaries,
-        )?;
-        Self::validate_boundaries(
-            self.monotonicity,
-            &chemical_shifts,
-            self.signal_boundaries,
-            self.water_boundaries,
-        )?;
+        Self::validate_monotonicity(&chemical_shifts, self.signal_boundaries)?;
+        Self::validate_boundaries(self.monotonicity, &chemical_shifts, self.signal_boundaries)?;
         self.chemical_shifts = chemical_shifts.into_boxed_slice();
 
         Ok(())
@@ -483,12 +403,8 @@ impl Spectrum {
     /// use metabodecon::spectrum::Spectrum;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let mut spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
-    /// )?;
+    /// let mut spectrum =
+    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
     /// spectrum.set_intensities(vec![1.5, 2.0, 2.5])?;
     ///
     /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.5);
@@ -523,7 +439,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0],
     ///     vec![1.0, 2.0, 3.0], // Raw intensities
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     /// spectrum.set_intensities_raw(vec![10.0, 20.0, 30.0])?;
     ///
@@ -546,7 +461,7 @@ impl Spectrum {
     /// # Errors
     ///
     /// Performs the same checks as [`Spectrum::new`] on the signal boundaries,
-    /// using the chemical shifts and water boundaries of the `Spectrum`.
+    /// using the chemical shifts of the `Spectrum`.
     ///
     /// # Example
     ///
@@ -559,7 +474,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0],
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0), // Signal boundaries
-    ///     (2.0, 2.5),
     /// )?;
     /// spectrum.set_signal_boundaries((1.25, 2.75))?;
     ///
@@ -569,62 +483,9 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> Result<()> {
-        Self::validate_monotonicity(
-            self.chemical_shifts(),
-            signal_boundaries,
-            self.water_boundaries,
-        )?;
-        Self::validate_boundaries(
-            self.monotonicity,
-            self.chemical_shifts(),
-            signal_boundaries,
-            self.water_boundaries,
-        )?;
+        Self::validate_monotonicity(self.chemical_shifts(), signal_boundaries)?;
+        Self::validate_boundaries(self.monotonicity, self.chemical_shifts(), signal_boundaries)?;
         self.signal_boundaries = signal_boundaries;
-
-        Ok(())
-    }
-
-    /// Sets the water artifact boundaries of the `Spectrum`.
-    ///
-    /// # Errors
-    ///
-    /// Performs the same checks as [`Spectrum::new`] on the water boundaries,
-    /// using the chemical shifts and signal boundaries of the `Spectrum`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use float_cmp::assert_approx_eq;
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let mut spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
-    ///     (2.0, 2.5), // Water boundaries
-    /// )?;
-    /// spectrum.set_water_boundaries((2.05, 2.10))?;
-    ///
-    /// assert_approx_eq!(f64, spectrum.water_boundaries().0, 2.05);
-    /// assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.10);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn set_water_boundaries(&mut self, water_boundaries: (f64, f64)) -> Result<()> {
-        Self::validate_monotonicity(
-            self.chemical_shifts(),
-            self.signal_boundaries,
-            water_boundaries,
-        )?;
-        Self::validate_boundaries(
-            self.monotonicity,
-            self.chemical_shifts(),
-            self.signal_boundaries,
-            water_boundaries,
-        )?;
-        self.water_boundaries = water_boundaries;
 
         Ok(())
     }
@@ -642,7 +503,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.step(), 1.0);
@@ -666,7 +526,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.width(), 2.0);
@@ -690,7 +549,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0],
     ///     (1.0, 3.0),
-    ///     (2.0, 2.5),
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.center(), 2.0);
@@ -715,7 +573,6 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0, 4.0, 5.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0, 4.0, 5.0],
     ///     (2.25, 3.75), // Signal boundaries
-    ///     (2.45, 2.55),
     /// )?;
     ///
     /// assert_eq!(spectrum.signal_boundaries_indices(), (1, 3));
@@ -726,34 +583,6 @@ impl Spectrum {
         (
             ((self.signal_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
             ((self.signal_boundaries.1 - self.chemical_shifts[0]) / self.step()).ceil() as usize,
-        )
-    }
-
-    /// Computes the indices of the chemical shifts that are closest to the
-    /// water artifact boundaries.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use float_cmp::assert_approx_eq;
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0, 4.0, 5.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0, 4.0, 5.0],
-    ///     (2.25, 3.75),
-    ///     (2.45, 3.55), // Water boundaries
-    /// )?;
-    ///
-    /// assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn water_boundaries_indices(&self) -> (usize, usize) {
-        (
-            ((self.water_boundaries.0 - self.chemical_shifts[0]) / self.step()).floor() as usize,
-            ((self.water_boundaries.1 - self.chemical_shifts[0]) / self.step()).ceil() as usize,
         )
     }
 
@@ -839,21 +668,20 @@ impl Spectrum {
     }
 
     /// Internal helper function to validate the monotonicity. Returns an error
-    /// if the chemical shifts, signal boundaries, and water boundaries do not
-    /// have the same monotonicity, or if the monotonicity cannot be determined
-    /// due to non-uniform spacing or non-comparable values.
+    /// if the chemical shifts and signal boundaries do not have the same
+    /// monotonicity, or if the monotonicity cannot be determined due to
+    /// non-uniform spacing or non-comparable values.
     ///
     /// # Errors
     ///
     /// The following errors are possible if the respective check fails:
-    /// - [`MonotonicityMismatch`]: The chemical shifts, signal boundaries, and
-    ///   water boundaries are not sorted in the same order.
+    /// - [`MonotonicityMismatch`]: The chemical shifts and signal boundaries
+    ///   are not sorted in the same order.
     ///
     /// [`MonotonicityMismatch`]: Kind::MonotonicityMismatch
     fn validate_monotonicity(
         chemical_shifts: &[f64],
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Result<Monotonicity> {
         let chemical_shifts_monotonicity =
             Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
@@ -865,22 +693,11 @@ impl Spectrum {
                     chemical_shifts_range: (chemical_shifts[0], *chemical_shifts.last().unwrap()),
                 })
             })?;
-        let water_boundaries_monotonicity =
-            Monotonicity::from_f64s(water_boundaries.0, water_boundaries.1).ok_or_else(|| {
-                Error::new(Kind::InvalidWaterBoundaries {
-                    water_boundaries,
-                    signal_boundaries,
-                    chemical_shifts_range: (chemical_shifts[0], *chemical_shifts.last().unwrap()),
-                })
-            })?;
 
-        if chemical_shifts_monotonicity != signal_boundaries_monotonicity
-            || chemical_shifts_monotonicity != water_boundaries_monotonicity
-        {
+        if chemical_shifts_monotonicity != signal_boundaries_monotonicity {
             return Err(Error::new(Kind::MonotonicityMismatch {
                 chemical_shifts: chemical_shifts_monotonicity,
                 signal_boundaries: signal_boundaries_monotonicity,
-                water_boundaries: water_boundaries_monotonicity,
             })
             .into());
         }
@@ -896,16 +713,12 @@ impl Spectrum {
     /// The following errors are possible if the respective check fails:
     /// - [`InvalidSignalBoundaries`]: The signal region boundaries are not
     ///   within the range of the chemical shifts.
-    /// - [`InvalidWaterBoundaries`]: The water artifact boundaries are not
-    ///   within the signal region boundaries.
     ///
     /// [`InvalidSignalBoundaries`]: Kind::InvalidSignalBoundaries
-    /// [`InvalidWaterBoundaries`]: Kind::InvalidWaterBoundaries
     fn validate_boundaries(
         monotonicity: Monotonicity,
         chemical_shifts: &[f64],
         signal_boundaries: (f64, f64),
-        water_boundaries: (f64, f64),
     ) -> Result<()> {
         let chemical_shifts_range = (chemical_shifts[0], *chemical_shifts.last().unwrap());
         match monotonicity {
@@ -919,32 +732,12 @@ impl Spectrum {
                     })
                     .into());
                 }
-                if water_boundaries.0 < signal_boundaries.0
-                    || water_boundaries.1 > signal_boundaries.1
-                {
-                    return Err(Error::new(Kind::InvalidWaterBoundaries {
-                        water_boundaries,
-                        signal_boundaries,
-                        chemical_shifts_range,
-                    })
-                    .into());
-                }
             }
             Monotonicity::Decreasing => {
                 if signal_boundaries.0 > chemical_shifts_range.0
                     || signal_boundaries.1 < chemical_shifts_range.1
                 {
                     return Err(Error::new(Kind::InvalidSignalBoundaries {
-                        signal_boundaries,
-                        chemical_shifts_range,
-                    })
-                    .into());
-                }
-                if water_boundaries.0 > signal_boundaries.0
-                    || water_boundaries.1 < signal_boundaries.1
-                {
-                    return Err(Error::new(Kind::InvalidWaterBoundaries {
-                        water_boundaries,
                         signal_boundaries,
                         chemical_shifts_range,
                     })
@@ -965,18 +758,10 @@ mod tests {
 
     #[test]
     fn new() {
-        let spectrum_increasing = Spectrum::new(
-            vec![1.0, 2.0, 3.0],
-            vec![1.0, 2.0, 3.0],
-            (1.0, 3.0),
-            (2.0, 2.5),
-        );
-        let spectrum_decreasing = Spectrum::new(
-            vec![3.0, 2.0, 1.0],
-            vec![3.0, 2.0, 1.0],
-            (3.0, 1.0),
-            (2.5, 2.0),
-        );
+        let spectrum_increasing =
+            Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0));
+        let spectrum_decreasing =
+            Spectrum::new(vec![3.0, 2.0, 1.0], vec![3.0, 2.0, 1.0], (3.0, 1.0));
         assert!(spectrum_increasing.is_ok());
         assert!(spectrum_decreasing.is_ok());
     }
@@ -984,11 +769,10 @@ mod tests {
     #[test]
     fn empty_data() {
         let s = (1.0, 3.0);
-        let w = (2.0, 2.5);
         let errors = [
-            Spectrum::new(vec![], vec![1.0], s, w).unwrap_err(),
-            Spectrum::new(vec![1.0], vec![], s, w).unwrap_err(),
-            Spectrum::new(vec![], vec![], s, w).unwrap_err(),
+            Spectrum::new(vec![], vec![1.0], s).unwrap_err(),
+            Spectrum::new(vec![1.0], vec![], s).unwrap_err(),
+            Spectrum::new(vec![], vec![], s).unwrap_err(),
         ];
         let expected_context = [(0, 1), (1, 0), (0, 0)];
         errors
@@ -1014,10 +798,9 @@ mod tests {
     #[test]
     fn data_length_mismatch() {
         let s = (1.0, 3.0);
-        let w = (2.0, 2.5);
         let errors = [
-            Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0], s, w).unwrap_err(),
-            Spectrum::new(vec![1.0, 2.0], vec![1.0, 2.0, 3.0], s, w).unwrap_err(),
+            Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0], s).unwrap_err(),
+            Spectrum::new(vec![1.0, 2.0], vec![1.0, 2.0, 3.0], s).unwrap_err(),
         ];
         let expected_context = [(3, 2), (2, 3)];
         errors
@@ -1044,11 +827,10 @@ mod tests {
     fn invalid_signal_boundaries() {
         let d = vec![1.0, 2.0, 3.0];
         let r = (1.0, 3.0);
-        let w = (2.0, 2.5);
         let errors = [
-            Spectrum::new(d.clone(), d.clone(), (0.0, 3.0), w).unwrap_err(),
-            Spectrum::new(d.clone(), d.clone(), (1.0, 4.0), w).unwrap_err(),
-            Spectrum::new(d.clone(), d.clone(), (2.0, 2.0), w).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (0.0, 3.0)).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (1.0, 4.0)).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (2.0, 2.0)).unwrap_err(),
         ];
         let expected_contest = [((0.0, 3.0), r), ((1.0, 4.0), r), ((2.0, 2.0), r)];
         errors
@@ -1074,42 +856,6 @@ mod tests {
     }
 
     #[test]
-    fn invalid_water_boundaries() {
-        let d = vec![1.0, 2.0, 3.0];
-        let r = (1.0, 3.0);
-        let s = (1.0, 3.0);
-        let errors = [
-            Spectrum::new(d.clone(), d.clone(), s, (0.0, 2.5)).unwrap_err(),
-            Spectrum::new(d.clone(), d.clone(), s, (2.0, 4.0)).unwrap_err(),
-            Spectrum::new(d.clone(), d.clone(), s, (2.0, 2.0)).unwrap_err(),
-        ];
-        let expected_contest = [((0.0, 2.5), s, r), ((2.0, 4.0), s, r), ((2.0, 2.0), s, r)];
-        errors
-            .into_iter()
-            .zip(expected_contest)
-            .for_each(|(error, context)| {
-                match error {
-                    Error::Spectrum(inner) => match inner.kind() {
-                        Kind::InvalidWaterBoundaries {
-                            water_boundaries,
-                            signal_boundaries,
-                            chemical_shifts_range,
-                        } => {
-                            assert_approx_eq!(f64, water_boundaries.0, context.0.0);
-                            assert_approx_eq!(f64, water_boundaries.1, context.0.1);
-                            assert_approx_eq!(f64, signal_boundaries.0, context.1.0);
-                            assert_approx_eq!(f64, signal_boundaries.1, context.1.1);
-                            assert_approx_eq!(f64, chemical_shifts_range.0, context.2.0);
-                            assert_approx_eq!(f64, chemical_shifts_range.1, context.2.1);
-                        }
-                        _ => panic!("Unexpected kind: {:?}", inner),
-                    },
-                    _ => panic!("Unexpected error: {:?}", error),
-                };
-            });
-    }
-
-    #[test]
     fn monotonicity_mismatch() {
         let d = vec![1.0, 2.0, 3.0];
         // i = increasing, d = decreasing
@@ -1117,47 +863,13 @@ mod tests {
         let dd = vec![3.0, 2.0, 1.0];
         let si = (1.0, 3.0);
         let sd = (3.0, 1.0);
-        let wi = (2.0, 2.5);
-        let wd = (2.5, 2.0);
         let errors = [
-            Spectrum::new(di.clone(), d.clone(), si, wd).unwrap_err(),
-            Spectrum::new(di.clone(), d.clone(), sd, wi).unwrap_err(),
-            Spectrum::new(di.clone(), d.clone(), sd, wd).unwrap_err(),
-            Spectrum::new(dd.clone(), d.clone(), si, wd).unwrap_err(),
-            Spectrum::new(dd.clone(), d.clone(), sd, wi).unwrap_err(),
-            Spectrum::new(dd.clone(), d.clone(), si, wi).unwrap_err(),
+            Spectrum::new(di.clone(), d.clone(), sd).unwrap_err(),
+            Spectrum::new(dd.clone(), d.clone(), si).unwrap_err(),
         ];
         let expected_context = [
-            (
-                Monotonicity::Increasing,
-                Monotonicity::Increasing,
-                Monotonicity::Decreasing,
-            ),
-            (
-                Monotonicity::Increasing,
-                Monotonicity::Decreasing,
-                Monotonicity::Increasing,
-            ),
-            (
-                Monotonicity::Increasing,
-                Monotonicity::Decreasing,
-                Monotonicity::Decreasing,
-            ),
-            (
-                Monotonicity::Decreasing,
-                Monotonicity::Increasing,
-                Monotonicity::Decreasing,
-            ),
-            (
-                Monotonicity::Decreasing,
-                Monotonicity::Decreasing,
-                Monotonicity::Increasing,
-            ),
-            (
-                Monotonicity::Decreasing,
-                Monotonicity::Increasing,
-                Monotonicity::Increasing,
-            ),
+            (Monotonicity::Increasing, Monotonicity::Decreasing),
+            (Monotonicity::Decreasing, Monotonicity::Increasing),
         ];
         errors
             .into_iter()
@@ -1168,11 +880,9 @@ mod tests {
                         Kind::MonotonicityMismatch {
                             chemical_shifts,
                             signal_boundaries,
-                            water_boundaries,
                         } => {
                             assert_eq!(*chemical_shifts, context.0);
                             assert_eq!(*signal_boundaries, context.1);
-                            assert_eq!(*water_boundaries, context.2);
                         }
                         _ => panic!("Unexpected kind: {:?}", inner),
                     },
@@ -1183,13 +893,7 @@ mod tests {
 
     #[test]
     fn accessors() {
-        let spectrum = Spectrum::new(
-            vec![1.0, 2.0, 3.0],
-            vec![1.0, 2.0, 3.0],
-            (1.0, 3.0),
-            (2.0, 2.5),
-        )
-        .unwrap();
+        let spectrum = Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0)).unwrap();
         spectrum
             .chemical_shifts()
             .iter()
@@ -1203,19 +907,12 @@ mod tests {
         assert_eq!(spectrum.intensities().len(), 0);
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.0);
-        assert_approx_eq!(f64, spectrum.water_boundaries().0, 2.0);
-        assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.5);
     }
 
     #[test]
     fn mutators() {
-        let mut spectrum = Spectrum::new(
-            vec![1.0, 2.0, 3.0],
-            vec![1.0, 2.0, 3.0],
-            (1.0, 3.0),
-            (2.0, 2.5),
-        )
-        .unwrap();
+        let mut spectrum =
+            Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0)).unwrap();
         spectrum
             .set_chemical_shifts(vec![0.0, 2.0, 4.0])
             .unwrap();
@@ -1228,7 +925,6 @@ mod tests {
         spectrum
             .set_signal_boundaries((0.5, 3.5))
             .unwrap();
-        spectrum.set_water_boundaries((1.5, 2.5)).unwrap();
         spectrum
             .set_intensities(
                 spectrum
@@ -1255,8 +951,6 @@ mod tests {
             .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 0.5);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.5);
-        assert_approx_eq!(f64, spectrum.water_boundaries().0, 1.5);
-        assert_approx_eq!(f64, spectrum.water_boundaries().1, 2.5);
     }
 
     #[test]
@@ -1265,7 +959,6 @@ mod tests {
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             (1.5, 4.5),
-            (2.5, 3.5),
         )
         .unwrap();
         spectrum
@@ -1275,6 +968,5 @@ mod tests {
         assert_approx_eq!(f64, spectrum.width(), 4.0);
         assert_approx_eq!(f64, spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
-        assert_eq!(spectrum.water_boundaries_indices(), (1, 3));
     }
 }
