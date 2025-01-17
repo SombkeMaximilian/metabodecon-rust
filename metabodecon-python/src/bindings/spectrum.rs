@@ -22,10 +22,10 @@ impl Spectrum {
         chemical_shifts: Vec<f64>,
         intensities: Vec<f64>,
         signal_boundaries: (f64, f64),
-    ) -> Self {
-        Spectrum {
-            inner: spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries)
-                .unwrap(),
+    ) -> PyResult<Self> {
+        match spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries) {
+            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
 
@@ -106,20 +106,18 @@ impl Spectrum {
         &mut self,
         chemical_shifts: PyReadonlyArray1<'_, f64>,
     ) -> PyResult<()> {
-        self.inner
-            .set_chemical_shifts(chemical_shifts.as_slice()?.to_vec())
-            .unwrap();
-
-        Ok(())
+        match self.inner.set_chemical_shifts(chemical_shifts.as_slice()?.to_vec()) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
     #[setter]
     pub fn set_intensities(&mut self, intensities: PyReadonlyArray1<'_, f64>) -> PyResult<()> {
-        self.inner
-            .set_intensities(intensities.as_slice()?.to_vec())
-            .unwrap();
-
-        Ok(())
+        match self.inner.set_intensities(intensities.as_slice()?.to_vec()) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
     #[setter]
@@ -127,19 +125,17 @@ impl Spectrum {
         &mut self,
         intensities_raw: PyReadonlyArray1<'_, f64>,
     ) -> PyResult<()> {
-        self.inner
-            .set_intensities_raw(intensities_raw.as_slice()?.to_vec())
-            .unwrap();
-
-        Ok(())
+        match self.inner.set_intensities_raw(intensities_raw.as_slice()?.to_vec()) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
     #[setter]
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> PyResult<()> {
-        self.inner
-            .set_signal_boundaries(signal_boundaries)
-            .unwrap();
-
-        Ok(())
+        match self.inner.set_signal_boundaries(signal_boundaries) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 }
