@@ -75,9 +75,7 @@ fn main() {
         // Processing Number
         10,
         // Signal Region
-        (-2.208611, 11.807918),
-        // Solvent Artifact Region
-        (4.699535, 4.899771)
+        (-2.208611, 11.807918)
     ).unwrap();
   
     // Deconvoluter with default options
@@ -104,9 +102,7 @@ spectrum = md.Spectrum.from_bruker(
     # Processing Number
     10,
     # Signal Region
-    (-2.208611, 11.807918),
-    # Solvent Artifact Region
-    (4.699535, 4.899771)
+    (-2.208611, 11.807918)
 )
 
 # Deconvoluter with default options
@@ -115,11 +111,10 @@ deconvoluter = md.Deconvoluter()
 # Deconvolute the spectrum
 deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
 
-# Extract the chemical shifts, intensities, signal boundaries and water boundaries
+# Extract the chemical shifts, intensities, and signal boundaries
 x = spectrum.chemical_shifts
 y1 = spectrum.intensities_raw
 s = spectrum.signal_boundaries
-w = spectrum.water_boundaries
 
 # Compute the superposition of the deconvoluted peaks
 y2 = deconvolution.par_superposition_vec(spectrum.chemical_shifts)
@@ -131,7 +126,6 @@ plt.plot(x, y2, label = "Deconvoluted Spectrum", linewidth=0.5)
 plt.gca().invert_xaxis()
 plt.axvline(x = s[0], color = "black", label = "Signal Boundaries")
 plt.axvline(x = s[1], color = "black")
-plt.axvspan(w[0], w[1], color = "cyan", alpha = 0.3, label = "Water Region")
 plt.xlabel("Chemical Shifts", fontsize = 16)
 plt.ylabel("Intensity", fontsize = 16)
 plt.xticks(fontsize = 14)
