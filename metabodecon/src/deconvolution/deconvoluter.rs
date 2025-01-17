@@ -90,8 +90,7 @@ impl Deconvoluter {
             spectrum,
             Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
-        lorentzians
-            .retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
+        lorentzians.retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
 
         Ok(Deconvolution::new(
             lorentzians,
@@ -132,8 +131,7 @@ impl Deconvoluter {
             spectrum,
             Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
-        lorentzians
-            .retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
+        lorentzians.retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
 
         Ok(Deconvolution::new(
             lorentzians,
