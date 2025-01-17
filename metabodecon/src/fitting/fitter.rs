@@ -1,3 +1,5 @@
+use crate::deconvolution::Settings;
+use crate::deconvolution::error::{Error, Kind};
 use crate::fitting::lorentzian::Lorentzian;
 use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
@@ -27,5 +29,19 @@ pub enum FittingAlgo {
 impl Default for FittingAlgo {
     fn default() -> Self {
         FittingAlgo::Analytical { iterations: 10 }
+    }
+}
+
+impl Settings for FittingAlgo {
+    fn validate(&self) -> crate::Result<()> {
+        match self {
+            FittingAlgo::Analytical { iterations } => {
+                if *iterations == 0 {
+                    return Err(Error::new(Kind::InvalidFittingSettings { algo: *self }).into());
+                }
+            }
+        }
+
+        Ok(())
     }
 }

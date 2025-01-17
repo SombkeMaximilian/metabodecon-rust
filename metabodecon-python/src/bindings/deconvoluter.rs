@@ -16,28 +16,42 @@ impl Deconvoluter {
         Deconvoluter::default()
     }
 
-    pub fn with_moving_average_smoother(&mut self, iterations: usize, window_size: usize) -> Self {
-        self.inner
+    pub fn with_moving_average_smoother(
+        &mut self,
+        iterations: usize,
+        window_size: usize,
+    ) -> PyResult<Self> {
+        match self
+            .inner
             .set_smoothing_algo(deconvolution::SmoothingAlgo::MovingAverage {
                 iterations,
                 window_size,
-            });
-        *self
+            }) {
+            Ok(_) => Ok(*self),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
-    pub fn with_noise_score_selector(&mut self, threshold: f64) -> Self {
-        self.inner
+    pub fn with_noise_score_selector(&mut self, threshold: f64) -> PyResult<Self> {
+        match self
+            .inner
             .set_selection_algo(deconvolution::SelectionAlgo::NoiseScoreFilter {
                 scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
                 threshold,
-            });
-        *self
+            }) {
+            Ok(_) => Ok(*self),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
-    pub fn with_analytical_fitter(&mut self, iterations: usize) -> Self {
-        self.inner
-            .set_fitting_algo(deconvolution::FittingAlgo::Analytical { iterations });
-        *self
+    pub fn with_analytical_fitter(&mut self, iterations: usize) -> PyResult<Self> {
+        match self
+            .inner
+            .set_fitting_algo(deconvolution::FittingAlgo::Analytical { iterations })
+        {
+            Ok(_) => Ok(*self),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {

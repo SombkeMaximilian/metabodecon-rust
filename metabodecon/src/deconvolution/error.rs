@@ -1,5 +1,9 @@
 //! Error types for the deconvolution process.
 
+use crate::fitting::FittingAlgo;
+use crate::peak_selection::SelectionAlgo;
+use crate::smoothing::SmoothingAlgo;
+
 /// An `Error` that occurred during the deconvolution process.
 ///
 /// This type of error is generally unrecoverable and indicates a problem with
@@ -35,6 +39,30 @@ impl Error {
 #[non_exhaustive]
 #[derive(Clone, Debug)]
 pub enum Kind {
+    /// The provided smoothing settings are invalid.
+    ///
+    /// Some configurations, such as a `window_size` of 0 for a moving
+    /// average filter, are invalid.
+    InvalidSmoothingSettings {
+        /// The provided smoothing settings.
+        algo: SmoothingAlgo,
+    },
+    /// The provided peak selection settings are invalid.
+    ///
+    /// Some configurations, such as a negative `threshold` for a noise score
+    /// filter, are invalid.
+    InvalidSelectionSettings {
+        /// The provided peak selection settings.
+        algo: SelectionAlgo,
+    },
+    /// The provided fitting settings are invalid.
+    ///
+    /// Some configurations, such as 0 `iterations` for an analytical fitting
+    /// algorithm, are invalid.
+    InvalidFittingSettings {
+        /// The provided fitting settings.
+        algo: FittingAlgo,
+    },
     /// No peaks were detected in the input data.
     ///
     /// Most of the time this will happen if the intensities of the [`Spectrum`]
@@ -71,9 +99,32 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         use self::Kind::*;
         let description = match &self.kind {
-            NoPeaksDetected => "no peaks detected in the spectrum",
-            EmptySignalRegion => "no peaks found in the signal region of the spectrum",
-            EmptySignalFreeRegion => "no peaks found in the signal-free region of the spectrum",
+            InvalidSmoothingSettings { algo } => match algo {
+                SmoothingAlgo::MovingAverage { .. } => format!(
+                    "invalid smoothing settings: {:?} \
+                     window_size and iterations must be greater than 0",
+                    algo
+                ),
+            },
+            InvalidSelectionSettings { algo } => match algo {
+                SelectionAlgo::NoiseScoreFilter { .. } => format!(
+                    "invalid peak selection settings: {:?} \
+                     threshold must be greater than 0",
+                    algo
+                ),
+            },
+            InvalidFittingSettings { algo } => match algo {
+                FittingAlgo::Analytical { .. } => format!(
+                    "invalid fitting settings: {:?} \
+                     iterations must be greater than 0",
+                    algo
+                ),
+            },
+            NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
+            EmptySignalRegion => "no peaks found in the signal region of the spectrum".to_string(),
+            EmptySignalFreeRegion => {
+                "no peaks found in the signal-free region of the spectrum".to_string()
+            }
         };
         write!(f, "{description}")
     }

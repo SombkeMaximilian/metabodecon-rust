@@ -1,3 +1,5 @@
+use crate::deconvolution::Settings;
+use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
@@ -38,5 +40,19 @@ impl Default for SelectionAlgo {
             scoring_algo: ScoringAlgo::default(),
             threshold: 6.4,
         }
+    }
+}
+
+impl Settings for SelectionAlgo {
+    fn validate(&self) -> Result<()> {
+        match self {
+            SelectionAlgo::NoiseScoreFilter { threshold, .. } => {
+                if *threshold < 0.0 {
+                    return Err(Error::new(Kind::InvalidSelectionSettings { algo: *self }).into());
+                }
+            }
+        }
+
+        Ok(())
     }
 }

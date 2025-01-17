@@ -1,20 +1,6 @@
 use criterion::{Criterion, criterion_group, criterion_main};
 use metabodecon::{deconvolution::*, spectrum::*};
 
-fn d() -> Deconvoluter {
-    Deconvoluter::new(
-        SmoothingAlgo::MovingAverage {
-            iterations: 2,
-            window_size: 5,
-        },
-        SelectionAlgo::NoiseScoreFilter {
-            scoring_algo: ScoringAlgo::MinimumSum,
-            threshold: 6.4,
-        },
-        FittingAlgo::Analytical { iterations: 10 },
-    )
-}
-
 fn read_spectra() -> (Spectrum, Spectrum, Spectrum) {
     let reader = Hdf5Reader::new();
     let sim_spectrum = reader
@@ -31,7 +17,7 @@ fn read_spectra() -> (Spectrum, Spectrum, Spectrum) {
 
 fn deconvolute_spectrum(c: &mut Criterion) {
     let (mut sim_spectrum, mut blood_spectrum, mut urine_spectrum) = read_spectra();
-    let deconvoluter = d();
+    let deconvoluter = Deconvoluter::default();
 
     c.bench_function("deconvolute_sim_spectrum", |b| {
         b.iter(|| deconvoluter.deconvolute_spectrum(&mut sim_spectrum))
@@ -46,7 +32,7 @@ fn deconvolute_spectrum(c: &mut Criterion) {
 
 fn par_deconvolute_spectrum(c: &mut Criterion) {
     let (mut sim_spectrum, mut blood_spectrum, mut urine_spectrum) = read_spectra();
-    let deconvoluter = d();
+    let deconvoluter = Deconvoluter::default();
 
     c.bench_function("parallel_deconvolute_sim_spectrum", |b| {
         b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut sim_spectrum))

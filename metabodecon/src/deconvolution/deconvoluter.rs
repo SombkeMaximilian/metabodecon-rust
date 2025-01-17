@@ -1,4 +1,4 @@
-use crate::deconvolution::Deconvolution;
+use crate::deconvolution::{Deconvolution, Settings};
 use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
 use crate::peak_selection::{NoiseScoreFilter, SelectionAlgo, Selector};
@@ -89,22 +89,24 @@ use crate::spectrum::Spectrum;
 ///     Deconvoluter, FittingAlgo, ScoringAlgo, SelectionAlgo, SmoothingAlgo,
 /// };
 ///
+/// # fn main() -> metabodecon::Result<()> {
 /// let mut deconvoluter = Deconvoluter::default();
 ///
 /// // Change the smoothing algorithm.
 /// deconvoluter.set_smoothing_algo(SmoothingAlgo::MovingAverage {
 ///     iterations: 3,
 ///     window_size: 5,
-/// });
+/// })?;
 ///
 /// // Change the peak selection algorithm.
 /// deconvoluter.set_selection_algo(SelectionAlgo::NoiseScoreFilter {
 ///     scoring_algo: ScoringAlgo::MinimumSum,
 ///     threshold: 5.0,
-/// });
+/// })?;
 ///
 /// // Change the fitting algorithm.
-/// deconvoluter.set_fitting_algo(FittingAlgo::Analytical { iterations: 20 });
+/// deconvoluter
+///     .set_fitting_algo(FittingAlgo::Analytical { iterations: 20 })?;
 ///
 /// // Configure everything at once.
 /// let deconvoluter = Deconvoluter::new(
@@ -117,7 +119,9 @@ use crate::spectrum::Spectrum;
 ///         threshold: 5.0,
 ///     },
 ///     FittingAlgo::Analytical { iterations: 20 },
-/// );
+/// )?;
+/// # Ok(())
+/// # }
 /// ```
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Deconvoluter {
@@ -131,6 +135,24 @@ pub struct Deconvoluter {
 
 impl Deconvoluter {
     /// Constructs a new `Deconvoluter` with the provided settings.
+    ///
+    /// # Errors
+    ///
+    /// The Deconvolution settings are checked for validity. The following
+    /// errors are possible if the respective checks fail:
+    /// - [`InvalidSmoothingSettings`]: The provided smoothing settings are
+    ///   invalid. For example, a `window_size` of 0 for a moving average filter
+    ///   would mean that no smoothing is applied.
+    /// - [`InvalidSelectionSettings`]: The provided peak selection settings are
+    ///   invalid. For example, a negative `threshold` for a noise score filter
+    ///   wouldn't make sense.
+    /// - [`InvalidFittingSettings`]: The provided fitting settings are invalid.
+    ///   For example, 0 `iterations` for an analytical fitting algorithm would
+    ///   mean that the fitting algorithm doesn't do anything.
+    ///
+    /// [`InvalidSmoothingSettings`]: crate::deconvolution::error::Kind::InvalidSmoothingSettings
+    /// [`InvalidSelectionSettings`]: crate::deconvolution::error::Kind::InvalidSelectionSettings
+    /// [`InvalidFittingSettings`]: crate::deconvolution::error::Kind::InvalidFittingSettings
     ///
     /// # Example
     ///
@@ -155,12 +177,16 @@ impl Deconvoluter {
         smoothing_algo: SmoothingAlgo,
         selection_algo: SelectionAlgo,
         fitting_algo: FittingAlgo,
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        smoothing_algo.validate()?;
+        selection_algo.validate()?;
+        fitting_algo.validate()?;
+
+        Ok(Self {
             smoothing_algo,
             selection_algo,
             fitting_algo,
-        }
+        })
     }
 
     /// Returns the smoothing settings.
@@ -179,18 +205,27 @@ impl Deconvoluter {
     }
 
     /// Sets the smoothing settings.
-    pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) {
+    pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) -> Result<()> {
+        smoothing_algo.validate()?;
         self.smoothing_algo = smoothing_algo;
+
+        Ok(())
     }
 
     /// Sets the peak selection settings.
-    pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) {
+    pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) -> Result<()> {
+        selection_algo.validate()?;
         self.selection_algo = selection_algo;
+
+        Ok(())
     }
 
     /// Sets the fitting settings.
-    pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) {
+    pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) -> Result<()> {
+        fitting_algo.validate()?;
         self.fitting_algo = fitting_algo;
+
+        Ok(())
     }
 
     /// Deconvolutes the provided spectrum into individual signals.

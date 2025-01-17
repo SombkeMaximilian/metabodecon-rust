@@ -1,3 +1,7 @@
+use crate::deconvolution::Settings;
+use crate::deconvolution::error::{Error, Kind};
+use crate::error::Result;
+
 /// Trait interface for smoothing algorithms.
 pub trait Smoother<Type> {
     /// Smooths the given sequence of values in place.
@@ -27,5 +31,22 @@ impl Default for SmoothingAlgo {
             iterations: 2,
             window_size: 5,
         }
+    }
+}
+
+impl Settings for SmoothingAlgo {
+    fn validate(&self) -> Result<()> {
+        match self {
+            SmoothingAlgo::MovingAverage {
+                iterations,
+                window_size,
+            } => {
+                if *iterations == 0 || *window_size == 0 {
+                    return Err(Error::new(Kind::InvalidSmoothingSettings { algo: *self }).into());
+                }
+            }
+        }
+
+        Ok(())
     }
 }

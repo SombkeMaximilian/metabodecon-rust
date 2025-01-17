@@ -13,3 +13,7 @@ pub use crate::smoothing::SmoothingAlgo;
 pub use crate::fitting::Lorentzian;
 
 pub mod error;
+
+mod settings;
+
+pub(crate) use settings::Settings;
