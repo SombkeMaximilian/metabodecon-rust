@@ -17,7 +17,7 @@ fn sim() {
     let path = "../data/hdf5/sim.h5";
     let dataset = "sim_01";
     let deconvolution = run_par_deconvolution(path, dataset).unwrap();
-    let filename = format!("{}_par_deconvolution", dataset);
+    let filename = format!("{}_par_deconvolution.csv", dataset);
     store_deconvolution(deconvolution, filename.as_str());
 }
 
@@ -27,7 +27,7 @@ fn blood() {
     let path = "../data/hdf5/blood.h5";
     let dataset = "blood_01";
     let deconvolution = run_par_deconvolution(path, dataset).unwrap();
-    let filename = format!("{}_par_deconvolution", dataset);
+    let filename = format!("{}_par_deconvolution.csv", dataset);
     store_deconvolution(deconvolution, filename.as_str());
 }
 
@@ -37,6 +37,6 @@ fn urine() {
     let path = "../data/hdf5/urine.h5";
     let dataset = "urine_1";
     let deconvolution = run_par_deconvolution(path, dataset).unwrap();
-    let filename = format!("{}_par_deconvolution", dataset);
+    let filename = format!("{}_par_deconvolution.csv", dataset);
     store_deconvolution(deconvolution, filename.as_str());
 }
