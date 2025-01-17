@@ -30,16 +30,16 @@ use crate::peak_selection::peak::Peak;
 /// computed for the 8 inner points, and the peak centers can be found at
 /// indices 2 to 7. The peak centers are then scanned with a sliding window.
 ///
-/// | Signal Intensities | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-/// | ------------------ | - | - | - | - | - | - | - | - | - | - |
-/// | Second Derivative  |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |   |
-/// | Potential Centers  |   |   | 0 | 1 | 2 | 3 | 4 | 5 |   |   |
-/// | Step 1             |   | - | x | - |   |   |   |   |   |   |
-/// | Step 2             |   |   | - | x | - |   |   |   |   |   |
-/// | Step 3             |   |   |   | - | x | - |   |   |   |   |
-/// | Step 4             |   |   |   |   | - | x | - |   |   |   |
-/// | Step 5             |   |   |   |   |   | - | x | - |   |   |
-/// | Step 6             |   |   |   |   |   |   | - | x | - |   |
+/// | Signal Intensities Index | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+/// | ------------------------ | - | - | - | - | - | - | - | - | - | - |
+/// | Second Derivative Index  |   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 |   |
+/// | Potential Centers Index  |   |   | 0 | 1 | 2 | 3 | 4 | 5 |   |   |
+/// | Step 1                   |   | - | x | - |   |   |   |   |   |   |
+/// | Step 2                   |   |   | - | x | - |   |   |   |   |   |
+/// | Step 3                   |   |   |   | - | x | - |   |   |   |   |
+/// | Step 4                   |   |   |   |   | - | x | - |   |   |   |
+/// | Step 5                   |   |   |   |   |   | - | x | - |   |   |
+/// | Step 6                   |   |   |   |   |   |   | - | x | - |   |
 ///
 /// # Peak Borders
 ///
@@ -91,6 +91,12 @@ impl<'a> Detector<'a> {
     }
 
     /// Detects the peaks in the signal.
+    ///
+    /// # Errors
+    ///
+    /// [`NoPeaksDetected`] occurs if no peaks are detected in the spectrum.
+    ///
+    /// [`NoPeaksDetected`]: Kind::NoPeaksDetected
     pub fn detect_peaks(&self) -> Result<Vec<Peak>> {
         let peak_centers = self.find_peak_centers();
         let peak_borders = self.find_peak_borders(&peak_centers);

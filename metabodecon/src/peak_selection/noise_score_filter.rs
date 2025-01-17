@@ -29,6 +29,19 @@ impl Selector for NoiseScoreFilter {
     /// ```text
     /// score > mean + threshold * std_dev
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible if the respective check fails:
+    /// - [`NoPeaksDetected`]: No peaks were detected in the spectrum.
+    /// - [`EmptySignalRegion`]: The signal region contains no peaks.
+    /// - [`EmptySignalFreeRegion`]: The signal free region contains no peaks.
+    ///   Peaks in this region are used to filter out noise within the signal
+    ///   region.
+    ///
+    /// [`NoPeaksDetected`]: Kind::NoPeaksDetected
+    /// [`EmptySignalRegion`]: Kind::EmptySignalRegion
+    /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
     fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
         let signal_boundaries = spectrum.signal_boundaries_indices();
         let mut second_derivative = Self::second_derivative(spectrum.intensities());
@@ -74,6 +87,17 @@ impl NoiseScoreFilter {
     /// ```text
     /// score > mean + threshold * std_dev
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible if the respective check fails:
+    /// - [`EmptySignalRegion`]: The signal region contains no peaks.
+    /// - [`EmptySignalFreeRegion`]: The signal free region contains no peaks.
+    ///   Peaks in this region are used to filter out noise within the signal
+    ///   region.
+    ///
+    /// [`EmptySignalRegion`]: Kind::EmptySignalRegion
+    /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
     fn filter_peaks(
         &self,
         mut peaks: Vec<Peak>,
@@ -113,6 +137,18 @@ impl NoiseScoreFilter {
 
     /// Computes the indices in the slice of `Peak`s that delimit the signal
     /// region.
+    ///
+    /// Peaks are ordered by their center due to how the peak detection
+    /// algorithm works. Therefore, there is a first and a last peak that belong
+    /// to the signal region. Note that the lower boundary is included in and
+    /// upper boundary is excluded from the signal region.
+    ///
+    /// |  Index            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+    /// | ----------------- | - | - | - | - | - | - | - | - | - | - |
+    /// | Signal Boundaries |   |   | x |   |   |   |   | x |   |   |
+    /// | Peak Centers      |   | 0 |   | 1 |   | 2 |   |   | 3 |   |
+    /// | Signal Peaks      |   |   |   | x |   | x |   |   |   |   |
+    /// | Noise Peaks       |   | x |   |   |   |   |   |   | x |   |
     fn peak_region_boundaries(
         peaks: &[Peak],
         signal_boundaries: (usize, usize),

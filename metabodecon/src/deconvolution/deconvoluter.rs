@@ -7,6 +7,118 @@ use crate::spectrum::Spectrum;
 
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting
 /// to a spectrum to deconvolute it into individual signals.
+///
+/// The output of the pipeline is a [`Deconvolution`] struct containing the
+/// deconvoluted signals, the deconvolution settings, and the [MSE] between the
+/// superposition of signals and the raw intensities within the signal region.
+///
+/// [MSE]: https://en.wikipedia.org/wiki/Mean_squared_error
+///
+/// # Example: Deconvoluting a [`Spectrum`]
+///
+/// ```
+/// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
+/// use metabodecon::spectrum::BrukerReader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// // Read a spectrum in Bruker TopSpin format.
+/// let reader = BrukerReader::new();
+/// let path = "path/to/spectrum";
+/// # let path = "../data/bruker/blood/blood_01";
+/// let mut spectrum = reader.read_spectrum(
+///     path,
+///     // Experiment number
+///     10,
+///     // Processing number
+///     10,
+///     // Signal boundaries
+///     (-2.2, 11.8),
+/// )?;
+///
+/// // Deconvolute the spectrum.
+/// let deconvoluter = Deconvoluter::default();
+/// let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum)?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Example: Parallelized Deconvolution
+///
+/// The most expensive parts of the deconvolution process can also be performed
+/// in parallel by enabling the `parallel` feature (part of the `default`
+/// features). This adds [rayon] as a dependency.
+///
+/// [rayon]: https://docs.rs/rayon/latest/rayon/
+///
+/// ```
+/// use metabodecon::deconvolution::Deconvoluter;
+/// use metabodecon::spectrum::BrukerReader;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// // Read a spectrum in Bruker TopSpin format.
+/// let reader = BrukerReader::new();
+/// let path = "path/to/spectrum";
+/// # let path = "../data/bruker/blood/blood_01";
+/// let mut spectrum = reader.read_spectrum(
+///     path,
+///     // Experiment number
+///     10,
+///     // Processing number
+///     10,
+///     // Signal boundaries
+///     (-2.2, 11.8),
+/// )?;
+///
+/// // Deconvolute the spectrum in parallel.
+/// let deconvoluter = Deconvoluter::default();
+/// let deconvolution = deconvoluter.par_deconvolute_spectrum(&mut spectrum)?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Example: Configuring the Deconvoluter
+///
+/// `Deconvoluter` is modular and allows you to configure the smoothing, peak
+/// selection, and fitting algorithms independently. Currently, there is only
+/// one method available for each part of the pipeline, but more may be added in
+/// the future. It may also be possible to use your own implementations of the
+/// algorithms by implementing the corresponding traits in the future.
+///
+/// ```
+/// use metabodecon::deconvolution::{
+///     Deconvoluter, FittingAlgo, ScoringAlgo, SelectionAlgo, SmoothingAlgo,
+/// };
+///
+/// let mut deconvoluter = Deconvoluter::default();
+///
+/// // Change the smoothing algorithm.
+/// deconvoluter.set_smoothing_algo(SmoothingAlgo::MovingAverage {
+///     iterations: 3,
+///     window_size: 5,
+/// });
+///
+/// // Change the peak selection algorithm.
+/// deconvoluter.set_selection_algo(SelectionAlgo::NoiseScoreFilter {
+///     scoring_algo: ScoringAlgo::MinimumSum,
+///     threshold: 5.0,
+/// });
+///
+/// // Change the fitting algorithm.
+/// deconvoluter.set_fitting_algo(FittingAlgo::Analytical { iterations: 20 });
+///
+/// // Configure everything at once.
+/// let deconvoluter = Deconvoluter::new(
+///     SmoothingAlgo::MovingAverage {
+///         iterations: 3,
+///         window_size: 3,
+///     },
+///     SelectionAlgo::NoiseScoreFilter {
+///         scoring_algo: ScoringAlgo::MinimumSum,
+///         threshold: 5.0,
+///     },
+///     FittingAlgo::Analytical { iterations: 20 },
+/// );
+/// ```
 #[derive(Copy, Clone, Debug, Default)]
 pub struct Deconvoluter {
     /// The smoothing algorithm to use.
@@ -19,6 +131,26 @@ pub struct Deconvoluter {
 
 impl Deconvoluter {
     /// Constructs a new `Deconvoluter` with the provided settings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{
+    ///     Deconvoluter, FittingAlgo, ScoringAlgo, SelectionAlgo, SmoothingAlgo,
+    /// };
+    ///
+    /// let deconvoluter = Deconvoluter::new(
+    ///     SmoothingAlgo::MovingAverage {
+    ///         iterations: 3,
+    ///         window_size: 3,
+    ///     },
+    ///     SelectionAlgo::NoiseScoreFilter {
+    ///         scoring_algo: ScoringAlgo::MinimumSum,
+    ///         threshold: 5.0,
+    ///     },
+    ///     FittingAlgo::Analytical { iterations: 20 },
+    /// );
+    /// ```
     pub fn new(
         smoothing_algo: SmoothingAlgo,
         selection_algo: SelectionAlgo,
@@ -31,32 +163,32 @@ impl Deconvoluter {
         }
     }
 
-    /// Returns the smoothing algorithm settings.
+    /// Returns the smoothing settings.
     pub fn smoothing_algo(&self) -> SmoothingAlgo {
         self.smoothing_algo
     }
 
-    /// Returns the peak selection algorithm settings.
+    /// Returns the peak selection settings.
     pub fn selection_algo(&self) -> SelectionAlgo {
         self.selection_algo
     }
 
-    /// Returns the fitting algorithm settings.
+    /// Returns the fitting settings.
     pub fn fitting_algo(&self) -> FittingAlgo {
         self.fitting_algo
     }
 
-    /// Sets the smoothing algorithm settings.
+    /// Sets the smoothing settings.
     pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) {
         self.smoothing_algo = smoothing_algo;
     }
 
-    /// Sets the peak selection algorithm settings.
+    /// Sets the peak selection settings.
     pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) {
         self.selection_algo = selection_algo;
     }
 
-    /// Sets the fitting algorithm settings.
+    /// Sets the fitting settings.
     pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) {
         self.fitting_algo = fitting_algo;
     }
