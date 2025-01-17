@@ -80,7 +80,7 @@ impl Deconvoluter {
             };
             selector.select_peaks(spectrum)?
         };
-        let lorentzians = {
+        let mut lorentzians = {
             let fitter = match self.fitting_algo {
                 FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
             };
@@ -90,6 +90,8 @@ impl Deconvoluter {
             spectrum,
             Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
+        lorentzians
+            .retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
 
         Ok(Deconvolution::new(
             lorentzians,
@@ -120,7 +122,7 @@ impl Deconvoluter {
             };
             selector.select_peaks(spectrum)?
         };
-        let lorentzians = {
+        let mut lorentzians = {
             let fitter = match self.fitting_algo {
                 FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
             };
@@ -130,6 +132,8 @@ impl Deconvoluter {
             spectrum,
             Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
+        lorentzians
+            .retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
 
         Ok(Deconvolution::new(
             lorentzians,
