@@ -513,6 +513,35 @@ impl Spectrum {
         self.chemical_shifts[1] - self.chemical_shifts[0]
     }
 
+    /// Computes the range of the `Spectrum` in ppm.
+    ///
+    /// The range is ordered in the same order as the chemical shifts.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0],
+    ///     (1.0, 3.0),
+    /// )?;
+    ///
+    /// assert_approx_eq!(f64, spectrum.range().0, 1.0);
+    /// assert_approx_eq!(f64, spectrum.range().1, 3.0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn range(&self) -> (f64, f64) {
+        (
+            *self.chemical_shifts.first().unwrap(),
+            *self.chemical_shifts.last().unwrap(),
+        )
+    }
+
     /// Computes the width of the `Spectrum` in ppm.
     ///
     /// # Example
@@ -533,7 +562,7 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn width(&self) -> f64 {
-        self.chemical_shifts.last().unwrap() - self.chemical_shifts.first().unwrap()
+        (self.chemical_shifts.last().unwrap() - self.chemical_shifts.first().unwrap()).abs()
     }
 
     /// Computes the center of the `Spectrum` in ppm.
@@ -966,6 +995,8 @@ mod tests {
             .unwrap();
         assert_approx_eq!(f64, spectrum.step(), 1.0);
         assert_approx_eq!(f64, spectrum.width(), 4.0);
+        assert_approx_eq!(f64, spectrum.range().0, 1.0);
+        assert_approx_eq!(f64, spectrum.range().1, 5.0);
         assert_approx_eq!(f64, spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
     }
