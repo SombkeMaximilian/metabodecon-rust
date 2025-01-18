@@ -148,7 +148,7 @@ impl FitterAnalytical {
             / (p.y_2() - p.y_1());
         let right = (p.y_2() * (p.x_2() - maxp).powi(2) - p.y_3() * (p.x_3() - maxp).powi(2))
             / (p.y_3() - p.y_2());
-        (left + right) / 2.0
+        ((left + right) / 2.0).max(f64::EPSILON)
     }
 
     /// Internal helper function to analytically compute the scale factor times

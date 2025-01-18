@@ -253,7 +253,9 @@ impl Deconvoluter {
             };
             fitter.fit_lorentzian(spectrum, &peaks)
         };
-        lorentzians.retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
+        lorentzians.retain(|lorentzian| {
+            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+        });
         let mse = Self::compute_mse(
             spectrum,
             Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
@@ -294,7 +296,9 @@ impl Deconvoluter {
             };
             fitter.par_fit_lorentzian(spectrum, &peaks)
         };
-        lorentzians.retain(|lorentzian| lorentzian.sfhw() > 0.0 && lorentzian.hw2() > 0.0);
+        lorentzians.retain(|lorentzian| {
+            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+        });
         let mse = Self::compute_mse(
             spectrum,
             Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
