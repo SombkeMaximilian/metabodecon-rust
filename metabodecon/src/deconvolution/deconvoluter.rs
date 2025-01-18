@@ -1,3 +1,4 @@
+use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::{Deconvolution, Settings};
 use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
@@ -108,8 +109,8 @@ use crate::spectrum::Spectrum;
 /// deconvoluter
 ///     .set_fitting_algo(FittingAlgo::Analytical { iterations: 20 })?;
 ///
-/// // Configure everything at once.
-/// let deconvoluter = Deconvoluter::new(
+/// // Create a new Deconvoluter with the desired settings.
+/// let mut deconvoluter = Deconvoluter::new(
 ///     SmoothingAlgo::MovingAverage {
 ///         iterations: 3,
 ///         window_size: 3,
@@ -120,10 +121,13 @@ use crate::spectrum::Spectrum;
 ///     },
 ///     FittingAlgo::Analytical { iterations: 20 },
 /// )?;
+///
+/// // Add a region to ignore during deconvolution.
+/// deconvoluter.add_ignore_region((4.7, 4.9))?;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Deconvoluter {
     /// The smoothing algorithm to use.
     smoothing_algo: SmoothingAlgo,
@@ -131,6 +135,8 @@ pub struct Deconvoluter {
     selection_algo: SelectionAlgo,
     /// The fitting algorithm to use.
     fitting_algo: FittingAlgo,
+    /// The regions to ignore during deconvolution.
+    ignore_regions: Option<Vec<(f64, f64)>>,
 }
 
 impl Deconvoluter {
@@ -150,9 +156,9 @@ impl Deconvoluter {
     ///   For example, 0 `iterations` for an analytical fitting algorithm would
     ///   mean that the fitting algorithm doesn't do anything.
     ///
-    /// [`InvalidSmoothingSettings`]: crate::deconvolution::error::Kind::InvalidSmoothingSettings
-    /// [`InvalidSelectionSettings`]: crate::deconvolution::error::Kind::InvalidSelectionSettings
-    /// [`InvalidFittingSettings`]: crate::deconvolution::error::Kind::InvalidFittingSettings
+    /// [`InvalidSmoothingSettings`]: Kind::InvalidSmoothingSettings
+    /// [`InvalidSelectionSettings`]: Kind::InvalidSelectionSettings
+    /// [`InvalidFittingSettings`]: Kind::InvalidFittingSettings
     ///
     /// # Example
     ///
@@ -186,6 +192,7 @@ impl Deconvoluter {
             smoothing_algo,
             selection_algo,
             fitting_algo,
+            ignore_regions: None,
         })
     }
 
@@ -202,6 +209,11 @@ impl Deconvoluter {
     /// Returns the fitting settings.
     pub fn fitting_algo(&self) -> FittingAlgo {
         self.fitting_algo
+    }
+
+    /// Returns the regions to ignore during deconvolution.
+    pub fn ignore_regions(&self) -> Option<&Vec<(f64, f64)>> {
+        self.ignore_regions.as_ref()
     }
 
     /// Sets the smoothing settings.
@@ -228,6 +240,47 @@ impl Deconvoluter {
         Ok(())
     }
 
+    /// Adds a region to ignore during deconvolution.
+    pub fn add_ignore_region(&mut self, new: (f64, f64)) -> Result<()> {
+        if let Some(ignore_regions) = self.ignore_regions.as_mut() {
+            if !new.0.is_finite()
+                || !new.1.is_finite()
+                || f64::abs(new.0 - new.1) < 100.0 * f64::EPSILON
+            {
+                return Err(Error::new(Kind::InvalidIgnoreRegion { region: new }).into());
+            }
+            ignore_regions.push((f64::min(new.0, new.1), f64::max(new.0, new.1)));
+            ignore_regions.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+            while let Some(overlap_position) = ignore_regions
+                .windows(2)
+                .position(|w| w[1].0 < w[0].1 || f64::abs(w[0].1 - w[1].0) < 100.0 * f64::EPSILON)
+            {
+                let combined = (
+                    f64::min(
+                        ignore_regions[overlap_position].0,
+                        ignore_regions[overlap_position + 1].0,
+                    ),
+                    f64::max(
+                        ignore_regions[overlap_position].1,
+                        ignore_regions[overlap_position + 1].1,
+                    ),
+                );
+                ignore_regions.remove(overlap_position);
+                ignore_regions.remove(overlap_position);
+                ignore_regions.insert(overlap_position, combined);
+            }
+        } else {
+            self.ignore_regions = Some(vec![new]);
+        }
+
+        Ok(())
+    }
+
+    /// Clears the regions to ignore during deconvolution.
+    pub fn clear_ignore_regions(&mut self) {
+        self.ignore_regions = None;
+    }
+
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
         spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
@@ -245,7 +298,8 @@ impl Deconvoluter {
                     threshold,
                 } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum)?
+            let ignore_regions = self.ignore_region_indices(spectrum);
+            selector.select_peaks(spectrum, &ignore_regions)?
         };
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
@@ -256,7 +310,7 @@ impl Deconvoluter {
         lorentzians.retain(|lorentzian| {
             lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
         });
-        let mse = Self::compute_mse(
+        let mse = self.compute_mse(
             spectrum,
             Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
@@ -288,7 +342,8 @@ impl Deconvoluter {
                     scoring_algo,
                 } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
-            selector.select_peaks(spectrum)?
+            let ignore_regions = self.ignore_region_indices(spectrum);
+            selector.select_peaks(spectrum, &ignore_regions)?
         };
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
@@ -299,7 +354,7 @@ impl Deconvoluter {
         lorentzians.retain(|lorentzian| {
             lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
         });
-        let mse = Self::compute_mse(
+        let mse = self.compute_mse(
             spectrum,
             Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
         );
@@ -314,15 +369,112 @@ impl Deconvoluter {
     }
 
     /// Internal helper function to compute the MSE within the signal region.
-    fn compute_mse(spectrum: &Spectrum, superpositions: Vec<f64>) -> f64 {
-        let signal_boundaries = spectrum.signal_boundaries_indices();
-        let residuals = superpositions[signal_boundaries.0..signal_boundaries.1]
+    fn compute_mse(&self, spectrum: &Spectrum, superpositions: Vec<f64>) -> f64 {
+        let regions = match self.ignore_region_indices(spectrum) {
+            Some(ignore_regions) => {
+                let iter = std::iter::once(spectrum.signal_boundaries_indices().0)
+                    .chain(
+                        ignore_regions
+                            .iter()
+                            .flat_map(|(start, end)| vec![*start, *end]),
+                    )
+                    .chain(std::iter::once(spectrum.signal_boundaries_indices().1));
+
+                iter.clone()
+                    .step_by(2)
+                    .zip(iter.skip(1).step_by(2))
+                    .collect::<Vec<(usize, usize)>>()
+            }
+            None => vec![spectrum.signal_boundaries_indices()],
+        };
+        let residuals = regions
             .iter()
-            .zip(spectrum.intensities_raw()[signal_boundaries.0..signal_boundaries.1].iter())
-            .map(|(superposition, raw)| (superposition - raw).powi(2))
+            .map(|(start, end)| {
+                superpositions[*start..*end]
+                    .iter()
+                    .zip(spectrum.intensities_raw()[*start..*end].iter())
+                    .map(|(superposition, raw)| (superposition - raw).powi(2))
+                    .sum::<f64>()
+            })
             .sum::<f64>();
-        let length = signal_boundaries.1 - signal_boundaries.0;
+        let length = regions
+            .iter()
+            .map(|(start, end)| end - start)
+            .sum::<usize>();
 
         residuals / (length as f64)
+    }
+
+    fn ignore_region_indices(&self, spectrum: &Spectrum) -> Option<Vec<(usize, usize)>> {
+        if let Some(ignore_regions) = self.ignore_regions.as_ref() {
+            let step = spectrum.step();
+            let first = spectrum.chemical_shifts()[0];
+            let boundaries = spectrum.signal_boundaries_indices();
+            let (lower, upper) = (
+                usize::min(boundaries.0, boundaries.1),
+                usize::max(boundaries.0, boundaries.1),
+            );
+            let indices = ignore_regions
+                .iter()
+                .filter_map(|(start, end)| {
+                    let min = f64::min(*start, *end);
+                    let max = f64::max(*start, *end);
+                    let boundaries = (
+                        usize::max(((min - first) / step).floor() as usize, lower),
+                        usize::min(((max - first) / step).ceil() as usize, upper),
+                    );
+                    if boundaries.0 < boundaries.1 - 1 {
+                        Some(boundaries)
+                    } else {
+                        None
+                    }
+                })
+                .collect();
+
+            Some(indices)
+        } else {
+            None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn add_ignore_region() {
+        let mut deconvoluter = Deconvoluter::default();
+        deconvoluter
+            .add_ignore_region((1.0, 2.0))
+            .unwrap();
+        deconvoluter
+            .add_ignore_region((3.0, 4.0))
+            .unwrap();
+
+        assert!(deconvoluter.ignore_regions().is_some());
+        assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 2);
+
+        deconvoluter
+            .add_ignore_region((2.0, 3.0))
+            .unwrap();
+        assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 1);
+        assert_approx_eq!(f64, deconvoluter.ignore_regions().unwrap()[0].0, 1.0);
+        assert_approx_eq!(f64, deconvoluter.ignore_regions().unwrap()[0].1, 4.0);
+    }
+
+    #[test]
+    fn clear_ignore_regions() {
+        let mut deconvoluter = Deconvoluter::default();
+        deconvoluter
+            .add_ignore_region((1.0, 2.0))
+            .unwrap();
+        deconvoluter
+            .add_ignore_region((3.0, 4.0))
+            .unwrap();
+        deconvoluter.clear_ignore_regions();
+
+        assert!(deconvoluter.ignore_regions().is_none());
     }
 }

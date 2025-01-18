@@ -4,7 +4,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Deconvoluter {
     inner: deconvolution::Deconvoluter,
 }
@@ -27,7 +27,7 @@ impl Deconvoluter {
                 iterations,
                 window_size,
             }) {
-            Ok(_) => Ok(*self),
+            Ok(_) => Ok(self.clone()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -39,7 +39,7 @@ impl Deconvoluter {
                 scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
                 threshold,
             }) {
-            Ok(_) => Ok(*self),
+            Ok(_) => Ok(self.clone()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -49,9 +49,20 @@ impl Deconvoluter {
             .inner
             .set_fitting_algo(deconvolution::FittingAlgo::Analytical { iterations })
         {
-            Ok(_) => Ok(*self),
+            Ok(_) => Ok(self.clone()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
+    }
+
+    pub fn add_ignore_region(&mut self, new: (f64, f64)) -> PyResult<()> {
+        match self.inner.add_ignore_region(new) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
+    pub fn clear_ignore_regions(&mut self) {
+        self.inner.clear_ignore_regions();
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {

@@ -8,7 +8,11 @@ use crate::spectrum::Spectrum;
 /// Trait interface for peak selection algorithms.
 pub trait Selector {
     /// Detects peaks in a spectrum and returns the ones that pass a filter.
-    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>>;
+    fn select_peaks(
+        &self,
+        spectrum: &Spectrum,
+        ignore_regions: &Option<Vec<(usize, usize)>>,
+    ) -> Result<Vec<Peak>>;
 }
 
 /// Peak selection methods.

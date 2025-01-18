@@ -30,6 +30,9 @@ impl Selector for NoiseScoreFilter {
     /// score > mean + threshold * std_dev
     /// ```
     ///
+    /// Optionally, regions to be ignored can be provided. Peaks within these
+    /// regions are also filtered out.
+    ///
     /// # Errors
     ///
     /// The following errors are possible if the respective check fails:
@@ -42,13 +45,25 @@ impl Selector for NoiseScoreFilter {
     /// [`NoPeaksDetected`]: Kind::NoPeaksDetected
     /// [`EmptySignalRegion`]: Kind::EmptySignalRegion
     /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
-    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
+    fn select_peaks(
+        &self,
+        spectrum: &Spectrum,
+        ignore_regions: &Option<Vec<(usize, usize)>>,
+    ) -> Result<Vec<Peak>> {
         let signal_boundaries = spectrum.signal_boundaries_indices();
         let mut second_derivative = Self::second_derivative(spectrum.intensities());
-        let peaks = {
+        let mut peaks = {
             let detector = Detector::new(&second_derivative);
             detector.detect_peaks()?
         };
+        if let Some(ignore_regions) = ignore_regions {
+            peaks.retain(|peak| {
+                !ignore_regions.iter().any(|(start, end)| {
+                    (peak.left() >= *start && peak.left() < *end)
+                        || (peak.right() >= *start && peak.right() < *end)
+                })
+            });
+        }
         second_derivative
             .iter_mut()
             .for_each(|d| *d = d.abs());

@@ -63,6 +63,15 @@ pub enum Kind {
         /// The provided fitting settings.
         algo: FittingAlgo,
     },
+    /// The provided region to be ignored is invalid.
+    ///
+    /// The region must be a tuple of two finite floating point numbers, whose
+    /// absolute difference is greater than 100 times the floating point
+    /// precision.
+    InvalidIgnoreRegion {
+        /// The provided ignore region.
+        region: (f64, f64),
+    },
     /// No peaks were detected in the input data.
     ///
     /// Most of the time this will happen if the intensities of the [`Spectrum`]
@@ -120,6 +129,12 @@ impl core::fmt::Display for Error {
                     algo
                 ),
             },
+            InvalidIgnoreRegion { region } => format!(
+                "invalid ignore region: {:?} \
+                 the region must be a tuple of two finite floating point numbers \
+                 with a difference that is not near 0",
+                region
+            ),
             NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
             EmptySignalRegion => "no peaks found in the signal region of the spectrum".to_string(),
             EmptySignalFreeRegion => {
