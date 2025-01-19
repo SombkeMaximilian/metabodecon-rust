@@ -2,7 +2,7 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::{Deconvolution, Settings};
 use crate::error::Result;
 use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
-use crate::peak_selection::{NoiseScoreFilter, SelectionAlgo, Selector};
+use crate::peak_selection::{NoiseScoreFilter, Peak, SelectionAlgo, Selector};
 use crate::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::spectrum::Spectrum;
 
@@ -283,28 +283,7 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        let peaks = {
-            let mut smoother = match self.smoothing_algo {
-                SmoothingAlgo::MovingAverage {
-                    iterations,
-                    window_size,
-                } => MovingAverage::new(iterations, window_size),
-            };
-            let mut intensities = spectrum.intensities().to_vec();
-            smoother.smooth_values(&mut intensities);
-            let selector = match self.selection_algo {
-                SelectionAlgo::NoiseScoreFilter {
-                    scoring_algo,
-                    threshold,
-                } => NoiseScoreFilter::new(scoring_algo, threshold),
-            };
-            let ignore_regions = self.ignore_region_indices(spectrum);
-            selector.select_peaks(
-                &intensities,
-                spectrum.signal_boundaries_indices(),
-                &ignore_regions,
-            )?
-        };
+        let peaks = self.select_peaks(spectrum)?;
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
                 FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
@@ -331,28 +310,7 @@ impl Deconvoluter {
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        let peaks = {
-            let mut smoother = match self.smoothing_algo {
-                SmoothingAlgo::MovingAverage {
-                    iterations,
-                    window_size,
-                } => MovingAverage::new(iterations, window_size),
-            };
-            let mut intensities = spectrum.intensities().to_vec();
-            smoother.smooth_values(&mut intensities);
-            let selector = match self.selection_algo {
-                SelectionAlgo::NoiseScoreFilter {
-                    threshold,
-                    scoring_algo,
-                } => NoiseScoreFilter::new(scoring_algo, threshold),
-            };
-            let ignore_regions = self.ignore_region_indices(spectrum);
-            selector.select_peaks(
-                &intensities,
-                spectrum.signal_boundaries_indices(),
-                &ignore_regions,
-            )?
-        };
+        let peaks = self.select_peaks(spectrum)?;
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
                 FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
@@ -374,6 +332,32 @@ impl Deconvoluter {
             self.fitting_algo,
             mse,
         ))
+    }
+
+    /// Internal helper function to perform the peak selection step.
+    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
+        let mut smoother = match self.smoothing_algo {
+            SmoothingAlgo::MovingAverage {
+                iterations,
+                window_size,
+            } => MovingAverage::new(iterations, window_size),
+        };
+        let mut intensities = spectrum.intensities().to_vec();
+        smoother.smooth_values(&mut intensities);
+        let selector = match self.selection_algo {
+            SelectionAlgo::NoiseScoreFilter {
+                scoring_algo,
+                threshold,
+            } => NoiseScoreFilter::new(scoring_algo, threshold),
+        };
+        let ignore_regions = self.ignore_region_indices(spectrum);
+        let peaks = selector.select_peaks(
+            &intensities,
+            spectrum.signal_boundaries_indices(),
+            &ignore_regions,
+        )?;
+
+        Ok(peaks)
     }
 
     /// Internal helper function to compute the MSE within the signal region.
@@ -413,6 +397,7 @@ impl Deconvoluter {
         residuals / (length as f64)
     }
 
+    /// Internal helper function to convert the ignore regions to indices.
     fn ignore_region_indices(&self, spectrum: &Spectrum) -> Option<Vec<(usize, usize)>> {
         if let Some(ignore_regions) = self.ignore_regions.as_ref() {
             let step = spectrum.step();
