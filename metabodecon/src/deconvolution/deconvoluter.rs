@@ -282,7 +282,7 @@ impl Deconvoluter {
     }
 
     /// Deconvolutes the provided spectrum into individual signals.
-    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
+    pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
@@ -309,7 +309,7 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
-    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
+    pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;
         let mut lorentzians = {
             let fitter = match self.fitting_algo {

@@ -10,8 +10,8 @@ pub struct Spectrum {
 }
 
 impl Spectrum {
-    pub fn inner_mut(&mut self) -> &mut spectrum::Spectrum {
-        &mut self.inner
+    pub fn inner(&self) -> &spectrum::Spectrum {
+        &self.inner
     }
 }
 

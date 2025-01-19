@@ -65,20 +65,20 @@ impl Deconvoluter {
         self.inner.clear_ignore_regions();
     }
 
-    pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
+    pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
         match self
             .inner
-            .deconvolute_spectrum(spectrum.inner_mut())
+            .deconvolute_spectrum(spectrum.inner())
         {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
 
-    pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> PyResult<Deconvolution> {
+    pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
         match self
             .inner
-            .par_deconvolute_spectrum(spectrum.inner_mut())
+            .par_deconvolute_spectrum(spectrum.inner())
         {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
