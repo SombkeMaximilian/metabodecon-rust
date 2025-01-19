@@ -20,7 +20,7 @@ def main():
     print(f"Parallel {(t2 - t1) * 1000:.3f}ms")
 
     x = blood.chemical_shifts
-    y1 = blood.intensities_raw
+    y1 = blood.intensities
     y2 = deconvolution.par_superposition_vec(blood.chemical_shifts)
     s = blood.signal_boundaries
     w = water_boundaries

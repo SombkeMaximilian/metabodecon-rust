@@ -92,11 +92,6 @@ impl Spectrum {
     }
 
     #[getter]
-    pub fn intensities_raw<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
-        PyArray1::from_slice(py, self.inner.intensities_raw())
-    }
-
-    #[getter]
     pub fn signal_boundaries(&self) -> (f64, f64) {
         self.inner.signal_boundaries()
     }
@@ -116,24 +111,10 @@ impl Spectrum {
     }
 
     #[setter]
-    pub fn set_intensities(&mut self, intensities: PyReadonlyArray1<'_, f64>) -> PyResult<()> {
+    pub fn set_intensities(&mut self, intensities_raw: PyReadonlyArray1<'_, f64>) -> PyResult<()> {
         match self
             .inner
-            .set_intensities(intensities.as_slice()?.to_vec())
-        {
-            Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
-    #[setter]
-    pub fn set_intensities_raw(
-        &mut self,
-        intensities_raw: PyReadonlyArray1<'_, f64>,
-    ) -> PyResult<()> {
-        match self
-            .inner
-            .set_intensities_raw(intensities_raw.as_slice()?.to_vec())
+            .set_intensities(intensities_raw.as_slice()?.to_vec())
         {
             Ok(_) => Ok(()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),

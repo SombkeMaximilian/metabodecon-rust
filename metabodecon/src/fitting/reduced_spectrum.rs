@@ -29,7 +29,7 @@ impl ReducedSpectrum {
             .flat_map(|peak| {
                 vec![
                     spectrum.intensities()[peak.left()],
-                    spectrum.intensities_raw()[peak.center()],
+                    spectrum.intensities()[peak.center()],
                     spectrum.intensities()[peak.right()],
                 ]
             })
@@ -59,15 +59,12 @@ mod tests {
 
     #[test]
     fn new() {
-        let mut spectrum = Spectrum::new(
+        let spectrum = Spectrum::new(
             (0..10).map(|x| 1.0 + x as f64).collect(),
             (0..10).map(|x| 10.0 - x as f64).collect(),
             (2.0, 9.0),
         )
         .unwrap();
-        spectrum
-            .set_intensities(spectrum.intensities_raw().to_vec())
-            .unwrap();
         let peaks = vec![Peak::new(2, 3, 4), Peak::new(4, 5, 6), Peak::new(6, 7, 8)];
         let reduced_spectrum = ReducedSpectrum::new(&spectrum, &peaks);
         let expected_chemical_shifts = [3.0, 4.0, 5.0, 5.0, 6.0, 7.0, 7.0, 8.0, 9.0];

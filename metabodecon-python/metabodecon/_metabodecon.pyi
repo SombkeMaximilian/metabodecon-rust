@@ -74,7 +74,6 @@ class Lorentzian:
 class Spectrum:
     chemical_shifts: np.ndarray
     intensities: np.ndarray
-    intensities_raw: np.ndarray
     signal_boundaries: tuple[float, float]
 
     def __init__(self, chemical_shifts: np.ndarray, intensities: np.ndarray,

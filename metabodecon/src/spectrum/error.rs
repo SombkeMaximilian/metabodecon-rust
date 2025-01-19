@@ -57,7 +57,7 @@ pub enum Kind {
     /// The input data lengths are mismatched.
     ///
     /// The length of a [`Spectrum`] is not intended to be changed after it is
-    /// constructed. A mismatch in the lengths of the chemical shifts and raw
+    /// constructed. A mismatch in the lengths of the chemical shifts and
     /// intensities vectors would create an inconsistent [`Spectrum`].
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum

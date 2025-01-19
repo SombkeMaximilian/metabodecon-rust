@@ -4,7 +4,6 @@ use crate::peak_selection::detector::Detector;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringAlgo};
 use crate::peak_selection::selector::Selector;
-use crate::spectrum::Spectrum;
 
 /// Peak selection algorithm based on the score of peaks found in the signal
 /// free region.
@@ -47,11 +46,11 @@ impl Selector for NoiseScoreFilter {
     /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
     fn select_peaks(
         &self,
-        spectrum: &Spectrum,
+        intensities: &[f64],
+        signal_boundaries: (usize, usize),
         ignore_regions: &Option<Vec<(usize, usize)>>,
     ) -> Result<Vec<Peak>> {
-        let signal_boundaries = spectrum.signal_boundaries_indices();
-        let mut second_derivative = Self::second_derivative(spectrum.intensities());
+        let mut second_derivative = Self::second_derivative(intensities);
         let mut peaks = {
             let detector = Detector::new(&second_derivative);
             detector.detect_peaks()?

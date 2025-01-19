@@ -26,9 +26,9 @@ impl PeakStencilData {
             left_chemical_shift: spectrum.chemical_shifts()[peak.left()],
             center_chemical_shift: spectrum.chemical_shifts()[peak.center()],
             right_chemical_shift: spectrum.chemical_shifts()[peak.right()],
-            left_intensity: spectrum.intensities_raw()[peak.left()],
-            center_intensity: spectrum.intensities_raw()[peak.center()],
-            right_intensity: spectrum.intensities_raw()[peak.right()],
+            left_intensity: spectrum.intensities()[peak.left()],
+            center_intensity: spectrum.intensities()[peak.center()],
+            right_intensity: spectrum.intensities()[peak.right()],
         }
     }
 

@@ -11,7 +11,7 @@ use crate::spectrum::Spectrum;
 ///
 /// The output of the pipeline is a [`Deconvolution`] struct containing the
 /// deconvoluted signals, the deconvolution settings, and the [MSE] between the
-/// superposition of signals and the raw intensities within the signal region.
+/// superposition of signals and the intensities within the signal region.
 ///
 /// [MSE]: https://en.wikipedia.org/wiki/Mean_squared_error
 ///
@@ -283,15 +283,15 @@ impl Deconvoluter {
 
     /// Deconvolutes the provided spectrum into individual signals.
     pub fn deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
-        let mut smoother = match self.smoothing_algo {
-            SmoothingAlgo::MovingAverage {
-                iterations,
-                window_size,
-            } => MovingAverage::new(iterations, window_size),
-        };
-        smoother.smooth_values(spectrum.intensities_mut());
         let peaks = {
+            let mut smoother = match self.smoothing_algo {
+                SmoothingAlgo::MovingAverage {
+                    iterations,
+                    window_size,
+                } => MovingAverage::new(iterations, window_size),
+            };
+            let mut intensities = spectrum.intensities().to_vec();
+            smoother.smooth_values(&mut intensities);
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
                     scoring_algo,
@@ -299,7 +299,11 @@ impl Deconvoluter {
                 } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
             let ignore_regions = self.ignore_region_indices(spectrum);
-            selector.select_peaks(spectrum, &ignore_regions)?
+            selector.select_peaks(
+                &intensities,
+                spectrum.signal_boundaries_indices(),
+                &ignore_regions,
+            )?
         };
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
@@ -327,15 +331,15 @@ impl Deconvoluter {
     /// Deconvolutes the provided spectrum into individual signals in parallel.
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &mut Spectrum) -> Result<Deconvolution> {
-        spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
-        let mut smoother = match self.smoothing_algo {
-            SmoothingAlgo::MovingAverage {
-                iterations,
-                window_size,
-            } => MovingAverage::new(iterations, window_size),
-        };
-        smoother.smooth_values(spectrum.intensities_mut());
         let peaks = {
+            let mut smoother = match self.smoothing_algo {
+                SmoothingAlgo::MovingAverage {
+                    iterations,
+                    window_size,
+                } => MovingAverage::new(iterations, window_size),
+            };
+            let mut intensities = spectrum.intensities().to_vec();
+            smoother.smooth_values(&mut intensities);
             let selector = match self.selection_algo {
                 SelectionAlgo::NoiseScoreFilter {
                     threshold,
@@ -343,7 +347,11 @@ impl Deconvoluter {
                 } => NoiseScoreFilter::new(scoring_algo, threshold),
             };
             let ignore_regions = self.ignore_region_indices(spectrum);
-            selector.select_peaks(spectrum, &ignore_regions)?
+            selector.select_peaks(
+                &intensities,
+                spectrum.signal_boundaries_indices(),
+                &ignore_regions,
+            )?
         };
         let mut lorentzians = {
             let fitter = match self.fitting_algo {
@@ -392,8 +400,8 @@ impl Deconvoluter {
             .map(|(start, end)| {
                 superpositions[*start..*end]
                     .iter()
-                    .zip(spectrum.intensities_raw()[*start..*end].iter())
-                    .map(|(superposition, raw)| (superposition - raw).powi(2))
+                    .zip(spectrum.intensities()[*start..*end].iter())
+                    .map(|(superposition, intensity)| (superposition - intensity).powi(2))
                     .sum::<f64>()
             })
             .sum::<f64>();

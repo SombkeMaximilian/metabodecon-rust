@@ -17,7 +17,7 @@ pub enum Monotonicity {
 }
 
 impl Monotonicity {
-    /// Helper function to determine the `Monotonicity` of 2 floating point
+    /// Helper function to determine the `Monotonicity` from 2 floating point
     /// numbers.
     ///
     /// Checks for the ordering of two floating point numbers and returns the
@@ -40,10 +40,9 @@ impl Monotonicity {
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
-/// `Spectrum` is a container that holds the chemical shifts, raw intensities,
-/// preprocessed intensities and metadata of a 1D NMR spectrum. Preprocessed
-/// intensities are empty when the `Spectrum` is created. 1D NMR spectra
-/// typically contain signal free regions on both ends of the frequency range.
+/// `Spectrum` is a container that holds the chemical shifts, signal
+/// intensities, and metadata of a 1D NMR spectrum. 1D NMR spectra typically
+/// contain signal free regions on both ends of the frequency range.
 ///
 /// # Example: Constructing a `Spectrum` manually
 ///
@@ -81,10 +80,8 @@ impl Monotonicity {
 pub struct Spectrum {
     /// The chemical shifts in ppm.
     chemical_shifts: Box<[f64]>,
-    /// The preprocessed intensities in arbitrary units.
+    /// The intensities in arbitrary units.
     intensities: Box<[f64]>,
-    /// The raw intensities in arbitrary units.
-    intensities_raw: Box<[f64]>,
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
     /// The monotonicity of the data. Used internally for validation.
@@ -178,8 +175,7 @@ impl Spectrum {
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
-            intensities: Box::new([]),
-            intensities_raw: intensities.into_boxed_slice(),
+            intensities: intensities.into_boxed_slice(),
             signal_boundaries,
             monotonicity,
         })
@@ -211,72 +207,6 @@ impl Spectrum {
         &self.chemical_shifts
     }
 
-    /// Returns the preprocessed intensities of the `Spectrum` as a slice.
-    ///
-    /// This field is empty when the `Spectrum` is created and gets populated
-    /// after applying the [`deconvolution`] algorithm.
-    ///
-    /// [`deconvolution`]: crate::deconvolution
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum =
-    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
-    ///
-    /// assert!(spectrum.intensities().is_empty());
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn intensities(&self) -> &[f64] {
-        &self.intensities
-    }
-
-    /// Returns the preprocessed intensities of the `Spectrum` as a mutable
-    /// slice.
-    ///
-    /// This field is empty when the `Spectrum` is created and gets populated
-    /// after applying the [`deconvolution`] algorithm. This method can be used
-    /// to perform preprocessing steps manually.
-    ///
-    /// [`deconvolution`]: crate::deconvolution
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
-    /// let mut spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0], // Raw intensities
-    ///     (1.0, 3.0),
-    /// )?;
-    ///
-    /// // Populate the preprocessed intensities with the raw intensities.
-    /// assert!(spectrum.intensities().is_empty());
-    /// spectrum.set_intensities(spectrum.intensities_raw().to_vec())?;
-    /// assert_eq!(spectrum.intensities().len(), 3);
-    ///
-    /// // Scale the intensities by a factor of 10.
-    /// spectrum
-    ///     .intensities_mut()
-    ///     .iter_mut()
-    ///     .for_each(|y| *y *= 10.0);
-    /// assert_eq!(spectrum.intensities().len(), 3);
-    /// assert_eq!(spectrum.intensities()[0], 10.0);
-    /// assert_eq!(spectrum.intensities()[1], 20.0);
-    /// assert_eq!(spectrum.intensities()[2], 30.0);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn intensities_mut(&mut self) -> &mut [f64] {
-        &mut self.intensities
-    }
-
     /// Returns the raw intensities of the `Spectrum` as a slice.
     ///
     /// # Example
@@ -288,19 +218,19 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0], // Raw intensities
+    ///     vec![1.0, 2.0, 3.0], // Intensities
     ///     (1.0, 3.0),
     /// )?;
     ///
-    /// assert_eq!(spectrum.intensities_raw().len(), 3);
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[0], 1.0);
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[1], 2.0);
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[2], 3.0);
+    /// assert_eq!(spectrum.intensities().len(), 3);
+    /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[1], 2.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[2], 3.0);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn intensities_raw(&self) -> &[f64] {
-        &self.intensities_raw
+    pub fn intensities(&self) -> &[f64] {
+        &self.intensities
     }
 
     /// Returns the signal region boundaries of the `Spectrum` as a tuple.
@@ -377,7 +307,7 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) -> Result<()> {
-        Self::validate_lengths(&chemical_shifts, self.intensities_raw())?;
+        Self::validate_lengths(&chemical_shifts, self.intensities())?;
         Self::validate_spacing(&chemical_shifts)?;
         Self::validate_monotonicity(&chemical_shifts, self.signal_boundaries)?;
         Self::validate_boundaries(self.monotonicity, &chemical_shifts, self.signal_boundaries)?;
@@ -386,10 +316,7 @@ impl Spectrum {
         Ok(())
     }
 
-    /// Sets the preprocessed intensities of the `Spectrum`.
-    ///
-    /// This can be used to set the intensities after applying preprocessing
-    /// steps yourself. Generally not recommended.
+    /// Sets the intensities of the `Spectrum`.
     ///
     /// # Errors
     ///
@@ -403,55 +330,23 @@ impl Spectrum {
     /// use metabodecon::spectrum::Spectrum;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let mut spectrum =
-    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
-    /// spectrum.set_intensities(vec![1.5, 2.0, 2.5])?;
-    ///
-    /// assert_approx_eq!(f64, spectrum.intensities()[0], 1.5);
-    /// assert_approx_eq!(f64, spectrum.intensities()[1], 2.0);
-    /// assert_approx_eq!(f64, spectrum.intensities()[2], 2.5);
-    /// # Ok(())
-    /// # }
-    /// ```
-    pub fn set_intensities(&mut self, intensities: Vec<f64>) -> Result<()> {
-        Self::validate_lengths(self.chemical_shifts(), &intensities)?;
-        Self::validate_intensities(&intensities)?;
-        self.intensities = intensities.into_boxed_slice();
-
-        Ok(())
-    }
-
-    /// Sets the raw intensities of the `Spectrum`.
-    ///
-    /// # Errors
-    ///
-    /// Performs the same checks as [`Spectrum::new`] on the raw intensities,
-    /// using the chemical shifts of the `Spectrum`.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use float_cmp::assert_approx_eq;
-    /// use metabodecon::spectrum::Spectrum;
-    ///
-    /// # fn main() -> metabodecon::Result<()> {
     /// let mut spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0], // Raw intensities
+    ///     vec![1.0, 2.0, 3.0], // Intensities
     ///     (1.0, 3.0),
     /// )?;
-    /// spectrum.set_intensities_raw(vec![10.0, 20.0, 30.0])?;
+    /// spectrum.set_intensities(vec![10.0, 20.0, 30.0])?;
     ///
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[0], 10.0);
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[1], 20.0);
-    /// assert_approx_eq!(f64, spectrum.intensities_raw()[2], 30.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[0], 10.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[1], 20.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[2], 30.0);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_intensities_raw(&mut self, intensities_raw: Vec<f64>) -> Result<()> {
+    pub fn set_intensities(&mut self, intensities_raw: Vec<f64>) -> Result<()> {
         Self::validate_lengths(self.chemical_shifts(), &intensities_raw)?;
         Self::validate_intensities(&intensities_raw)?;
-        self.intensities_raw = intensities_raw.into_boxed_slice();
+        self.intensities = intensities_raw.into_boxed_slice();
 
         Ok(())
     }
@@ -933,7 +828,8 @@ mod tests {
             .iter()
             .zip([1.0, 2.0, 3.0])
             .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
-        assert_eq!(spectrum.intensities().len(), 0);
+        assert_eq!(spectrum.chemical_shifts().len(), 3);
+        assert_eq!(spectrum.intensities().len(), 3);
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.0);
     }
@@ -946,22 +842,10 @@ mod tests {
             .set_chemical_shifts(vec![0.0, 2.0, 4.0])
             .unwrap();
         spectrum
-            .set_intensities_raw(vec![0.0, 2.0, 4.0])
-            .unwrap();
-        spectrum
-            .set_intensities(vec![1.0, 2.0, 3.0])
+            .set_intensities(vec![0.0, 2.0, 4.0])
             .unwrap();
         spectrum
             .set_signal_boundaries((0.5, 3.5))
-            .unwrap();
-        spectrum
-            .set_intensities(
-                spectrum
-                    .intensities()
-                    .iter()
-                    .map(|intensity| -intensity)
-                    .collect(),
-            )
             .unwrap();
         spectrum
             .chemical_shifts()
@@ -969,14 +853,9 @@ mod tests {
             .zip([0.0, 2.0, 4.0])
             .for_each(|(&xc, xe)| assert_approx_eq!(f64, xc, xe));
         spectrum
-            .intensities_raw()
-            .iter()
-            .zip([0.0, 2.0, 4.0])
-            .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
-        spectrum
             .intensities()
             .iter()
-            .zip([-1.0, -2.0, -3.0])
+            .zip([0.0, 2.0, 4.0])
             .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 0.5);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.5);
@@ -984,15 +863,12 @@ mod tests {
 
     #[test]
     fn properties() {
-        let mut spectrum = Spectrum::new(
+        let spectrum = Spectrum::new(
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             vec![1.0, 2.0, 3.0, 4.0, 5.0],
             (1.5, 4.5),
         )
         .unwrap();
-        spectrum
-            .set_intensities(vec![1.0, 2.0, 3.0, 4.0, 5.0])
-            .unwrap();
         assert_approx_eq!(f64, spectrum.step(), 1.0);
         assert_approx_eq!(f64, spectrum.width(), 4.0);
         assert_approx_eq!(f64, spectrum.range().0, 1.0);

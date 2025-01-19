@@ -3,14 +3,14 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
-use crate::spectrum::Spectrum;
 
 /// Trait interface for peak selection algorithms.
 pub trait Selector {
     /// Detects peaks in a spectrum and returns the ones that pass a filter.
     fn select_peaks(
         &self,
-        spectrum: &Spectrum,
+        intensities: &[f64],
+        signal_boundaries: (usize, usize),
         ignore_regions: &Option<Vec<(usize, usize)>>,
     ) -> Result<Vec<Peak>>;
 }

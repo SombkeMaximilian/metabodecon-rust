@@ -33,8 +33,7 @@ macro_rules! extract_capture {
 macro_rules! check_sim_spectrum {
     ($spectrum:expr) => {
         assert_eq!($spectrum.chemical_shifts().len(), 2048);
-        assert_eq!($spectrum.intensities_raw().len(), 2048);
-        assert!($spectrum.intensities().is_empty());
+        assert_eq!($spectrum.intensities().len(), 2048);
         assert_approx_eq!(
             f64,
             $spectrum.signal_boundaries().0,
