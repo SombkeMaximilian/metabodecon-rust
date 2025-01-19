@@ -3,7 +3,7 @@ use crate::spectrum::Spectrum;
 
 /// Data structure to store the data for approximating a peak with a Lorentzian.
 #[derive(Debug)]
-pub struct PeakStencilData {
+pub(crate) struct PeakStencilData {
     /// Left chemical shift data point in ppm.
     left_chemical_shift: f64,
     /// Center chemical shift data point in ppm.
@@ -21,7 +21,7 @@ pub struct PeakStencilData {
 impl PeakStencilData {
     /// Extracts the chemical shifts and intensities of the peak from the
     /// spectrum and constructs `PeakStencilData` from them.
-    pub fn new(spectrum: &Spectrum, peak: &Peak) -> Self {
+    pub(crate) fn new(spectrum: &Spectrum, peak: &Peak) -> Self {
         Self {
             left_chemical_shift: spectrum.chemical_shifts()[peak.left()],
             center_chemical_shift: spectrum.chemical_shifts()[peak.center()],
@@ -35,7 +35,7 @@ impl PeakStencilData {
     /// Internal helper function to create a `PeakStencilData` from the given
     /// data for testing purposes.
     #[cfg(test)]
-    pub fn from_data(
+    pub(crate) fn from_data(
         left_chemical_shift: f64,
         center_chemical_shift: f64,
         right_chemical_shift: f64,
@@ -54,47 +54,47 @@ impl PeakStencilData {
     }
 
     /// Returns the left chemical shift value.
-    pub fn x_1(&self) -> f64 {
+    pub(crate) fn x_1(&self) -> f64 {
         self.left_chemical_shift
     }
 
     /// Returns the center chemical shift value.
-    pub fn x_2(&self) -> f64 {
+    pub(crate) fn x_2(&self) -> f64 {
         self.center_chemical_shift
     }
 
     /// Returns the right chemical shift value.
-    pub fn x_3(&self) -> f64 {
+    pub(crate) fn x_3(&self) -> f64 {
         self.right_chemical_shift
     }
 
     /// Returns the left intensity value.
-    pub fn y_1(&self) -> f64 {
+    pub(crate) fn y_1(&self) -> f64 {
         self.left_intensity
     }
 
     /// Returns the center intensity value.
-    pub fn y_2(&self) -> f64 {
+    pub(crate) fn y_2(&self) -> f64 {
         self.center_intensity
     }
 
     /// Returns the right intensity value.
-    pub fn y_3(&self) -> f64 {
+    pub(crate) fn y_3(&self) -> f64 {
         self.right_intensity
     }
 
     /// Sets the left intensity value.
-    pub fn set_y_1(&mut self, y_1: f64) {
+    pub(crate) fn set_y_1(&mut self, y_1: f64) {
         self.left_intensity = y_1;
     }
 
     /// Sets the center intensity value.
-    pub fn set_y_2(&mut self, y_2: f64) {
+    pub(crate) fn set_y_2(&mut self, y_2: f64) {
         self.center_intensity = y_2;
     }
 
     /// Sets the right intensity value.
-    pub fn set_y_3(&mut self, y_3: f64) {
+    pub(crate) fn set_y_3(&mut self, y_3: f64) {
         self.right_intensity = y_3;
     }
 
@@ -107,7 +107,7 @@ impl PeakStencilData {
     /// mirrors the data point for which the intensity is lower than the center
     /// data point onto the other side. This is done to ensure that the 3-point
     /// stencil is working with data that has a peak-like shape.
-    pub fn mirror_shoulder(&mut self) {
+    pub(crate) fn mirror_shoulder(&mut self) {
         let increasing = self.left_intensity <= self.center_intensity
             && self.center_intensity <= self.right_intensity;
         let decreasing = self.left_intensity >= self.center_intensity

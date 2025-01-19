@@ -8,7 +8,7 @@ use rayon::prelude::*;
 /// Fitting algorithm based on the analytical solution of a system of equations
 /// using a 3-point peak stencil.
 #[derive(Debug)]
-pub struct FitterAnalytical {
+pub(crate) struct FitterAnalytical {
     /// The number of iterations to refine the Lorentzian parameters.
     iterations: usize,
 }
@@ -125,7 +125,7 @@ impl Fitter for FitterAnalytical {
 
 impl FitterAnalytical {
     /// Constructs a new `FitterAnalytical` with the given number of iterations.
-    pub fn new(iterations: usize) -> Self {
+    pub(crate) fn new(iterations: usize) -> Self {
         Self { iterations }
     }
 

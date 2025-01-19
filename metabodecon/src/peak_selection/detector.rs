@@ -79,14 +79,14 @@ use crate::peak_selection::peak::Peak;
 /// | Step 4                   |    | -  | x  | -  |    |    |   |
 /// | Step 5                   | -  | x  | -  |    |    |    |   |
 #[derive(Debug)]
-pub struct Detector<'a> {
+pub(crate) struct Detector<'a> {
     /// The second derivative of the signal.
     second_derivative: &'a [f64],
 }
 
 impl<'a> Detector<'a> {
     /// Creates a new `Detector` with the given second derivative.
-    pub fn new(second_derivative: &'a [f64]) -> Self {
+    pub(crate) fn new(second_derivative: &'a [f64]) -> Self {
         Detector { second_derivative }
     }
 
@@ -96,7 +96,7 @@ impl<'a> Detector<'a> {
     ///
     /// The following errors are possible:
     /// - [`NoPeaksDetected`](Kind::NoPeaksDetected)
-    pub fn detect_peaks(&self) -> Result<Vec<Peak>> {
+    pub(crate) fn detect_peaks(&self) -> Result<Vec<Peak>> {
         let peak_centers = self.find_peak_centers();
         let peak_borders = self.find_peak_borders(&peak_centers);
         let peaks: Vec<Peak> = peak_centers

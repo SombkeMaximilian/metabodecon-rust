@@ -1,7 +1,7 @@
 use crate::peak_selection::peak::Peak;
 
 /// Trait interface for peak scoring algorithms.
-pub trait Scorer {
+pub(crate) trait Scorer {
     /// Scores the given peak.
     fn score_peak(&self, peak: &Peak) -> f64;
 }
@@ -21,7 +21,7 @@ pub enum ScoringAlgo {
 
 /// Peak scoring algorithm based on the sum of second derivative values.
 #[derive(Debug)]
-pub struct ScorerMinimumSum<'a> {
+pub(crate) struct ScorerMinimumSum<'a> {
     /// The absolute second derivative of the signal as a reference.
     abs_second_derivative: &'a [f64],
 }
@@ -45,7 +45,7 @@ impl Scorer for ScorerMinimumSum<'_> {
 impl<'a> ScorerMinimumSum<'a> {
     /// Creates a new `ScorerMinimumSum` with the given absolute second
     /// derivative.
-    pub fn new(abs_second_derivative: &'a [f64]) -> Self {
+    pub(crate) fn new(abs_second_derivative: &'a [f64]) -> Self {
         ScorerMinimumSum {
             abs_second_derivative,
         }

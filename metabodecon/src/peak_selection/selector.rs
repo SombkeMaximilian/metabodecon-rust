@@ -5,7 +5,7 @@ use crate::peak_selection::peak::Peak;
 use crate::peak_selection::scorer::ScoringAlgo;
 
 /// Trait interface for peak selection algorithms.
-pub trait Selector {
+pub(crate) trait Selector {
     /// Detects peaks in a spectrum and returns the ones that pass a filter.
     fn select_peaks(
         &self,

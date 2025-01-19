@@ -2,6 +2,7 @@ use metabodecon::deconvolution::Deconvolution;
 use std::io::Write;
 
 #[cfg(test)]
+#[allow(unreachable_pub)]
 pub fn store_deconvolution(deconvolution: Deconvolution, filename: &str) {
     let tmp_path = env!("CARGO_TARGET_TMPDIR");
     let deconvolutions = format!("{}/test-deconvolutions", tmp_path);

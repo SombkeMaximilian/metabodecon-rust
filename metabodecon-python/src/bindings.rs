@@ -3,7 +3,7 @@ mod deconvolution;
 mod lorentzian;
 mod spectrum;
 
-pub use deconvoluter::Deconvoluter;
-pub use deconvolution::Deconvolution;
-pub use lorentzian::Lorentzian;
-pub use spectrum::Spectrum;
+pub(crate) use deconvoluter::Deconvoluter;
+pub(crate) use deconvolution::Deconvolution;
+pub(crate) use lorentzian::Lorentzian;
+pub(crate) use spectrum::Spectrum;

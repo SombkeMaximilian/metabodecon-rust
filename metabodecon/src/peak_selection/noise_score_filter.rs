@@ -8,7 +8,7 @@ use crate::peak_selection::selector::Selector;
 /// Peak selection algorithm based on the score of peaks found in the signal
 /// free region.
 #[derive(Debug)]
-pub struct NoiseScoreFilter {
+pub(crate) struct NoiseScoreFilter {
     /// The scoring method to use.
     scoring_algo: ScoringAlgo,
     /// The threshold for filtering peaks.
@@ -68,7 +68,7 @@ impl Selector for NoiseScoreFilter {
 impl NoiseScoreFilter {
     /// Constructs a new `NoiseScoreFilter` with the given scoring algorithm and
     /// threshold.
-    pub fn new(scoring_algo: ScoringAlgo, threshold: f64) -> Self {
+    pub(crate) fn new(scoring_algo: ScoringAlgo, threshold: f64) -> Self {
         Self {
             scoring_algo,
             threshold,

@@ -24,7 +24,7 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 /// | Step 6 |     |     |     | -   | -   | x   | -   |
 /// | Step 7 |     |     |     |     | -   | -   | x   |
 #[derive(Debug)]
-pub struct MovingAverage<Type> {
+pub(crate) struct MovingAverage<Type> {
     /// The buffer used to store the values in the window.
     buffer: CircularBuffer<Type>,
     /// The cached sum of the values in the window.
@@ -91,7 +91,7 @@ where
     /// # Panics
     ///
     /// Panics if the window size is zero.
-    pub fn new(iterations: usize, window_size: usize) -> Self {
+    pub(crate) fn new(iterations: usize, window_size: usize) -> Self {
         Self {
             buffer: CircularBuffer::new(window_size),
             sum: Type::zero(),

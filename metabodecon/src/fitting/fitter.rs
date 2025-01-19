@@ -5,7 +5,7 @@ use crate::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
 /// Trait interface for fitting algorithms.
-pub trait Fitter {
+pub(crate) trait Fitter {
     /// Fits Lorentzian functions to a spectrum using the given peaks.
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian>;
 

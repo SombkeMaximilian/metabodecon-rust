@@ -17,6 +17,7 @@ lto = true
 [workspace.lints.rust]
 unknown_lints = "allow"
 unused_imports = "warn"
+unreachable_pub = "warn"
 2018_idioms = "warn"
 
 [workspace.lints.clippy]

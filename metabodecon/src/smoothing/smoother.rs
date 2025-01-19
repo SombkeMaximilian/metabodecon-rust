@@ -3,7 +3,7 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 
 /// Trait interface for smoothing algorithms.
-pub trait Smoother<Type> {
+pub(crate) trait Smoother<Type> {
     /// Smooths the given sequence of values in place.
     fn smooth_values(&mut self, values: &mut [Type]);
 }
