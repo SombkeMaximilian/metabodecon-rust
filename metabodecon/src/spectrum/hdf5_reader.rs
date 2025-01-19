@@ -84,24 +84,22 @@ impl Hdf5Reader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The chemical shifts and intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match.
+    /// - All chemical shift values are finite and uniformly spaced.
+    /// - All intensity values are finite.
+    /// - The chemical shifts and signal boundaries are sorted in the same
+    ///   order.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
     ///
-    /// Internally uses [`Spectrum::new`] to create the spectrum, which
-    /// validates the data itself and returns a [`Error::Spectrum`] if any of
-    /// the checks fail. This error type contains a [`spectrum::error::Error`],
-    /// which can be matched against the [`spectrum::error::Kind`] enum to
-    /// handle the specific error.
-    ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    /// [`spectrum::error::Error`]: crate::spectrum::error::Error
-    /// [`spectrum::error::Kind`]: crate::spectrum::error::Kind
-    ///
-    /// ## HDF5 Error
-    ///
-    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
+    /// Additionally, if any errors from the [hdf5 crate] occur, an error
+    /// variant containing the original error is returned.
     ///
     /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
-    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
     ///
     /// # Example
     ///
@@ -151,24 +149,22 @@ impl Hdf5Reader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The chemical shifts and intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match.
+    /// - All chemical shift values are finite and uniformly spaced.
+    /// - All intensity values are finite.
+    /// - The chemical shifts and signal boundaries are sorted in the same
+    ///   order.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
     ///
-    /// Internally uses [`Spectrum::new`] to create the spectra, which
-    /// validates the data itself and returns a [`Error::Spectrum`] if any of
-    /// the checks fail. This error type contains a [`spectrum::error::Error`],
-    /// which can be matched against the [`spectrum::error::Kind`] enum to
-    /// handle the specific error.
-    ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    /// [`spectrum::error::Error`]: crate::spectrum::error::Error
-    /// [`spectrum::error::Kind`]: crate::spectrum::error::Kind
-    ///
-    /// ## HDF5 Error
-    ///
-    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
+    /// Additionally, if any errors from the [hdf5 crate] occur, an error
+    /// variant containing the original error is returned.
     ///
     /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
-    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
     ///
     /// # Example
     ///
@@ -201,19 +197,14 @@ impl Hdf5Reader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
-    ///
-    /// Uses [`Spectrum::new`] to create the spectrum, which validates the data
-    /// itself and returns a [`Error::Spectrum`] if any of the checks fail.
-    ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    ///
-    /// ## HDF5 Error
-    ///
-    /// Errors from the [hdf5 crate] are converted to [`Error::Hdf5Error`].
-    ///
-    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
-    /// [`Error::Hdf5Error`]: crate::Error::Hdf5Error
+    /// The following errors are possible:
+    /// - [`EmptyData`](crate::spectrum::error::Kind::EmptyData)
+    /// - [`DataLengthMismatch`](crate::spectrum::error::Kind::DataLengthMismatch)
+    /// - [`NonUniformSpacing`](crate::spectrum::error::Kind::NonUniformSpacing)
+    /// - [`InvalidIntensities`](crate::spectrum::error::Kind::InvalidIntensities)
+    /// - [`MonotonicityMismatch`](crate::spectrum::error::Kind::MonotonicityMismatch)
+    /// - [`InvalidSignalBoundaries`](crate::spectrum::error::Kind::InvalidSignalBoundaries)
+    /// - [`Error:Hdf5Error`](crate::Error::Hdf5Error)
     fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {
         let spectrum_group = file.group(dataset)?.group("spectrum")?;
         let data_group = spectrum_group.group("data")?;

@@ -82,6 +82,10 @@ pub enum Kind {
         positions: (usize, usize),
     },
     /// The intensities contain invalid values.
+    ///
+    /// Non-finite intensity values will lead to problems in further processing
+    /// steps. Therefore, this state is considered inconsistent and results in
+    /// an error.
     InvalidIntensities {
         /// The position of the first invalid intensity that was found.
         position: usize,

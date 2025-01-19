@@ -52,8 +52,6 @@ where
 {
     /// Smooths the given sequence of values in place using the moving average
     /// filter.
-    ///
-    /// The index based for loop should be replaced by iterators.
     fn smooth_values(&mut self, values: &mut [Type]) {
         let len = values.len();
         for _ in 0..self.iterations {
@@ -89,6 +87,10 @@ where
 {
     /// Creates a new `MovingAverage` filter with the given number of iterations
     /// and window size.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the window size is zero.
     pub fn new(iterations: usize, window_size: usize) -> Self {
         Self {
             buffer: CircularBuffer::new(window_size),

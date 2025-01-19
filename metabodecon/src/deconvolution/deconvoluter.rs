@@ -80,10 +80,9 @@ use crate::spectrum::Spectrum;
 /// # Example: Configuring the Deconvoluter
 ///
 /// `Deconvoluter` is modular and allows you to configure the smoothing, peak
-/// selection, and fitting algorithms independently. Currently, there is only
-/// one method available for each part of the pipeline, but more may be added in
-/// the future. It may also be possible to use your own implementations of the
-/// algorithms by implementing the corresponding traits in the future.
+/// selection, and fitting algorithms independently. Additionally, you can
+/// specify ppm regions to be ignored during the deconvolution. This may be
+/// useful for compounds like stabilizing agents or a water signal.
 ///
 /// ```
 /// use metabodecon::deconvolution::{
@@ -91,24 +90,6 @@ use crate::spectrum::Spectrum;
 /// };
 ///
 /// # fn main() -> metabodecon::Result<()> {
-/// let mut deconvoluter = Deconvoluter::default();
-///
-/// // Change the smoothing algorithm.
-/// deconvoluter.set_smoothing_algo(SmoothingAlgo::MovingAverage {
-///     iterations: 3,
-///     window_size: 5,
-/// })?;
-///
-/// // Change the peak selection algorithm.
-/// deconvoluter.set_selection_algo(SelectionAlgo::NoiseScoreFilter {
-///     scoring_algo: ScoringAlgo::MinimumSum,
-///     threshold: 5.0,
-/// })?;
-///
-/// // Change the fitting algorithm.
-/// deconvoluter
-///     .set_fitting_algo(FittingAlgo::Analytical { iterations: 20 })?;
-///
 /// // Create a new Deconvoluter with the desired settings.
 /// let mut deconvoluter = Deconvoluter::new(
 ///     SmoothingAlgo::MovingAverage {
@@ -144,21 +125,13 @@ impl Deconvoluter {
     ///
     /// # Errors
     ///
-    /// The Deconvolution settings are checked for validity. The following
-    /// errors are possible if the respective checks fail:
-    /// - [`InvalidSmoothingSettings`]: The provided smoothing settings are
-    ///   invalid. For example, a `window_size` of 0 for a moving average filter
-    ///   would mean that no smoothing is applied.
-    /// - [`InvalidSelectionSettings`]: The provided peak selection settings are
-    ///   invalid. For example, a negative `threshold` for a noise score filter
-    ///   wouldn't make sense.
-    /// - [`InvalidFittingSettings`]: The provided fitting settings are invalid.
-    ///   For example, 0 `iterations` for an analytical fitting algorithm would
-    ///   mean that the fitting algorithm doesn't do anything.
-    ///
-    /// [`InvalidSmoothingSettings`]: Kind::InvalidSmoothingSettings
-    /// [`InvalidSelectionSettings`]: Kind::InvalidSelectionSettings
-    /// [`InvalidFittingSettings`]: Kind::InvalidFittingSettings
+    /// An error is returned if any of the deconvolution settings are invalid.
+    /// For Example:
+    /// - A `window_size` of 0 for a moving average filter would mean that no
+    ///   smoothing is applied.
+    /// - Negative `threshold`s for a noise score filter wouldn't make sense.
+    /// - 0 `iterations` for an analytical fitting algorithm would mean that the
+    ///   fitting algorithm doesn't do anything.
     ///
     /// # Example
     ///
@@ -197,26 +170,120 @@ impl Deconvoluter {
     }
 
     /// Returns the smoothing settings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    ///
+    /// let deconvoluter = Deconvoluter::default();
+    ///
+    /// match deconvoluter.smoothing_algo() {
+    ///     SmoothingAlgo::MovingAverage {
+    ///         iterations,
+    ///         window_size,
+    ///     } => {
+    ///         assert_eq!(iterations, 2);
+    ///         assert_eq!(window_size, 5);
+    ///     }
+    ///     _ => panic!("Unexpected smoothing algorithm"),
+    /// };
+    /// ```
     pub fn smoothing_algo(&self) -> SmoothingAlgo {
         self.smoothing_algo
     }
 
     /// Returns the peak selection settings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{
+    ///     Deconvoluter, ScoringAlgo, SelectionAlgo,
+    /// };
+    ///
+    /// let deconvoluter = Deconvoluter::default();
+    ///
+    /// match deconvoluter.selection_algo() {
+    ///     SelectionAlgo::NoiseScoreFilter {
+    ///         scoring_algo,
+    ///         threshold,
+    ///     } => {
+    ///         match scoring_algo {
+    ///             ScoringAlgo::MinimumSum => {}
+    ///             _ => panic!("Unexpected scoring algorithm"),
+    ///         };
+    ///         assert_eq!(threshold, 6.4);
+    ///     }
+    ///     _ => panic!("Unexpected selection algorithm"),
+    /// };
+    /// ```
     pub fn selection_algo(&self) -> SelectionAlgo {
         self.selection_algo
     }
 
     /// Returns the fitting settings.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, FittingAlgo};
+    ///
+    /// let deconvoluter = Deconvoluter::default();
+    ///
+    /// match deconvoluter.fitting_algo() {
+    ///     FittingAlgo::Analytical { iterations } => {
+    ///         assert_eq!(iterations, 10);
+    ///     }
+    ///     _ => panic!("Unexpected fitting algorithm"),
+    /// };
+    /// ```
     pub fn fitting_algo(&self) -> FittingAlgo {
         self.fitting_algo
     }
 
     /// Returns the regions to ignore during deconvolution.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::deconvolution::Deconvoluter;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// assert!(deconvoluter.ignore_regions().is_none());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn ignore_regions(&self) -> Option<&Vec<(f64, f64)>> {
         self.ignore_regions.as_ref()
     }
 
     /// Sets the smoothing settings.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the provided smoothing settings are invalid. For
+    /// example, a `window_size` of 0 for a moving average filter would mean
+    /// that no smoothing is applied.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// deconvoluter.set_smoothing_algo(SmoothingAlgo::MovingAverage {
+    ///     iterations: 3,
+    ///     window_size: 3,
+    /// })?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) -> Result<()> {
         smoothing_algo.validate()?;
         self.smoothing_algo = smoothing_algo;
@@ -225,6 +292,32 @@ impl Deconvoluter {
     }
 
     /// Sets the peak selection settings.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the provided peak selection settings are
+    /// invalid. For example, a negative `threshold` for a noise score filter
+    /// wouldn't make sense.
+    ///
+    /// [`InvalidSelectionSettings`]: Kind::InvalidSelectionSettings
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{
+    ///     Deconvoluter, ScoringAlgo, SelectionAlgo,
+    /// };
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// deconvoluter.set_selection_algo(SelectionAlgo::NoiseScoreFilter {
+    ///     scoring_algo: ScoringAlgo::MinimumSum,
+    ///     threshold: 5.0,
+    /// })?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) -> Result<()> {
         selection_algo.validate()?;
         self.selection_algo = selection_algo;
@@ -233,6 +326,28 @@ impl Deconvoluter {
     }
 
     /// Sets the fitting settings.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the provided fitting settings are invalid. For
+    /// example, 0 `iterations` would mean that the fitting algorithm doesn't
+    /// do anything.
+    ///
+    /// [`InvalidFittingSettings`]: Kind::InvalidFittingSettings
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, FittingAlgo};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// deconvoluter
+    ///     .set_fitting_algo(FittingAlgo::Analytical { iterations: 20 })?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) -> Result<()> {
         fitting_algo.validate()?;
         self.fitting_algo = fitting_algo;
@@ -241,6 +356,40 @@ impl Deconvoluter {
     }
 
     /// Adds a region to ignore during deconvolution.
+    ///
+    /// Some samples contain compounds that are not of interest, such as a water
+    /// signal. Regions where these compounds are expected can be ignored during
+    /// the deconvolution.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if the start or end value is not finite or if they
+    /// are (nearly) equal.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// // No regions are ignored by default.
+    /// assert!(deconvoluter.ignore_regions().is_none());
+    ///
+    /// // Add regions to ignore during deconvolution.
+    /// deconvoluter.add_ignore_region((4.7, 4.9))?;
+    /// assert!(deconvoluter.ignore_regions().is_some());
+    /// assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 1);
+    /// deconvoluter.add_ignore_region((5.2, 5.6))?;
+    /// assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 2);
+    ///
+    /// // Overlapping regions are combined.
+    /// deconvoluter.add_ignore_region((4.8, 5.4))?;
+    /// assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 1);
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn add_ignore_region(&mut self, new: (f64, f64)) -> Result<()> {
         if let Some(ignore_regions) = self.ignore_regions.as_mut() {
             if !new.0.is_finite()
@@ -277,11 +426,62 @@ impl Deconvoluter {
     }
 
     /// Clears the regions to ignore during deconvolution.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut deconvoluter = Deconvoluter::default();
+    ///
+    /// deconvoluter.add_ignore_region((4.7, 4.9))?;
+    /// deconvoluter.clear_ignore_regions();
+    /// assert!(deconvoluter.ignore_regions().is_none());
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn clear_ignore_regions(&mut self) {
         self.ignore_regions = None;
     }
 
     /// Deconvolutes the provided spectrum into individual signals.
+    ///
+    /// # Errors
+    ///
+    /// During the deconvolution process, the algorithm relies on finding peaks
+    /// in the `Spectrum`. If no peaks are found, an error is returned. The
+    /// peaks outside the signal boundaries of the `Spectrum` are used to filter
+    /// out noise within the signal region. If no peaks are found outside or
+    /// within the signal region, an error is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// // Read a spectrum in Bruker TopSpin format.
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/spectrum";
+    /// # let path = "../data/bruker/blood/blood_01";
+    /// let mut spectrum = reader.read_spectrum(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    /// )?;
+    ///
+    /// // Deconvolute the spectrum.
+    /// let deconvoluter = Deconvoluter::default();
+    /// let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum)?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;
         let mut lorentzians = {
@@ -308,6 +508,42 @@ impl Deconvoluter {
     }
 
     /// Deconvolutes the provided spectrum into individual signals in parallel.
+    ///
+    /// # Errors
+    ///
+    /// During the deconvolution process, the algorithm relies on finding peaks
+    /// in the `Spectrum`. If no peaks are found, an error is returned. The
+    /// peaks outside the signal boundaries of the `Spectrum` are used to filter
+    /// out noise within the signal region. If no peaks are found outside or
+    /// within the signal region, an error is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::Deconvoluter;
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// // Read a spectrum in Bruker TopSpin format.
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/spectrum";
+    /// # let path = "../data/bruker/blood/blood_01";
+    /// let mut spectrum = reader.read_spectrum(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    /// )?;
+    ///
+    /// // Deconvolute the spectrum in parallel.
+    /// let deconvoluter = Deconvoluter::default();
+    /// let deconvolution = deconvoluter.par_deconvolute_spectrum(&mut spectrum)?;
+    /// # Ok(())
+    /// # }
+    /// ```
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;

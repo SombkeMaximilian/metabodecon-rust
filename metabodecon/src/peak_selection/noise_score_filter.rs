@@ -34,16 +34,10 @@ impl Selector for NoiseScoreFilter {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`NoPeaksDetected`]: No peaks were detected in the spectrum.
-    /// - [`EmptySignalRegion`]: The signal region contains no peaks.
-    /// - [`EmptySignalFreeRegion`]: The signal free region contains no peaks.
-    ///   Peaks in this region are used to filter out noise within the signal
-    ///   region.
-    ///
-    /// [`NoPeaksDetected`]: Kind::NoPeaksDetected
-    /// [`EmptySignalRegion`]: Kind::EmptySignalRegion
-    /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
+    /// The following errors are possible:
+    /// - [`NoPeaksDetected`](Kind::NoPeaksDetected)
+    /// - [`EmptySignalRegion`](Kind::EmptySignalRegion)
+    /// - [`EmptySignalFreeRegion`](Kind::EmptySignalFreeRegion)
     fn select_peaks(
         &self,
         intensities: &[f64],
@@ -104,14 +98,9 @@ impl NoiseScoreFilter {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`EmptySignalRegion`]: The signal region contains no peaks.
-    /// - [`EmptySignalFreeRegion`]: The signal free region contains no peaks.
-    ///   Peaks in this region are used to filter out noise within the signal
-    ///   region.
-    ///
-    /// [`EmptySignalRegion`]: Kind::EmptySignalRegion
-    /// [`EmptySignalFreeRegion`]: Kind::EmptySignalFreeRegion
+    /// The following errors are possible:
+    /// - [`EmptySignalRegion`](Kind::EmptySignalRegion)
+    /// - [`EmptySignalFreeRegion`](Kind::EmptySignalFreeRegion)
     fn filter_peaks(
         &self,
         mut peaks: Vec<Peak>,
@@ -175,6 +164,7 @@ impl NoiseScoreFilter {
             .iter()
             .position(|peak| peak.center() > signal_boundaries.1)
             .map_or(peaks.len() - 1, |i| left + i);
+
         Ok((left, right))
     }
 
@@ -186,6 +176,7 @@ impl NoiseScoreFilter {
             .map(|score| (score - mean).powi(2))
             .sum::<f64>()
             / scores.len() as f64;
+
         (mean, variance.sqrt())
     }
 }

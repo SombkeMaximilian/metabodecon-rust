@@ -192,30 +192,22 @@ impl BrukerReader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The Intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match. The data
+    ///   size is read from the metadata files and used to generate the chemical
+    ///   shifts.
+    /// - All intensity values are finite.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
+    /// - All required key-value pairs are extracted from the metadata files.
     ///
-    /// Internally uses [`Spectrum::new`] to create the spectrum, which
-    /// validates the data itself and returns a [`Error::Spectrum`] if any of
-    /// the checks fail. Additionally, if the required files are missing, or if
-    /// parsing the metadata fails, a [`Error::Spectrum`] is also returned. This
-    /// error type contains a [`spectrum::error::Error`], which can be matched
-    /// against the [`spectrum::error::Kind`] enum to handle the specific error.
+    /// Additionally, if any [`I/O`] errors occur, an error variant containing
+    /// the original error is returned.
     ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    /// [`spectrum::error::Error`]: Error
-    /// [`spectrum::error::Kind`]: Kind
-    ///
-    /// Aside from the checks performed in [`Spectrum::new`],
-    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
-    /// the metadata files.
-    ///
-    /// [`MissingMetaData`]: Kind::MissingMetadata
-    ///
-    /// ## IO Error
-    ///
-    /// Errors from [`std::io`] are converted to [`Error::IoError`].
-    ///
-    /// [`Error::IoError`]: crate::Error::IoError
+    /// [`I/O`]: std::io
     ///
     /// # Example
     ///
@@ -297,32 +289,22 @@ impl BrukerReader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Errors
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The Intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match. The data
+    ///   size is read from the metadata files and used to generate the chemical
+    ///   shifts.
+    /// - All intensity values are finite.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
+    /// - All required key-value pairs are extracted from the metadata files.
     ///
-    /// Internally uses [`Spectrum::new`] to create the spectra, which validates
-    /// the data itself and returns a [`Error::Spectrum`] if any of the checks
-    /// fail. Additionally, if the required files are missing, or if parsing the
-    /// metadata fails, a [`Error::Spectrum`] is also returned. Note that this
-    /// function will also fail if any of the subdirectories under the root
-    /// directory are not Bruker TopSpin format directories. This error type
-    /// contains a [`spectrum::error::Error`], which can be matched against the
-    /// [`spectrum::error::Kind`] enum to handle the specific error.
+    /// Additionally, if any [`I/O`] errors occur, an error variant containing
+    /// the original error is returned.
     ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    /// [`spectrum::error::Error`]: Error
-    /// [`spectrum::error::Kind`]: Kind
-    ///
-    /// Aside from the checks performed in [`Spectrum::new`],
-    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
-    /// the metadata files.
-    ///
-    /// [`MissingMetaData`]: Kind::MissingMetadata
-    ///
-    /// ## IO Errors
-    ///
-    /// Errors from [`std::io`] are converted to [`Error::IoError`].
-    ///
-    /// [`Error::IoError`]: crate::Error::IoError
+    /// [`I/O`]: std::io
     ///
     /// # Example
     ///
@@ -374,18 +356,9 @@ impl BrukerReader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
-    ///
-    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
-    /// the `acqus`.
-    ///
-    /// [`MissingMetaData`]: Kind::MissingMetadata
-    ///
-    /// ## IO Error
-    ///
-    /// Errors from [`std::io`] are converted to [`Error::IoError`].
-    ///
-    /// [`Error::IoError`]: crate::Error::IoError
+    /// The following errors are possible:
+    /// - [`MissingMetaData`](Kind::MissingMetadata)
+    /// - [`Error::IoError`](crate::Error::IoError)
     fn read_acquisition_parameters<P: AsRef<Path>>(
         &self,
         path: P,
@@ -403,18 +376,9 @@ impl BrukerReader {
     ///
     /// # Errors
     ///
-    /// ## Spectrum Error
-    ///
-    /// [`MissingMetaData`] occurs if a required key-value pair is missing from
-    /// the `procs`.
-    ///
-    /// [`MissingMetaData`]: Kind::MissingMetadata
-    ///
-    /// ## IO Errors
-    ///
-    /// Errors from [`std::io`] are converted to [`Error::IoError`].
-    ///
-    /// [`Error::IoError`]: crate::Error::IoError
+    /// The following errors are possible:
+    /// - [`MissingMetaData`](Kind::MissingMetadata)
+    /// - [`Error::IoError`](crate::Error::IoError)
     fn read_processing_parameters<P: AsRef<Path>>(&self, path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
@@ -451,9 +415,8 @@ impl BrukerReader {
     ///
     /// # Errors
     ///
-    /// Errors from [`std::io`] are converted to [`Error::IoError`].
-    ///
-    /// [`Error::IoError`]: crate::Error::IoError
+    /// The following errors are possible:
+    /// - [`Error::IoError`](crate::Error::IoError)
     fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
         let mut one_r = File::open(path)?;
         let mut buffer = vec![
@@ -478,6 +441,7 @@ impl BrukerReader {
                         .read_i32_into::<BigEndian>(&mut temp)?,
                 }
                 temp.reverse();
+
                 Ok(temp
                     .into_iter()
                     .map(|value| (value as f64) * 2_f64.powi(procs.scaling_exponent))
@@ -494,6 +458,7 @@ impl BrukerReader {
                         .read_f64_into::<BigEndian>(&mut temp)?,
                 }
                 temp.reverse();
+
                 Ok(temp)
             }
         }

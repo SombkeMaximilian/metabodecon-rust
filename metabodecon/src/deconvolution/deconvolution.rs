@@ -42,17 +42,17 @@ impl Deconvolution {
         &self.lorentzians
     }
 
-    /// Returns the smoothing parameters used.
+    /// Returns the smoothing settings used.
     pub fn smoothing_algo(&self) -> &SmoothingAlgo {
         &self.smoothing_algo
     }
 
-    /// Returns the peak selection parameters used.
+    /// Returns the peak selection settings used.
     pub fn selection_algo(&self) -> &SelectionAlgo {
         &self.selection_algo
     }
 
-    /// Returns the fitting parameters used.
+    /// Returns the fitting settings used.
     pub fn fitting_algo(&self) -> &FittingAlgo {
         &self.fitting_algo
     }

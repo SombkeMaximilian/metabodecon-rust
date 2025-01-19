@@ -94,9 +94,8 @@ impl<'a> Detector<'a> {
     ///
     /// # Errors
     ///
-    /// [`NoPeaksDetected`] occurs if no peaks are detected in the spectrum.
-    ///
-    /// [`NoPeaksDetected`]: Kind::NoPeaksDetected
+    /// The following errors are possible:
+    /// - [`NoPeaksDetected`](Kind::NoPeaksDetected)
     pub fn detect_peaks(&self) -> Result<Vec<Peak>> {
         let peak_centers = self.find_peak_centers();
         let peak_borders = self.find_peak_borders(&peak_centers);

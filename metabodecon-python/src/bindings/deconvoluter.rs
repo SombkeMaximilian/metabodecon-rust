@@ -66,10 +66,7 @@ impl Deconvoluter {
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
-        match self
-            .inner
-            .deconvolute_spectrum(spectrum.inner())
-        {
+        match self.inner.deconvolute_spectrum(spectrum.inner()) {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }

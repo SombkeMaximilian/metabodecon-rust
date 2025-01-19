@@ -14,8 +14,13 @@ pub struct CircularBuffer<Type> {
 
 impl<Type: Copy + Zero> CircularBuffer<Type> {
     /// Creates a new `CircularBuffer` with the given capacity.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the capacity is zero.
     pub fn new(capacity: usize) -> Self {
         assert!(capacity > 0, "capacity must be greater than zero");
+
         Self {
             buffer: vec![Type::zero(); capacity].into_boxed_slice(),
             index: 0,
@@ -32,6 +37,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
             None
         };
         self.push(value);
+
         popped_value
     }
 
@@ -52,6 +58,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         }
         let index: usize = (self.index + self.buffer.len() - self.num_elements) % self.buffer.len();
         self.num_elements -= 1;
+
         Some(self.buffer[index])
     }
 

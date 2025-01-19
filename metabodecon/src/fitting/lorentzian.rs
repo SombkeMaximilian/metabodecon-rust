@@ -637,7 +637,10 @@ impl Lorentzian {
     /// );
     /// ```
     pub fn superposition(x: f64, lorentzians: &[Self]) -> f64 {
-        lorentzians.iter().map(|l| l.evaluate(x)).sum()
+        lorentzians
+            .iter()
+            .map(|lorentzian| lorentzian.evaluate(x))
+            .sum()
     }
 
     /// Evaluates the superposition of the given `Lorentzian`s at the given

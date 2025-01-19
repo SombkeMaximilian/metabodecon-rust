@@ -40,9 +40,8 @@ impl Monotonicity {
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
-/// `Spectrum` is a container that holds the chemical shifts, signal
-/// intensities, and metadata of a 1D NMR spectrum. 1D NMR spectra typically
-/// contain signal free regions on both ends of the frequency range.
+/// `Spectrum` is a fixed size container that holds the chemical shifts, signal
+/// intensities and metadata of a 1D NMR spectrum.
 ///
 /// # Example: Constructing a `Spectrum` manually
 ///
@@ -100,35 +99,17 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// Input data is checked for validity. Returns an [`Error::Spectrum`] if
-    /// any of the checks fail. This error type contains a
-    /// [`spectrum::error::Error`], which can be matched against the
-    /// [`spectrum::error::Kind`] enum to handle the specific error.
-    ///
-    /// [`Error::Spectrum`]: crate::Error::Spectrum
-    /// [`spectrum::error::Error`]: Error
-    /// [`spectrum::error::Kind`]: Kind
-    ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`EmptyData`]: Either the chemical shifts or intensities are empty.
-    /// - [`DataLengthMismatch`]: The lengths of the chemical shifts and
-    ///   intensities do not match.
-    /// - [`NonUniformSpacing`]: Some chemical shift value is not finite, or the
-    ///   difference between two consecutive values is different from the prior
-    ///   step size or less than 100 times the floating-point precision.
-    /// - [`InvalidIntensities`]: Some intensity value is not finite.
-    /// - [`MonotonicityMismatch`]: The chemical shifts and signal boundaries
-    ///   are not sorted in the same order or if the monotonicity cannot be
-    ///   determined due to non-uniform spacing or non-comparable values.
-    /// - [`InvalidSignalBoundaries`]: The signal region boundaries are not
-    ///   within the range of the chemical shifts.
-    ///
-    /// [`EmptyData`]: Kind::EmptyData
-    /// [`DataLengthMismatch`]: Kind::DataLengthMismatch
-    /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
-    /// [`InvalidIntensities`]: Kind::InvalidIntensities
-    /// [`MonotonicityMismatch`]: Kind::MonotonicityMismatch
-    /// [`InvalidSignalBoundaries`]: Kind::InvalidSignalBoundaries
+    /// The input data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The chemical shifts and intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match.
+    /// - All chemical shift values are finite and uniformly spaced.
+    /// - All intensity values are finite.
+    /// - The chemical shifts and signal boundaries are sorted in the same
+    ///   order.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
     ///
     /// # Example
     ///
@@ -283,8 +264,16 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// Performs the same checks as [`Spectrum::new`] on the chemical shifts,
-    /// using the intensities and boundaries of the `Spectrum`.
+    /// The input data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The chemical shifts are not empty.
+    /// - The lengths of the chemical shifts and intensities match.
+    /// - All chemical shift values are finite and uniformly spaced.
+    /// - The chemical shifts and signal boundaries are sorted in the same
+    ///   order.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
     ///
     /// # Example
     ///
@@ -320,8 +309,12 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// Performs the same checks as [`Spectrum::new`] on the intensities, using
-    /// the chemical shifts of the `Spectrum`.
+    /// The input data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match.
+    /// - All intensity values are finite.
     ///
     /// # Example
     ///
@@ -355,8 +348,13 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// Performs the same checks as [`Spectrum::new`] on the signal boundaries,
-    /// using the chemical shifts of the `Spectrum`.
+    /// The input data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The chemical shifts and signal boundaries are sorted in the same
+    ///   order.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
     ///
     /// # Example
     ///
@@ -410,7 +408,7 @@ impl Spectrum {
 
     /// Computes the range of the `Spectrum` in ppm.
     ///
-    /// The range is ordered in the same order as the chemical shifts.
+    /// The range is sorted in the same order as the chemical shifts.
     ///
     /// # Example
     ///
@@ -480,7 +478,7 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn center(&self) -> f64 {
-        self.chemical_shifts.first().unwrap() + self.width() / 2.0
+        self.chemical_shifts.first().unwrap() + 0.5 * self.width()
     }
 
     /// Computes the indices of the chemical shifts that are closest to the
@@ -515,13 +513,9 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`EmptyData`]: Either the chemical shifts or intensities are empty.
-    /// - [`DataLengthMismatch`]: The lengths of the chemical shifts and
-    ///   intensities do not match.
-    ///
-    /// [`EmptyData`]: Kind::EmptyData
-    /// [`DataLengthMismatch`]: Kind::DataLengthMismatch
+    /// The following errors are possible:
+    /// - [`EmptyData`](Kind::EmptyData)
+    /// - [`DataLengthMismatch`](Kind::DataLengthMismatch)
     fn validate_lengths(chemical_shifts: &[f64], intensities: &[f64]) -> Result<()> {
         if chemical_shifts.is_empty() || intensities.is_empty() {
             return Err(Error::new(Kind::EmptyData {
@@ -547,12 +541,8 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`NonUniformSpacing`]: Some chemical shift value is not finite, or the
-    ///   difference between two consecutive values is different from the prior
-    ///   step size or less than 100 times the floating-point precision.
-    ///
-    /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
+    /// The following errors are possible:
+    /// - [`NonUniformSpacing`](Kind::NonUniformSpacing)
     fn validate_spacing(chemical_shifts: &[f64]) -> Result<()> {
         let step_size = chemical_shifts[1] - chemical_shifts[0];
         if step_size.abs() < 100.0 * f64::EPSILON {
@@ -576,10 +566,8 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`InvalidIntensities`]: Some intensity value is not finite.
-    ///
-    /// [`InvalidIntensities`]: Kind::InvalidIntensities
+    /// The following errors are possible:
+    /// - [`InvalidIntensities`](Kind::InvalidIntensities)
     fn validate_intensities(intensities: &[f64]) -> Result<()> {
         if let Some(position) = intensities
             .iter()
@@ -598,11 +586,8 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`MonotonicityMismatch`]: The chemical shifts and signal boundaries
-    ///   are not sorted in the same order.
-    ///
-    /// [`MonotonicityMismatch`]: Kind::MonotonicityMismatch
+    /// The following errors are possible:
+    /// - [`MonotonicityMismatch`](Kind::MonotonicityMismatch)
     fn validate_monotonicity(
         chemical_shifts: &[f64],
         signal_boundaries: (f64, f64),
@@ -634,11 +619,8 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The following errors are possible if the respective check fails:
-    /// - [`InvalidSignalBoundaries`]: The signal region boundaries are not
-    ///   within the range of the chemical shifts.
-    ///
-    /// [`InvalidSignalBoundaries`]: Kind::InvalidSignalBoundaries
+    /// The following errors are possible:
+    /// - [`InvalidSignalBoundaries`](Kind::InvalidSignalBoundaries)
     fn validate_boundaries(
         monotonicity: Monotonicity,
         chemical_shifts: &[f64],

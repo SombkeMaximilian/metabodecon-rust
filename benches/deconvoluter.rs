@@ -16,32 +16,32 @@ fn read_spectra() -> (Spectrum, Spectrum, Spectrum) {
 }
 
 fn deconvolute_spectrum(c: &mut Criterion) {
-    let (mut sim_spectrum, mut blood_spectrum, mut urine_spectrum) = read_spectra();
+    let (sim_spectrum, blood_spectrum, urine_spectrum) = read_spectra();
     let deconvoluter = Deconvoluter::default();
 
     c.bench_function("deconvolute_sim_spectrum", |b| {
-        b.iter(|| deconvoluter.deconvolute_spectrum(&mut sim_spectrum))
+        b.iter(|| deconvoluter.deconvolute_spectrum(&sim_spectrum))
     });
     c.bench_function("deconvolute_blood_spectrum", |b| {
-        b.iter(|| deconvoluter.deconvolute_spectrum(&mut blood_spectrum))
+        b.iter(|| deconvoluter.deconvolute_spectrum(&blood_spectrum))
     });
     c.bench_function("deconvolute_urine_spectrum", |b| {
-        b.iter(|| deconvoluter.deconvolute_spectrum(&mut urine_spectrum))
+        b.iter(|| deconvoluter.deconvolute_spectrum(&urine_spectrum))
     });
 }
 
 fn par_deconvolute_spectrum(c: &mut Criterion) {
-    let (mut sim_spectrum, mut blood_spectrum, mut urine_spectrum) = read_spectra();
+    let (sim_spectrum, blood_spectrum, urine_spectrum) = read_spectra();
     let deconvoluter = Deconvoluter::default();
 
     c.bench_function("parallel_deconvolute_sim_spectrum", |b| {
-        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut sim_spectrum))
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&sim_spectrum))
     });
     c.bench_function("parallel_deconvolute_blood_spectrum", |b| {
-        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut blood_spectrum))
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&blood_spectrum))
     });
     c.bench_function("parallel_deconvolute_urine_spectrum", |b| {
-        b.iter(|| deconvoluter.par_deconvolute_spectrum(&mut urine_spectrum))
+        b.iter(|| deconvoluter.par_deconvolute_spectrum(&urine_spectrum))
     });
 }
 
