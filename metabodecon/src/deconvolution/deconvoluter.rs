@@ -26,7 +26,7 @@ use crate::spectrum::Spectrum;
 /// let reader = BrukerReader::new();
 /// let path = "path/to/spectrum";
 /// # let path = "../data/bruker/blood/blood_01";
-/// let mut spectrum = reader.read_spectrum(
+/// let spectrum = reader.read_spectrum(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -38,7 +38,7 @@ use crate::spectrum::Spectrum;
 ///
 /// // Deconvolute the spectrum.
 /// let deconvoluter = Deconvoluter::default();
-/// let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum)?;
+/// let deconvolution = deconvoluter.deconvolute_spectrum(&spectrum)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -60,7 +60,7 @@ use crate::spectrum::Spectrum;
 /// let reader = BrukerReader::new();
 /// let path = "path/to/spectrum";
 /// # let path = "../data/bruker/blood/blood_01";
-/// let mut spectrum = reader.read_spectrum(
+/// let spectrum = reader.read_spectrum(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -72,7 +72,7 @@ use crate::spectrum::Spectrum;
 ///
 /// // Deconvolute the spectrum in parallel.
 /// let deconvoluter = Deconvoluter::default();
-/// let deconvolution = deconvoluter.par_deconvolute_spectrum(&mut spectrum)?;
+/// let deconvolution = deconvoluter.par_deconvolute_spectrum(&spectrum)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -466,7 +466,7 @@ impl Deconvoluter {
     /// let reader = BrukerReader::new();
     /// let path = "path/to/spectrum";
     /// # let path = "../data/bruker/blood/blood_01";
-    /// let mut spectrum = reader.read_spectrum(
+    /// let spectrum = reader.read_spectrum(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -478,7 +478,7 @@ impl Deconvoluter {
     ///
     /// // Deconvolute the spectrum.
     /// let deconvoluter = Deconvoluter::default();
-    /// let deconvolution = deconvoluter.deconvolute_spectrum(&mut spectrum)?;
+    /// let deconvolution = deconvoluter.deconvolute_spectrum(&spectrum)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -528,7 +528,7 @@ impl Deconvoluter {
     /// let reader = BrukerReader::new();
     /// let path = "path/to/spectrum";
     /// # let path = "../data/bruker/blood/blood_01";
-    /// let mut spectrum = reader.read_spectrum(
+    /// let spectrum = reader.read_spectrum(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -540,7 +540,7 @@ impl Deconvoluter {
     ///
     /// // Deconvolute the spectrum in parallel.
     /// let deconvoluter = Deconvoluter::default();
-    /// let deconvolution = deconvoluter.par_deconvolute_spectrum(&mut spectrum)?;
+    /// let deconvolution = deconvoluter.par_deconvolute_spectrum(&spectrum)?;
     /// # Ok(())
     /// # }
     /// ```
