@@ -7,13 +7,13 @@ class Deconvoluter:
     def __init__(self) -> None:
         ...
 
-    def with_moving_average_smoother(self, iterations: int, window_size: int) -> "Deconvoluter":
+    def set_moving_average_smoother(self, iterations: int, window_size: int) -> None:
         ...
 
-    def with_noise_score_selector(self, threshold: float) -> "Deconvoluter":
+    def set_noise_score_selector(self, threshold: float) -> None:
         ...
 
-    def with_analytical_fitter(self, iterations: int) -> "Deconvoluter":
+    def set_analytical_fitter(self, iterations: int) -> None:
         ...
 
     def add_ignore_region(self, boundaries: tuple[float, float]) -> None:
@@ -81,11 +81,13 @@ class Spectrum:
         ...
 
     @staticmethod
-    def from_bruker(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float]) -> "Spectrum":
+    def from_bruker(path: str, experiment: int, processing: int,
+                    signal_boundaries: tuple[float, float]) -> "Spectrum":
         ...
 
     @staticmethod
-    def from_bruker_set(path: str, experiment: int, processing: int, signal_boundaries: tuple[float, float]) -> list[
+    def from_bruker_set(path: str, experiment: int, processing: int,
+                        signal_boundaries: tuple[float, float]) -> list[
         "Spectrum"]:
         ...
 
