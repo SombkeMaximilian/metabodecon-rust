@@ -19,7 +19,7 @@ Current planned and implemented features include (additional suggestions are wel
    - [x] Internal HDF5 format
    - [x] Bruker
    - [ ] JCAMP-DX
-- [ ] Storing 1D NMR spectra in HDF5 files which are easier to handle and share than the raw data formats
+- [ ] Storing 1D NMR spectra in HDF5 files
 - [x] Preprocessing of 1D NMR spectra
    - [x] Removal of the solvent signal
    - [x] Smoothing of the signal intensities (various methods)
@@ -66,23 +66,26 @@ Here is a simple example of how to use the library in Rust:
 ```rust
 use metabodecon::{deconvolution, spectrum};
 
-fn main() {
+fn main() -> metabodecon::Result<()> {
     // Read a spectrum from Bruker TopSpin format
-    let mut spectrum = spectrum::BrukerReader.read_spectrum(
-        "path/to/spectrum",
+    let spectrum = spectrum::BrukerReader.read_spectrum(
+        "data/bruker/blood/blood_01",
         // Experiment Number
         10,
         // Processing Number
         10,
         // Signal Region
-        (-2.208611, 11.807918)
-    ).unwrap();
+        (-2.208611, 11.807918),
+    )?;
   
     // Deconvoluter with default options
-    let deconvoluter: deconvolution::Deconvoluter = Default::default();
+    let mut deconvoluter = Deconvoluter::default();
+  
+    // Ignore the water artifact
+    deconvoluter.add_ignore_region((4.699535, 4.899771))?;
   
     // Deconvolute the spectrum
-    let deconvoluted_spectrum = deconvoluter.deconvolute_spectrum(&mut spectrum).unwrap();
+    let deconvoluted_spectrum = deconvoluter.deconvolute_spectrum(&spectrum)?;
   
     // WIP for now
 }
@@ -96,7 +99,7 @@ import metabodecon as md
 
 # Read a spectrum from Bruker TopSpin format
 spectrum = md.Spectrum.from_bruker(
-    "path/to/spectrum",
+    "data/bruker/blood/blood_01",
     # Experiment Number
     10,
     # Processing Number
@@ -108,6 +111,9 @@ spectrum = md.Spectrum.from_bruker(
 # Deconvoluter with default options
 deconvoluter = md.Deconvoluter()
 
+# Ignore the water artifact
+deconvoluter.add_ignore_region((4.699535, 4.899771))
+
 # Deconvolute the spectrum
 deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
 
@@ -115,6 +121,7 @@ deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
 x = spectrum.chemical_shifts
 y1 = spectrum.intensities_raw
 s = spectrum.signal_boundaries
+w = (4.699535, 4.899771)
 
 # Compute the superposition of the deconvoluted peaks
 y2 = deconvolution.par_superposition_vec(spectrum.chemical_shifts)
@@ -126,6 +133,7 @@ plt.plot(x, y2, label = "Deconvoluted Spectrum", linewidth=0.5)
 plt.gca().invert_xaxis()
 plt.axvline(x = s[0], color = "black", label = "Signal Boundaries")
 plt.axvline(x = s[1], color = "black")
+plt.axvspan(w[0], w[1], color = "cyan", alpha = 0.3, label = "Water Region")
 plt.xlabel("Chemical Shifts", fontsize = 16)
 plt.ylabel("Intensity", fontsize = 16)
 plt.xticks(fontsize = 14)
