@@ -63,6 +63,9 @@ impl Fitter for FitterAnalytical {
                     lorentzian.set_parameters(sfhw, hw2, maxp);
                 });
         }
+        lorentzians.retain(|lorentzian| {
+            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+        });
 
         lorentzians
     }
@@ -118,6 +121,9 @@ impl Fitter for FitterAnalytical {
                     lorentzian.set_parameters(sfhw, hw2, maxp);
                 });
         }
+        lorentzians.retain(|lorentzian| {
+            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+        });
 
         lorentzians
     }
