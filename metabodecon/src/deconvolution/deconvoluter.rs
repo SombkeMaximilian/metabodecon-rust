@@ -1,9 +1,9 @@
 use crate::deconvolution::error::{Error, Kind};
+use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
+use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionAlgo, Selector};
+use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::deconvolution::{Deconvolution, Settings};
 use crate::error::Result;
-use crate::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
-use crate::peak_selection::{NoiseScoreFilter, Peak, SelectionAlgo, Selector};
-use crate::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
 use crate::spectrum::Spectrum;
 
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting

@@ -1,8 +1,8 @@
 //! Error types for the deconvolution process.
 
-use crate::fitting::FittingAlgo;
-use crate::peak_selection::SelectionAlgo;
-use crate::smoothing::SmoothingAlgo;
+use crate::deconvolution::fitting::FittingAlgo;
+use crate::deconvolution::peak_selection::SelectionAlgo;
+use crate::deconvolution::smoothing::SmoothingAlgo;
 
 /// An `Error` that occurred during the deconvolution process.
 ///

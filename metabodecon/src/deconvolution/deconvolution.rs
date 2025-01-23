@@ -1,6 +1,6 @@
-use crate::fitting::{FittingAlgo, Lorentzian};
-use crate::peak_selection::SelectionAlgo;
-use crate::smoothing::SmoothingAlgo;
+use crate::deconvolution::fitting::{FittingAlgo, Lorentzian};
+use crate::deconvolution::peak_selection::SelectionAlgo;
+use crate::deconvolution::smoothing::SmoothingAlgo;
 
 /// Data structure representing the result of a deconvolution.
 #[derive(Clone, Debug)]

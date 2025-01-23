@@ -1,4 +1,4 @@
-use crate::peak_selection::Peak;
+use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
 /// Data structure to store the data for approximating a peak with a Lorentzian.

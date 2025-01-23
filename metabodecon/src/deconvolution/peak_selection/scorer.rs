@@ -1,4 +1,4 @@
-use crate::peak_selection::peak::Peak;
+use crate::deconvolution::peak_selection::peak::Peak;
 
 /// Trait interface for peak scoring algorithms.
 pub(crate) trait Scorer {
@@ -55,7 +55,7 @@ impl<'a> ScorerMinimumSum<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::peak_selection::Peak;
+    use crate::deconvolution::peak_selection::Peak;
     use float_cmp::assert_approx_eq;
 
     #[test]

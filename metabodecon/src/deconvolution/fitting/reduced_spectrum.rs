@@ -1,4 +1,4 @@
-use crate::peak_selection::Peak;
+use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
 /// Data structure that contains a subset of the data from a spectrum.

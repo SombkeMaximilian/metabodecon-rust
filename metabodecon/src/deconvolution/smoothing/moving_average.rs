@@ -1,5 +1,5 @@
-use crate::smoothing::circular_buffer::CircularBuffer;
-use crate::smoothing::smoother::Smoother;
+use crate::deconvolution::smoothing::circular_buffer::CircularBuffer;
+use crate::deconvolution::smoothing::smoother::Smoother;
 use num_traits::{FromPrimitive, Zero};
 use std::ops::{AddAssign, Div, Mul, SubAssign};
 

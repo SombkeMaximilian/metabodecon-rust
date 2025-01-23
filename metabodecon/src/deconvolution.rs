@@ -6,11 +6,15 @@ mod deconvolution;
 pub use deconvoluter::Deconvoluter;
 pub use deconvolution::Deconvolution;
 
-pub use crate::fitting::FittingAlgo;
-pub use crate::peak_selection::{ScoringAlgo, SelectionAlgo};
-pub use crate::smoothing::SmoothingAlgo;
+mod fitting;
+mod peak_selection;
+mod smoothing;
 
-pub use crate::fitting::Lorentzian;
+pub use fitting::FittingAlgo;
+pub use peak_selection::{ScoringAlgo, SelectionAlgo};
+pub use smoothing::SmoothingAlgo;
+
+pub use fitting::Lorentzian;
 
 pub mod error;
 

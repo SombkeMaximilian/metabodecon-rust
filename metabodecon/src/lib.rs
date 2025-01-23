@@ -20,13 +20,9 @@
 //! [Vu et al. (2011)]: https://doi.org/10.1186/1471-2105-12-405
 //! [Beirnaert et al. (2018)]: https://doi.org/10.1371/journal.pcbi.1006018
 
-mod error;
-mod fitting;
-mod peak_selection;
-mod smoothing;
-
-pub use error::{Error, Result};
-
 pub mod spectrum;
 
 pub mod deconvolution;
+
+mod error;
+pub use error::{Error, Result};
