@@ -4,10 +4,11 @@
 //! This module provides a number of types for handling 1D NMR data.
 //! * [`Spectrum`] is a container for the spectral data as well as metadata.
 //! * [`BrukerReader`] is an interface for parsing Bruker TopSpin NMR data.
+//!   Requires the `bruker` feature to be enabled.
 //! * [`JdxReader`] is an interface for reading spectra from JCAMP-DX files.
-//!   (WIP)
+//!   Requires the `jdx` feature to be enabled. (WIP)
 //! * [`Hdf5Reader`] is an interface for reading spectra from HDF5 files in the
-//!   format used by this library.
+//!   format used by this library. Requires the `hdf5` feature to be enabled.
 //!
 //! # Example: Constructing a `Spectrum` manually
 //!
@@ -82,7 +83,8 @@
 //! # Example: Reading multiple spectra from an HDF5 file
 //!
 //! HDF5 offers a simple way to store hierarchical data. This library uses a
-//! specific structure to store 1D NMR spectra in HDF5 files.
+//! specific structure to store 1D NMR spectra in HDF5 files. Requires the
+//! `hdf5` feature to be enabled (part of the `default` features).
 //! [Read more](Hdf5Reader)
 //!
 //! ```
@@ -98,16 +100,27 @@
 //! # Ok(())
 //! # }
 //! ```
-mod bruker_reader;
-mod hdf5_reader;
-mod macros;
-#[rustfmt::skip] #[allow(dead_code)] mod jdx_reader;
-mod spectrum;
 
+mod macros;
+
+mod spectrum;
 pub use spectrum::{Monotonicity, Spectrum};
 
+#[cfg(feature = "bruker")]
+mod bruker_reader;
+#[cfg(feature = "bruker")]
 pub use bruker_reader::BrukerReader;
+
+#[cfg(feature = "hdf5")]
+mod hdf5_reader;
+#[cfg(feature = "hdf5")]
 pub use hdf5_reader::Hdf5Reader;
+
+#[rustfmt::skip]
+#[allow(dead_code)]
+#[cfg(feature = "jdx")]
+mod jdx_reader;
+#[cfg(feature = "jdx")]
 pub use jdx_reader::JdxReader;
 
 pub mod error;
