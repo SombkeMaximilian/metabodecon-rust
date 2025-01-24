@@ -119,14 +119,14 @@ deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
 
 # Extract the chemical shifts, intensities, and signal boundaries
 x = spectrum.chemical_shifts
-y1 = spectrum.intensities_raw
+y1 = spectrum.intensities
 s = spectrum.signal_boundaries
 w = (4.699535, 4.899771)
 
 # Compute the superposition of the deconvoluted peaks
 y2 = deconvolution.par_superposition_vec(spectrum.chemical_shifts)
 
-# Plot the spectrum with overlayed deconvoluted signal superposition
+# Plot the spectrum with overlaid deconvoluted signal superposition
 plt.figure(figsize = (12, 8), dpi = 300)
 plt.plot(x, y1, label = "Original Spectrum")
 plt.plot(x, y2, label = "Deconvoluted Spectrum", linewidth=0.5)
