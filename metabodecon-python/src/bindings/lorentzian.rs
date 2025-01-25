@@ -83,6 +83,10 @@ impl Lorentzian {
         PyArray1::from_slice(py, &self.inner.evaluate_vec(x.as_slice().unwrap()))
     }
 
+    pub fn integral(&self) -> f64 {
+        self.inner.integral()
+    }
+
     #[staticmethod]
     pub fn superposition(x: f64, lorentzians: Vec<Lorentzian>) -> f64 {
         let lorentzians = lorentzians

@@ -33,6 +33,9 @@ class Deconvolution:
     lorentzians: list["Lorentzian"]
     mse: float
 
+    def superposition(self, x: float) -> float:
+        ...
+
     def superposition_vec(self, x: np.ndarray) -> np.ndarray:
         ...
 
@@ -56,6 +59,9 @@ class Lorentzian:
         ...
 
     def evaluate_vec(self, x: np.ndarray) -> np.ndarray:
+        ...
+
+    def integral(self) -> float:
         ...
 
     @staticmethod
