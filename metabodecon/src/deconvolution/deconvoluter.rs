@@ -6,6 +6,9 @@ use crate::deconvolution::{Deconvolution, Settings};
 use crate::error::Result;
 use crate::spectrum::Spectrum;
 
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 /// Deconvolution pipeline that applies smoothing, peak selection, and fitting
 /// to a spectrum to deconvolute it into individual signals.
 ///
@@ -562,6 +565,99 @@ impl Deconvoluter {
             self.fitting_algo,
             mse,
         ))
+    }
+
+    /// Deconvolutes the provided spectra into individual signals.
+    ///
+    /// # Errors
+    ///
+    /// During the deconvolution process, the algorithm relies on finding peaks
+    /// in the `Spectrum`. If no peaks are found, an error is returned. The
+    /// peaks outside the signal boundaries of the `Spectrum` are used to filter
+    /// out noise within the signal region. If no peaks are found outside or
+    /// within the signal region, an error is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// // Read all spectra from Bruker TopSpin format directories within the root.
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/root";
+    /// # let path = "../data/bruker/blood";
+    /// let spectra = reader.read_spectra(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    /// )?;
+    ///
+    /// // Deconvolute the spectra.
+    /// let deconvoluter = Deconvoluter::default();
+    /// let deconvolution = deconvoluter.deconvolute_spectra(&spectra)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn deconvolute_spectra(&self, spectra: &[Spectrum]) -> Result<Vec<Deconvolution>> {
+        let deconvolutions = spectra
+            .iter()
+            .map(|spectrum| self.deconvolute_spectrum(spectrum))
+            .collect::<Result<Vec<Deconvolution>>>()?;
+
+        Ok(deconvolutions)
+    }
+
+    /// Deconvolutes the provided spectra into individual signals in parallel.
+    ///
+    /// # Errors
+    ///
+    /// During the deconvolution process, the algorithm relies on finding peaks
+    /// in the `Spectrum`. If no peaks are found, an error is returned. The
+    /// peaks outside the signal boundaries of the `Spectrum` are used to filter
+    /// out noise within the signal region. If no peaks are found outside or
+    /// within the signal region, an error is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// // Read all spectra from Bruker TopSpin format directories within the root.
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/root";
+    /// # let path = "../data/bruker/blood";
+    /// let spectra = reader.read_spectra(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (-2.2, 11.8),
+    /// )?;
+    ///
+    /// // Deconvolute the spectra.
+    /// let deconvoluter = Deconvoluter::default();
+    /// let deconvolution = deconvoluter.par_deconvolute_spectra(&spectra)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg(feature = "parallel")]
+    pub fn par_deconvolute_spectra(&self, spectra: &[Spectrum]) -> Result<Vec<Deconvolution>> {
+        let deconvolutions = spectra
+            .par_iter()
+            .map(|spectrum| self.par_deconvolute_spectrum(spectrum))
+            .collect::<Result<Vec<Deconvolution>>>()?;
+
+        Ok(deconvolutions)
     }
 
     /// Internal helper function to perform the peak selection step.
