@@ -1,4 +1,4 @@
-use crate::deconvolution::fitting::{Fitter, Lorentzian, PeakStencilData, ReducedSpectrum};
+use crate::deconvolution::fitting::{Fitter, Lorentzian, PeakStencil, ReducedSpectrum};
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
@@ -20,7 +20,7 @@ impl Fitter for FitterAnalytical {
         let mut peak_data = peaks
             .iter()
             .map(|peak| {
-                let mut stencil = PeakStencilData::new(spectrum, peak);
+                let mut stencil = PeakStencil::new(spectrum, peak);
                 stencil.mirror_shoulder();
                 stencil
             })
@@ -78,7 +78,7 @@ impl Fitter for FitterAnalytical {
         let mut peak_data = peaks
             .iter()
             .map(|peak| {
-                let mut stencil = PeakStencilData::new(spectrum, peak);
+                let mut stencil = PeakStencil::new(spectrum, peak);
                 stencil.mirror_shoulder();
                 stencil
             })
@@ -137,7 +137,7 @@ impl FitterAnalytical {
 
     /// Internal helper function to analytically compute the maximum position of
     /// the peak in ppm by solving the system of 3 equations.
-    fn maximum_position(p: &PeakStencilData) -> f64 {
+    fn maximum_position(p: &PeakStencil) -> f64 {
         let numerator = p.x_1().powi(2) * p.y_1() * (p.y_2() - p.y_3())
             + p.x_2().powi(2) * p.y_2() * (p.y_3() - p.y_1())
             + p.x_3().powi(2) * p.y_3() * (p.y_1() - p.y_2());
@@ -149,7 +149,7 @@ impl FitterAnalytical {
 
     /// Internal helper function to analytically compute the half width at half
     /// maximum of the peak in ppm^2 by solving the system of 3 equations.
-    fn half_width2(p: &PeakStencilData, maxp: f64) -> f64 {
+    fn half_width2(p: &PeakStencil, maxp: f64) -> f64 {
         let left = (p.y_1() * (p.x_1() - maxp).powi(2) - p.y_2() * (p.x_2() - maxp).powi(2))
             / (p.y_2() - p.y_1());
         let right = (p.y_2() * (p.x_2() - maxp).powi(2) - p.y_3() * (p.x_3() - maxp).powi(2))
@@ -160,7 +160,7 @@ impl FitterAnalytical {
     /// Internal helper function to analytically compute the scale factor times
     /// the half width at half maximum of the peak in ppm^2 by solving the
     /// system of 3 equations.
-    fn scale_factor_half_width(p: &PeakStencilData, maxp: f64, hw2: f64) -> f64 {
+    fn scale_factor_half_width(p: &PeakStencil, maxp: f64, hw2: f64) -> f64 {
         p.y_2() * (hw2 + (p.x_2() - maxp).powi(2))
     }
 }
@@ -172,7 +172,7 @@ mod tests {
 
     #[test]
     fn approximations() {
-        let peak = PeakStencilData::from_data(4.0, 8.0, 12.0, 5.0, 10.0, 5.0);
+        let peak = PeakStencil::from_data(4.0, 8.0, 12.0, 5.0, 10.0, 5.0);
         let maxp = FitterAnalytical::maximum_position(&peak);
         let hw2 = FitterAnalytical::half_width2(&peak, maxp);
         let sfhw = FitterAnalytical::scale_factor_half_width(&peak, maxp, hw2);

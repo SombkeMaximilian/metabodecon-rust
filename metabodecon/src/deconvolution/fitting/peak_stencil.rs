@@ -1,9 +1,12 @@
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
-/// Data structure to store the data for approximating a peak with a Lorentzian.
+/// Data structure to store the points for approximating a peak with a
+/// [`Lorentzian`].
+///
+/// [`Lorentzian`]: crate::deconvolution::fitting::Lorentzian
 #[derive(Debug)]
-pub(crate) struct PeakStencilData {
+pub(crate) struct PeakStencil {
     /// Left chemical shift data point in ppm.
     left_chemical_shift: f64,
     /// Center chemical shift data point in ppm.
@@ -18,9 +21,9 @@ pub(crate) struct PeakStencilData {
     right_intensity: f64,
 }
 
-impl PeakStencilData {
+impl PeakStencil {
     /// Extracts the chemical shifts and intensities of the peak from the
-    /// spectrum and constructs `PeakStencilData` from them.
+    /// spectrum and constructs `PeakStencil`s from them.
     pub(crate) fn new(spectrum: &Spectrum, peak: &Peak) -> Self {
         Self {
             left_chemical_shift: spectrum.chemical_shifts()[peak.left()],
@@ -32,8 +35,8 @@ impl PeakStencilData {
         }
     }
 
-    /// Internal helper function to create a `PeakStencilData` from the given
-    /// data for testing purposes.
+    /// Internal helper function to create a `PeakStencil` from the given data
+    /// for testing purposes.
     #[cfg(test)]
     pub(crate) fn from_data(
         left_chemical_shift: f64,
@@ -135,7 +138,7 @@ mod tests {
 
     #[test]
     fn accessors() {
-        let peak = PeakStencilData {
+        let peak = PeakStencil {
             left_chemical_shift: 1.0,
             center_chemical_shift: 2.0,
             right_chemical_shift: 3.0,
@@ -153,7 +156,7 @@ mod tests {
 
     #[test]
     fn mutators() {
-        let mut peak = PeakStencilData {
+        let mut peak = PeakStencil {
             left_chemical_shift: 1.0,
             center_chemical_shift: 2.0,
             right_chemical_shift: 3.0,
@@ -171,7 +174,7 @@ mod tests {
 
     #[test]
     fn mirror_shoulder() {
-        let mut peak = PeakStencilData {
+        let mut peak = PeakStencil {
             left_chemical_shift: 1.0,
             center_chemical_shift: 2.0,
             right_chemical_shift: 3.0,
@@ -187,7 +190,7 @@ mod tests {
         assert_approx_eq!(f64, peak.y_2(), 2.0);
         assert_approx_eq!(f64, peak.y_3(), 1.0);
 
-        let mut peak = PeakStencilData {
+        let mut peak = PeakStencil {
             left_chemical_shift: 1.0,
             center_chemical_shift: 2.0,
             right_chemical_shift: 4.0,
