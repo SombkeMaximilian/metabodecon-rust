@@ -2,6 +2,7 @@ use crate::bindings::{Deconvolution, Spectrum};
 use metabodecon::deconvolution;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 #[pyclass]
 #[derive(Clone, Debug, Default)]
@@ -78,6 +79,37 @@ impl Deconvoluter {
             .par_deconvolute_spectrum(spectrum.inner())
         {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
+    pub fn deconvolute_spectra(&self, spectra: Vec<Spectrum>) -> PyResult<Vec<Deconvolution>> {
+        match spectra
+            .iter()
+            .map(|spectrum| self.inner.deconvolute_spectrum(spectrum.inner()))
+            .collect::<metabodecon::Result<Vec<deconvolution::Deconvolution>>>()
+        {
+            Ok(deconvolutions) => Ok(deconvolutions
+                .into_iter()
+                .map(Deconvolution::from_inner)
+                .collect()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
+    pub fn par_deconvolute_spectra(&self, spectra: Vec<Spectrum>) -> PyResult<Vec<Deconvolution>> {
+        match spectra
+            .par_iter()
+            .map(|spectrum| {
+                self.inner
+                    .par_deconvolute_spectrum(spectrum.inner())
+            })
+            .collect::<metabodecon::Result<Vec<deconvolution::Deconvolution>>>()
+        {
+            Ok(deconvolutions) => Ok(deconvolutions
+                .into_iter()
+                .map(Deconvolution::from_inner)
+                .collect()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }

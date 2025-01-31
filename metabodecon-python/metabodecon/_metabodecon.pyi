@@ -28,6 +28,12 @@ class Deconvoluter:
     def par_deconvolute_spectrum(self, spectrum: "Spectrum") -> "Deconvolution":
         ...
 
+    def deconvolute_spectra(self, spectra: list["Spectrum"]) -> list["Deconvolution"]:
+        ...
+
+    def par_deconvolute_spectra(self, spectra: list["Spectrum"]) -> list["Deconvolution"]:
+        ...
+
 
 class Deconvolution:
     lorentzians: list["Lorentzian"]
