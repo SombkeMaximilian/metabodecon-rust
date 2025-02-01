@@ -2,7 +2,7 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
 use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionAlgo, Selector};
 use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
-use crate::deconvolution::{Deconvolution, Settings};
+use crate::deconvolution::{Deconvolution, ScoringAlgo, Settings};
 use crate::error::Result;
 use crate::spectrum::Spectrum;
 
@@ -658,6 +658,127 @@ impl Deconvoluter {
             .collect::<Result<Vec<Deconvolution>>>()?;
 
         Ok(deconvolutions)
+    }
+
+    /// Optimizes the deconvolution settings.
+    ///
+    /// To determine the optimal deconvolution settings, a reference spectrum is
+    /// used to evaluate the mean squared error (MSE) across different
+    /// combinations of smoothing, peak selection, and fitting settings. Each
+    /// stage of the algorithm is tested using a predefined set of settings,
+    /// selected from a broader range that was assessed on spectra with varying
+    /// resolutions, noise levels, and peak counts. The combination yielding the
+    /// lowest MSE is chosen as the optimal configuration.
+    ///
+    /// # Errors
+    ///
+    /// During the deconvolution process, the algorithm relies on finding peaks
+    /// in the `Spectrum`. If no peaks are found, an error is returned. The
+    /// peaks outside the signal boundaries of the `Spectrum` are used to filter
+    /// out noise within the signal region. If no peaks are found outside or
+    /// within the signal region, an error is returned. If any parameter
+    /// combination returns an error, there is likely an issue with the data,
+    /// so the optimization process is aborted and the error is returned.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
+    /// use metabodecon::spectrum::BrukerReader;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// // Read all spectra from Bruker TopSpin format directories within the root.
+    /// let reader = BrukerReader::new();
+    /// let path = "path/to/root";
+    /// # let path = "../data/bruker/sim";
+    /// let spectra = reader.read_spectra(
+    ///     path,
+    ///     // Experiment number
+    ///     10,
+    ///     // Processing number
+    ///     10,
+    ///     // Signal boundaries
+    ///     (3.339, 3.553),
+    /// )?;
+    ///
+    /// // Optimize the deconvolution settings using the first spectrum as a reference.
+    /// let mut deconvoluter = Deconvoluter::default();
+    /// deconvoluter.optimize_settings(&spectra[0])?;
+    ///
+    /// // Deconvolute the spectra with the optimized settings.
+    /// let deconvolution = deconvoluter.par_deconvolute_spectra(&spectra)?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    #[cfg(feature = "parallel")]
+    pub fn optimize_settings(&mut self, reference: &Spectrum) -> Result<f64> {
+        let smoothing_algos = (2..=10)
+            .flat_map(|iterations| {
+                (3..=7)
+                    .step_by(2)
+                    .map(move |window_size| SmoothingAlgo::MovingAverage {
+                        iterations,
+                        window_size,
+                    })
+            })
+            .collect::<Vec<SmoothingAlgo>>();
+        let selection_algos = (0..10)
+            .map(|coefficient| SelectionAlgo::NoiseScoreFilter {
+                scoring_algo: ScoringAlgo::MinimumSum,
+                threshold: 5.0 + (coefficient as f64) * (8.0 - 5.0) / 9.0,
+            })
+            .collect::<Vec<SelectionAlgo>>();
+        let fitting_algos = (5..=15)
+            .step_by(5)
+            .map(|iterations| FittingAlgo::Analytical { iterations })
+            .collect::<Vec<FittingAlgo>>();
+
+        let optimal_settings = smoothing_algos
+            .par_iter()
+            .map(|smoothing_algo| {
+                let mut deconvoluter = Deconvoluter::default();
+                deconvoluter
+                    .set_smoothing_algo(*smoothing_algo)
+                    .unwrap();
+
+                selection_algos
+                    .iter()
+                    .map(|selection_algo| {
+                        deconvoluter
+                            .set_selection_algo(*selection_algo)
+                            .unwrap();
+
+                        fitting_algos
+                            .iter()
+                            .map(|fitting_algo| {
+                                deconvoluter
+                                    .set_fitting_algo(*fitting_algo)
+                                    .unwrap();
+                                let deconvolution = deconvoluter.deconvolute_spectrum(reference)?;
+
+                                Ok((
+                                    deconvolution.mse(),
+                                    *fitting_algo,
+                                    *selection_algo,
+                                    *smoothing_algo,
+                                ))
+                            })
+                            .collect::<Result<Vec<_>>>()
+                    })
+                    .collect::<Result<Vec<_>>>()
+            })
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .flatten()
+            .flatten()
+            .min_by(|(mse_1, ..), (mse_2, ..)| f64::partial_cmp(mse_1, mse_2).unwrap())
+            .unwrap();
+        let (mse, fitting_algo, selection_algo, smoothing_algo) = optimal_settings;
+        self.smoothing_algo = smoothing_algo;
+        self.selection_algo = selection_algo;
+        self.fitting_algo = fitting_algo;
+
+        Ok(mse)
     }
 
     /// Internal helper function to perform the peak selection step.

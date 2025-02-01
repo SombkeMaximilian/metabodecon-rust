@@ -34,6 +34,9 @@ class Deconvoluter:
     def par_deconvolute_spectra(self, spectra: list["Spectrum"]) -> list["Deconvolution"]:
         ...
 
+    def optimize_settings(self, reference: "Spectrum") -> float:
+        ...
+
 
 class Deconvolution:
     lorentzians: list["Lorentzian"]

@@ -113,4 +113,11 @@ impl Deconvoluter {
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
+
+    pub fn optimize_settings(&mut self, reference: &Spectrum) -> PyResult<f64> {
+        match self.inner.optimize_settings(reference.inner()) {
+            Ok(mse) => Ok(mse),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
 }
