@@ -24,8 +24,6 @@ impl Monotonicity {
     /// corresponding `Some(Monotonicity)` variant. If the two numbers differ by
     /// less than 100 times the floating point precision, or are not finite
     /// numbers, or cannot be compared, `None` is returned.
-    ///
-    /// [`NonUniformSpacing`]: Kind::NonUniformSpacing
     pub(crate) fn from_f64s(first: f64, second: f64) -> Option<Self> {
         if f64::abs(first - second) < 100.0 * f64::EPSILON || !(first - second).is_finite() {
             return None;
@@ -34,6 +32,13 @@ impl Monotonicity {
             Some(std::cmp::Ordering::Less) => Some(Self::Increasing),
             Some(std::cmp::Ordering::Greater) => Some(Self::Decreasing),
             _ => None,
+        }
+    }
+
+    pub(crate) fn reverse(&mut self) {
+        match self {
+            Self::Increasing => *self = Self::Decreasing,
+            Self::Decreasing => *self = Self::Increasing,
         }
     }
 }
@@ -106,8 +111,6 @@ impl Spectrum {
     /// - The lengths of the chemical shifts and intensities match.
     /// - All chemical shift values are finite and uniformly spaced.
     /// - All intensity values are finite.
-    /// - The chemical shifts and signal boundaries are sorted in the same
-    ///   order.
     /// - The signal region boundaries are within the range of the chemical
     ///   shifts.
     ///
@@ -151,8 +154,10 @@ impl Spectrum {
         Self::validate_lengths(&chemical_shifts, &intensities)?;
         Self::validate_spacing(&chemical_shifts)?;
         Self::validate_intensities(&intensities)?;
-        let monotonicity = Self::validate_monotonicity(&chemical_shifts, signal_boundaries)?;
-        Self::validate_boundaries(monotonicity, &chemical_shifts, signal_boundaries)?;
+        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
+            .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
+        let signal_boundaries =
+            Self::validate_boundaries(monotonicity, &chemical_shifts, signal_boundaries)?;
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into_boxed_slice(),
@@ -262,6 +267,10 @@ impl Spectrum {
 
     /// Sets the chemical shifts of the `Spectrum`.
     ///
+    /// Updates the order of the intensities and signal boundaries to match the
+    /// new chemical shifts if that is necessary. Note that the signal
+    /// boundaries must still be within the range of the new chemical shifts.
+    ///
     /// # Errors
     ///
     /// The input data is checked for validity to ensure that the `Spectrum` is
@@ -270,8 +279,6 @@ impl Spectrum {
     /// - The chemical shifts are not empty.
     /// - The lengths of the chemical shifts and intensities match.
     /// - All chemical shift values are finite and uniformly spaced.
-    /// - The chemical shifts and signal boundaries are sorted in the same
-    ///   order.
     /// - The signal region boundaries are within the range of the chemical
     ///   shifts.
     ///
@@ -298,9 +305,16 @@ impl Spectrum {
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) -> Result<()> {
         Self::validate_lengths(&chemical_shifts, self.intensities())?;
         Self::validate_spacing(&chemical_shifts)?;
-        Self::validate_monotonicity(&chemical_shifts, self.signal_boundaries)?;
-        Self::validate_boundaries(self.monotonicity, &chemical_shifts, self.signal_boundaries)?;
+        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
+            .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
+        let signal_boundaries =
+            Self::validate_boundaries(monotonicity, &chemical_shifts, self.signal_boundaries)?;
+        if monotonicity != self.monotonicity {
+            self.intensities.reverse()
+        }
         self.chemical_shifts = chemical_shifts.into_boxed_slice();
+        self.signal_boundaries = signal_boundaries;
+        self.monotonicity = monotonicity;
 
         Ok(())
     }
@@ -349,12 +363,9 @@ impl Spectrum {
     /// # Errors
     ///
     /// The input data is checked for validity to ensure that the `Spectrum` is
-    /// well-formed and in a consistent state. The following conditions are
-    /// checked:
-    /// - The chemical shifts and signal boundaries are sorted in the same
-    ///   order.
-    /// - The signal region boundaries are within the range of the chemical
-    ///   shifts.
+    /// well-formed and in a consistent state. Checks if the signal boundaries
+    /// are within the range of the chemical shifts. Reorders the boundaries to
+    /// match the chemical shifts if necessary.
     ///
     /// # Example
     ///
@@ -376,11 +387,46 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> Result<()> {
-        Self::validate_monotonicity(self.chemical_shifts(), signal_boundaries)?;
-        Self::validate_boundaries(self.monotonicity, self.chemical_shifts(), signal_boundaries)?;
-        self.signal_boundaries = signal_boundaries;
+        self.signal_boundaries = Self::validate_boundaries(
+            self.monotonicity,
+            self.chemical_shifts(),
+            signal_boundaries,
+        )?;
 
         Ok(())
+    }
+
+    /// Reverses the order of the chemical shifts, intensities and signal
+    /// boundaries.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::{Monotonicity, Spectrum};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut spectrum =
+    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
+    /// spectrum.reverse();
+    ///
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 3.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 2.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 1.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[0], 3.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[1], 2.0);
+    /// assert_approx_eq!(f64, spectrum.intensities()[2], 1.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 3.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().1, 1.0);
+    /// assert_eq!(spectrum.monotonicity(), Monotonicity::Decreasing);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn reverse(&mut self) {
+        self.chemical_shifts.reverse();
+        self.intensities.reverse();
+        self.signal_boundaries = (self.signal_boundaries.1, self.signal_boundaries.0);
+        self.monotonicity.reverse();
     }
 
     /// Computes the step size between two consecutive chemical shifts in ppm.
@@ -579,43 +625,9 @@ impl Spectrum {
         Ok(())
     }
 
-    /// Internal helper function to validate the monotonicity. Returns an error
-    /// if the chemical shifts and signal boundaries do not have the same
-    /// monotonicity, or if the monotonicity cannot be determined due to
-    /// non-uniform spacing or non-comparable values.
-    ///
-    /// # Errors
-    ///
-    /// The following errors are possible:
-    /// - [`MonotonicityMismatch`](Kind::MonotonicityMismatch)
-    fn validate_monotonicity(
-        chemical_shifts: &[f64],
-        signal_boundaries: (f64, f64),
-    ) -> Result<Monotonicity> {
-        let chemical_shifts_monotonicity =
-            Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
-                .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
-        let signal_boundaries_monotonicity =
-            Monotonicity::from_f64s(signal_boundaries.0, signal_boundaries.1).ok_or_else(|| {
-                Error::new(Kind::InvalidSignalBoundaries {
-                    signal_boundaries,
-                    chemical_shifts_range: (chemical_shifts[0], *chemical_shifts.last().unwrap()),
-                })
-            })?;
-
-        if chemical_shifts_monotonicity != signal_boundaries_monotonicity {
-            return Err(Error::new(Kind::MonotonicityMismatch {
-                chemical_shifts: chemical_shifts_monotonicity,
-                signal_boundaries: signal_boundaries_monotonicity,
-            })
-            .into());
-        }
-
-        Ok(chemical_shifts_monotonicity)
-    }
-
     /// Internal helper function to validate the boundaries and return an error
-    /// if the checks fail.
+    /// if the checks fail and return the validated boundaries. Reorders the
+    /// boundaries to match `chemical_shifts` if necessary.
     ///
     /// # Errors
     ///
@@ -625,8 +637,27 @@ impl Spectrum {
         monotonicity: Monotonicity,
         chemical_shifts: &[f64],
         signal_boundaries: (f64, f64),
-    ) -> Result<()> {
+    ) -> Result<(f64, f64)> {
         let chemical_shifts_range = (chemical_shifts[0], *chemical_shifts.last().unwrap());
+        if f64::abs(signal_boundaries.0 - signal_boundaries.1) < 100.0 * f64::EPSILON
+            || !(signal_boundaries.0 - signal_boundaries.1).is_finite()
+        {
+            return Err(Error::new(Kind::InvalidSignalBoundaries {
+                signal_boundaries,
+                chemical_shifts_range,
+            })
+            .into());
+        }
+        let signal_boundaries = match monotonicity {
+            Monotonicity::Increasing => (
+                f64::min(signal_boundaries.0, signal_boundaries.1),
+                f64::max(signal_boundaries.0, signal_boundaries.1),
+            ),
+            Monotonicity::Decreasing => (
+                f64::max(signal_boundaries.0, signal_boundaries.1),
+                f64::min(signal_boundaries.0, signal_boundaries.1),
+            ),
+        };
         match monotonicity {
             Monotonicity::Increasing => {
                 if signal_boundaries.0 < chemical_shifts_range.0
@@ -652,7 +683,7 @@ impl Spectrum {
             }
         }
 
-        Ok(())
+        Ok(signal_boundaries)
     }
 }
 
@@ -762,42 +793,6 @@ mod tests {
     }
 
     #[test]
-    fn monotonicity_mismatch() {
-        let d = vec![1.0, 2.0, 3.0];
-        // i = increasing, d = decreasing
-        let di = vec![1.0, 2.0, 3.0];
-        let dd = vec![3.0, 2.0, 1.0];
-        let si = (1.0, 3.0);
-        let sd = (3.0, 1.0);
-        let errors = [
-            Spectrum::new(di.clone(), d.clone(), sd).unwrap_err(),
-            Spectrum::new(dd.clone(), d.clone(), si).unwrap_err(),
-        ];
-        let expected_context = [
-            (Monotonicity::Increasing, Monotonicity::Decreasing),
-            (Monotonicity::Decreasing, Monotonicity::Increasing),
-        ];
-        errors
-            .into_iter()
-            .zip(expected_context)
-            .for_each(|(error, context)| {
-                match error {
-                    Error::Spectrum(inner) => match inner.kind() {
-                        Kind::MonotonicityMismatch {
-                            chemical_shifts,
-                            signal_boundaries,
-                        } => {
-                            assert_eq!(*chemical_shifts, context.0);
-                            assert_eq!(*signal_boundaries, context.1);
-                        }
-                        _ => panic!("Unexpected kind: {:?}", inner),
-                    },
-                    _ => panic!("Unexpected error: {:?}", error),
-                };
-            });
-    }
-
-    #[test]
     fn accessors() {
         let spectrum = Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0)).unwrap();
         spectrum
@@ -814,6 +809,7 @@ mod tests {
         assert_eq!(spectrum.intensities().len(), 3);
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.0);
+        assert_eq!(spectrum.monotonicity(), Monotonicity::Increasing);
     }
 
     #[test]
@@ -827,7 +823,7 @@ mod tests {
             .set_intensities(vec![0.0, 2.0, 4.0])
             .unwrap();
         spectrum
-            .set_signal_boundaries((0.5, 3.5))
+            .set_signal_boundaries((3.5, 0.5))
             .unwrap();
         spectrum
             .chemical_shifts()
@@ -841,6 +837,20 @@ mod tests {
             .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
         assert_approx_eq!(f64, spectrum.signal_boundaries().0, 0.5);
         assert_approx_eq!(f64, spectrum.signal_boundaries().1, 3.5);
+        spectrum.reverse();
+        spectrum
+            .chemical_shifts()
+            .iter()
+            .zip([4.0, 2.0, 0.0])
+            .for_each(|(&xc, xe)| assert_approx_eq!(f64, xc, xe));
+        spectrum
+            .intensities()
+            .iter()
+            .zip([4.0, 2.0, 0.0])
+            .for_each(|(&ic, ie)| assert_approx_eq!(f64, ic, ie));
+        assert_approx_eq!(f64, spectrum.signal_boundaries().0, 3.5);
+        assert_approx_eq!(f64, spectrum.signal_boundaries().1, 0.5);
+        assert_eq!(spectrum.monotonicity(), Monotonicity::Decreasing);
     }
 
     #[test]

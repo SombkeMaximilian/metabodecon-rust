@@ -91,8 +91,6 @@ impl Hdf5Reader {
     /// - The lengths of the chemical shifts and intensities match.
     /// - All chemical shift values are finite and uniformly spaced.
     /// - All intensity values are finite.
-    /// - The chemical shifts and signal boundaries are sorted in the same
-    ///   order.
     /// - The signal region boundaries are within the range of the chemical
     ///   shifts.
     ///
@@ -156,8 +154,6 @@ impl Hdf5Reader {
     /// - The lengths of the chemical shifts and intensities match.
     /// - All chemical shift values are finite and uniformly spaced.
     /// - All intensity values are finite.
-    /// - The chemical shifts and signal boundaries are sorted in the same
-    ///   order.
     /// - The signal region boundaries are within the range of the chemical
     ///   shifts.
     ///
@@ -202,7 +198,6 @@ impl Hdf5Reader {
     /// - [`DataLengthMismatch`](crate::spectrum::error::Kind::DataLengthMismatch)
     /// - [`NonUniformSpacing`](crate::spectrum::error::Kind::NonUniformSpacing)
     /// - [`InvalidIntensities`](crate::spectrum::error::Kind::InvalidIntensities)
-    /// - [`MonotonicityMismatch`](crate::spectrum::error::Kind::MonotonicityMismatch)
     /// - [`InvalidSignalBoundaries`](crate::spectrum::error::Kind::InvalidSignalBoundaries)
     /// - [`Error:Hdf5Error`](crate::Error::Hdf5Error)
     fn read_from_file(file: &hdf5::File, dataset: &str) -> Result<Spectrum> {

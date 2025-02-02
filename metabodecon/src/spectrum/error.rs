@@ -1,6 +1,5 @@
 //! Error types for the spectrum module.
 
-use crate::spectrum::Monotonicity;
 use std::path::PathBuf;
 
 /// The `Error` type for constructing a [`Spectrum`] or parsing 1D NMR data from
@@ -90,27 +89,6 @@ pub enum Kind {
         /// The position of the first invalid intensity that was found.
         position: usize,
     },
-    /// The input data is not consistently ordered according to the same
-    /// [`Monotonicity`].
-    ///
-    /// This error is mostly to catch user mistakes when constructing the input
-    /// data. When the chemical shifts and signal boundaries are provided with
-    /// mismatched monotonicity, it is likely that the data is not ordered in
-    /// the way the user intended. For example, if the chemical shifts are in
-    /// increasing order but the boundaries are in decreasing order, it is
-    /// possible that the intensities are also ordered incorrectly relative to
-    /// the chemical shifts. While this generally doesn't pose a large problem
-    /// for the [`deconvolution`] algorithm, it can lead to problems in further
-    /// processing steps. Therefore, this state is considered inconsistent and
-    /// results in an error.
-    ///
-    /// [`deconvolution`]: crate::deconvolution
-    MonotonicityMismatch {
-        /// The ordering of the chemical shifts vector.
-        chemical_shifts: Monotonicity,
-        /// The ordering of the signal boundaries vector.
-        signal_boundaries: Monotonicity,
-    },
     /// The signal boundaries are invalid.
     ///
     /// A certain structure is expected from a 1D NMR [`Spectrum`] with respect
@@ -184,15 +162,6 @@ impl core::fmt::Display for Error {
                 "intensities contain invalid values \
                  value at index {} is not a finite number",
                 position
-            ),
-            MonotonicityMismatch {
-                chemical_shifts,
-                signal_boundaries,
-            } => format!(
-                "input data is not monotonic (intensities may be incorrect) \
-                 chemical shifts is {:?}, \
-                 signal boundaries is {:?}",
-                chemical_shifts, signal_boundaries
             ),
             InvalidSignalBoundaries {
                 signal_boundaries,
