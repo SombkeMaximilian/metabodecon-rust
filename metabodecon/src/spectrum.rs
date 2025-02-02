@@ -104,7 +104,6 @@ mod macros;
 mod spectrum;
 pub use spectrum::{Monotonicity, Spectrum};
 
-#[cfg(any(feature = "bruker", feature = "hdf5", feature = "jdx"))]
 mod formats;
 #[cfg(feature = "bruker")]
 pub use formats::Bruker;
