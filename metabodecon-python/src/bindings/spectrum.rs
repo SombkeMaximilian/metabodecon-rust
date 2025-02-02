@@ -36,8 +36,7 @@ impl Spectrum {
         processing: u32,
         signal_boundaries: (f64, f64),
     ) -> PyResult<Self> {
-        let reader = spectrum::BrukerReader::new();
-        match reader.read_spectrum(path, experiment, processing, signal_boundaries) {
+        match spectrum::Bruker::read_spectrum(path, experiment, processing, signal_boundaries) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -50,8 +49,7 @@ impl Spectrum {
         processing: u32,
         signal_boundaries: (f64, f64),
     ) -> PyResult<Vec<Self>> {
-        let reader = spectrum::BrukerReader::new();
-        match reader.read_spectra(path, experiment, processing, signal_boundaries) {
+        match spectrum::Bruker::read_spectra(path, experiment, processing, signal_boundaries) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
                 .map(|spectrum| Spectrum { inner: spectrum })
@@ -62,8 +60,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        let reader = spectrum::Hdf5Reader::new();
-        match reader.read_spectrum(path, dataset) {
+        match spectrum::Hdf5::read_spectrum(path, dataset) {
             Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -71,8 +68,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn from_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
-        let reader = spectrum::Hdf5Reader::new();
-        match reader.read_spectra(path) {
+        match spectrum::Hdf5::read_spectra(path) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
                 .map(|spectrum| Spectrum { inner: spectrum })

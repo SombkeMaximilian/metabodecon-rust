@@ -2,13 +2,8 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use metabodecon::{deconvolution::*, spectrum::*};
 
 fn single_spectrum(c: &mut Criterion) {
-    let reader = Hdf5Reader::new();
-    let sim_spectrum = reader
-        .read_spectrum("../data/hdf5/sim.h5", "sim_01")
-        .unwrap();
-    let blood_spectrum = reader
-        .read_spectrum("../data/hdf5/blood.h5", "blood_01")
-        .unwrap();
+    let sim_spectrum = Hdf5::read_spectrum("../data/hdf5/sim.h5", "sim_01").unwrap();
+    let blood_spectrum = Hdf5::read_spectrum("../data/hdf5/blood.h5", "blood_01").unwrap();
     let deconvoluter = Deconvoluter::default();
 
     // Sequential
@@ -29,13 +24,8 @@ fn single_spectrum(c: &mut Criterion) {
 }
 
 fn multiple_spectra(c: &mut Criterion) {
-    let reader = Hdf5Reader::new();
-    let sim_spectra = reader
-        .read_spectra("../data/hdf5/sim.h5")
-        .unwrap();
-    let blood_spectra = reader
-        .read_spectra("../data/hdf5/blood.h5")
-        .unwrap();
+    let sim_spectra = Hdf5::read_spectra("../data/hdf5/sim.h5").unwrap();
+    let blood_spectra = Hdf5::read_spectra("../data/hdf5/blood.h5").unwrap();
     let deconvoluter = Deconvoluter::default();
 
     // Only the parallel case is interesting here

@@ -4,8 +4,7 @@ use common::store_deconvolution;
 
 #[cfg(test)]
 pub fn run_deconvolution(path: &str, dataset: &str) -> metabodecon::Result<Deconvolution> {
-    let reader = Hdf5Reader::new();
-    let spectrum = reader.read_spectrum(path, dataset)?;
+    let spectrum = Hdf5::read_spectrum(path, dataset)?;
     let deconvoluter = Deconvoluter::default();
 
     deconvoluter.deconvolute_spectrum(&spectrum)

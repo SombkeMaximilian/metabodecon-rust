@@ -3,11 +3,11 @@
 //!
 //! This module provides a number of types for handling 1D NMR data.
 //! * [`Spectrum`] is a container for the spectral data as well as metadata.
-//! * [`BrukerReader`] is an interface for parsing Bruker TopSpin NMR data.
-//!   Requires the `bruker` feature to be enabled.
-//! * [`JdxReader`] is an interface for reading spectra from JCAMP-DX files.
+//! * [`Bruker`] is an interface for parsing Bruker TopSpin NMR data. Requires
+//!   the `bruker` feature to be enabled.
+//! * [`JcampDx`] is an interface for parsing spectra from JCAMP-DX files.
 //!   Requires the `jdx` feature to be enabled. (WIP)
-//! * [`Hdf5Reader`] is an interface for reading spectra from HDF5 files in the
+//! * [`Hdf5`] is an interface for reading from and writing to HDF5 files in the
 //!   format used by this library. Requires the `hdf5` feature to be enabled.
 //!
 //! # Example: Constructing a `Spectrum` manually
@@ -52,18 +52,17 @@
 //! # Example: Reading multiple spectra from Bruker TopSpin format
 //!
 //! One of the proprietary formats that this library can read is the one used by
-//! Bruker TopSpin. [Read more](BrukerReader)
+//! Bruker TopSpin. [Read more](Bruker)
 //!
 //! ```
-//! use metabodecon::spectrum::BrukerReader;
+//! use metabodecon::spectrum::Bruker;
 //!
 //! # fn main() -> metabodecon::Result<()> {
-//! let reader = BrukerReader::new();
 //! let path = "path/to/root";
 //! # let path = "../data/bruker/blood";
 //!
 //! // Read all spectra from Bruker TopSpin format directories within the root.
-//! let spectra = reader.read_spectra(
+//! let spectra = Bruker::read_spectra(
 //!     path,
 //!     // Experiment number
 //!     10,
@@ -85,18 +84,17 @@
 //! HDF5 offers a simple way to store hierarchical data. This library uses a
 //! specific structure to store 1D NMR spectra in HDF5 files. Requires the
 //! `hdf5` feature to be enabled (part of the `default` features).
-//! [Read more](Hdf5Reader)
+//! [Read more](Hdf5)
 //!
 //! ```
-//! use metabodecon::spectrum::Hdf5Reader;
+//! use metabodecon::spectrum::Hdf5;
 //!
 //! # fn main() -> metabodecon::Result<()> {
-//! let reader = Hdf5Reader::new();
 //! let path = "path/to/file.h5";
 //! # let path = "../data/hdf5/blood.h5";
 //!
 //! // Read all spectra from the HDF5 file.
-//! let spectra = reader.read_spectra(path)?;
+//! let spectra = Hdf5::read_spectra(path)?;
 //! # Ok(())
 //! # }
 //! ```
@@ -106,21 +104,13 @@ mod macros;
 mod spectrum;
 pub use spectrum::{Monotonicity, Spectrum};
 
+#[cfg(any(feature = "bruker", feature = "hdf5", feature = "jdx"))]
+mod formats;
 #[cfg(feature = "bruker")]
-mod bruker_reader;
-#[cfg(feature = "bruker")]
-pub use bruker_reader::BrukerReader;
-
+pub use formats::Bruker;
 #[cfg(feature = "hdf5")]
-mod hdf5_reader;
-#[cfg(feature = "hdf5")]
-pub use hdf5_reader::Hdf5Reader;
-
-#[rustfmt::skip]
-#[allow(dead_code)]
+pub use formats::Hdf5;
 #[cfg(feature = "jdx")]
-mod jdx_reader;
-#[cfg(feature = "jdx")]
-pub use jdx_reader::JdxReader;
+pub use formats::JcampDx;
 
 pub mod error;

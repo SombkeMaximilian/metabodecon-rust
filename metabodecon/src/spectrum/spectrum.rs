@@ -99,8 +99,8 @@ impl Spectrum {
     /// objects. See [`BrukerReader`] and [`JdxReader`] for parsing 1D NMR data
     /// from Bruker TopSpin and JCAMP-DX file formats.
     ///
-    /// [`BrukerReader`]: crate::spectrum::BrukerReader
-    /// [`JdxReader`]: crate::spectrum::JdxReader
+    /// [`BrukerReader`]: crate::spectrum::Bruker
+    /// [`JdxReader`]: crate::spectrum::JcampDx
     ///
     /// # Errors
     ///

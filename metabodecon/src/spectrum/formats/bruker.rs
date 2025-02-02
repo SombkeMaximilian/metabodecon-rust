@@ -74,15 +74,14 @@ use std::path::{Path, PathBuf};
 /// # Example: Reading a Spectrum
 ///
 /// ```
-/// use metabodecon::spectrum::BrukerReader;
+/// use metabodecon::spectrum::Bruker;
 ///
 /// # fn main() -> metabodecon::Result<()> {
-/// let reader = BrukerReader::new();
 /// let path = "path/to/spectrum";
 /// # let path = "../data/bruker/blood/blood_01";
 ///
 /// // Read a single spectrum from a Bruker TopSpin format directory.
-/// let spectrum = reader.read_spectrum(
+/// let spectrum = Bruker::read_spectrum(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -98,15 +97,14 @@ use std::path::{Path, PathBuf};
 /// # Example: Reading Multiple Spectra
 ///
 /// ```
-/// use metabodecon::spectrum::BrukerReader;
+/// use metabodecon::spectrum::Bruker;
 ///
 /// # fn main() -> metabodecon::Result<()> {
-/// let reader = BrukerReader::new();
 /// let path = "path/to/root";
 /// # let path = "../data/bruker/blood";
 ///
 /// // Read all spectra from Bruker TopSpin format directories within the root.
-/// let spectra = reader.read_spectra(
+/// let spectra = Bruker::read_spectra(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -118,8 +116,8 @@ use std::path::{Path, PathBuf};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default)]
-pub struct BrukerReader;
+#[derive(Debug)]
+pub enum Bruker {}
 
 /// Endianness of the raw data. Extracted from the `procs` file.
 ///
@@ -171,12 +169,7 @@ struct ProcessingParameters {
     pub scaling_exponent: i32,
 }
 
-impl BrukerReader {
-    /// Constructs a new `BrukerReader`.
-    pub fn new() -> Self {
-        Self
-    }
-
+impl Bruker {
     /// Reads the spectrum from a Bruker TopSpin format directory.
     ///
     /// ```text
@@ -212,15 +205,14 @@ impl BrukerReader {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/spectrum";
     /// # let path = "../data/bruker/blood/blood_01";
     ///
     /// // Read a single spectrum from a Bruker TopSpin format directory.
-    /// let spectrum = reader.read_spectrum(
+    /// let spectrum = Bruker::read_spectrum(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -233,7 +225,6 @@ impl BrukerReader {
     /// # }
     /// ```
     pub fn read_spectrum<P: AsRef<Path>>(
-        &self,
         path: P,
         experiment: u32,
         processing: u32,
@@ -249,15 +240,15 @@ impl BrukerReader {
             .as_ref()
             .join(format!("{}/pdata/{}/1r", experiment, processing));
 
-        let acqus = self.read_acquisition_parameters(acqus_path)?;
-        let procs = self.read_processing_parameters(procs_path)?;
+        let acqus = Self::read_acquisition_parameters(acqus_path)?;
+        let procs = Self::read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
             .map(|i| {
                 procs.spectrum_maximum - acqus.spectrum_width
                     + (i as f64) * acqus.spectrum_width / (procs.data_size as f64 - 1.0)
             })
             .collect::<Vec<f64>>();
-        let intensities = self.read_one_r(one_r_path, procs)?;
+        let intensities = Self::read_one_r(one_r_path, procs)?;
         let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 
         Ok(spectrum)
@@ -309,15 +300,14 @@ impl BrukerReader {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/root";
     /// # let path = "../data/bruker/blood";
     ///
     /// // Read all spectra from Bruker TopSpin format directories within the root.
-    /// let spectra = reader.read_spectra(
+    /// let spectra = Bruker::read_spectra(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -330,7 +320,6 @@ impl BrukerReader {
     /// # }
     /// ```
     pub fn read_spectra<P: AsRef<Path>>(
-        &self,
         path: P,
         experiment: u32,
         processing: u32,
@@ -345,7 +334,7 @@ impl BrukerReader {
             .collect::<Vec<PathBuf>>();
         let spectra = spectra_roots
             .into_iter()
-            .map(|root| self.read_spectrum(root, experiment, processing, signal_boundaries))
+            .map(|root| Self::read_spectrum(root, experiment, processing, signal_boundaries))
             .collect::<Result<Vec<Spectrum>>>()?;
 
         Ok(spectra)
@@ -359,10 +348,7 @@ impl BrukerReader {
     /// The following errors are possible:
     /// - [`MissingMetaData`](Kind::MissingMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
-    fn read_acquisition_parameters<P: AsRef<Path>>(
-        &self,
-        path: P,
-    ) -> Result<AcquisitionParameters> {
+    fn read_acquisition_parameters<P: AsRef<Path>>(path: P) -> Result<AcquisitionParameters> {
         let acqus = read_to_string(path.as_ref())?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
 
@@ -379,7 +365,7 @@ impl BrukerReader {
     /// The following errors are possible:
     /// - [`MissingMetaData`](Kind::MissingMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
-    fn read_processing_parameters<P: AsRef<Path>>(&self, path: P) -> Result<ProcessingParameters> {
+    fn read_processing_parameters<P: AsRef<Path>>(path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
         let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
         let data_size_re = Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap();
@@ -417,7 +403,7 @@ impl BrukerReader {
     ///
     /// The following errors are possible:
     /// - [`Error::IoError`](crate::Error::IoError)
-    fn read_one_r(&self, path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
+    fn read_one_r(path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
         let mut one_r = File::open(path)?;
         let mut buffer = vec![
             0;
@@ -474,20 +460,14 @@ mod tests {
     #[test]
     fn read_spectrum() {
         let path = "../data/bruker/sim/sim_01";
-        let reader = BrukerReader::new();
-        let spectrum = reader
-            .read_spectrum(path, 10, 10, (3.339007, 3.553942))
-            .unwrap();
+        let spectrum = Bruker::read_spectrum(path, 10, 10, (3.339007, 3.553942)).unwrap();
         check_sim_spectrum!(spectrum);
     }
 
     #[test]
     fn read_spectra() {
         let path = "../data/bruker/sim";
-        let reader = BrukerReader::new();
-        let spectra = reader
-            .read_spectra(path, 10, 10, (3.339007, 3.553942))
-            .unwrap();
+        let spectra = Bruker::read_spectra(path, 10, 10, (3.339007, 3.553942)).unwrap();
         assert_eq!(spectra.len(), 16);
         spectra.iter().for_each(|spectrum| {
             check_sim_spectrum!(spectrum);

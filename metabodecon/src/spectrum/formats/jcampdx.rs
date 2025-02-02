@@ -18,8 +18,8 @@ use std::path::Path;
 ///
 /// The metadata is stored as key-value pairs, where the lines start with
 /// `##$key=`. The values are extracted with regular expressions.
-#[derive(Default)]
-pub struct JdxReader;
+#[derive(Debug)]
+pub enum JcampDx {}
 
 #[derive(Debug)]
 enum Type {
@@ -35,12 +35,7 @@ struct MetaData {
     pub data_type: Type,
 }
 
-impl JdxReader {
-    /// Constructs a new `JdxReader`.
-    pub fn new() -> Self {
-        Self
-    }
-
+impl JcampDx {
     /// Reads the spectrum from a JCAMP-DX file.
     pub fn read_spectrum<P: AsRef<Path>>(
         &self,

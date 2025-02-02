@@ -22,14 +22,13 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
-/// use metabodecon::spectrum::BrukerReader;
+/// use metabodecon::spectrum::Bruker;
 ///
 /// # fn main() -> metabodecon::Result<()> {
 /// // Read a spectrum in Bruker TopSpin format.
-/// let reader = BrukerReader::new();
 /// let path = "path/to/spectrum";
 /// # let path = "../data/bruker/blood/blood_01";
-/// let spectrum = reader.read_spectrum(
+/// let spectrum = Bruker::read_spectrum(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -56,14 +55,13 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use metabodecon::deconvolution::Deconvoluter;
-/// use metabodecon::spectrum::BrukerReader;
+/// use metabodecon::spectrum::Bruker;
 ///
 /// # fn main() -> metabodecon::Result<()> {
 /// // Read a spectrum in Bruker TopSpin format.
-/// let reader = BrukerReader::new();
 /// let path = "path/to/spectrum";
 /// # let path = "../data/bruker/blood/blood_01";
-/// let spectrum = reader.read_spectrum(
+/// let spectrum = Bruker::read_spectrum(
 ///     path,
 ///     // Experiment number
 ///     10,
@@ -462,14 +460,13 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// // Read a spectrum in Bruker TopSpin format.
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/spectrum";
     /// # let path = "../data/bruker/blood/blood_01";
-    /// let spectrum = reader.read_spectrum(
+    /// let spectrum = Bruker::read_spectrum(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -521,14 +518,13 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::Deconvoluter;
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// // Read a spectrum in Bruker TopSpin format.
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/spectrum";
     /// # let path = "../data/bruker/blood/blood_01";
-    /// let spectrum = reader.read_spectrum(
+    /// let spectrum = Bruker::read_spectrum(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -581,14 +577,13 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// // Read all spectra from Bruker TopSpin format directories within the root.
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/root";
     /// # let path = "../data/bruker/blood";
-    /// let spectra = reader.read_spectra(
+    /// let spectra = Bruker::read_spectra(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -627,14 +622,13 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// // Read all spectra from Bruker TopSpin format directories within the root.
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/root";
     /// # let path = "../data/bruker/blood";
-    /// let spectra = reader.read_spectra(
+    /// let spectra = Bruker::read_spectra(
     ///     path,
     ///     // Experiment number
     ///     10,
@@ -684,14 +678,13 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{Deconvoluter, Deconvolution, Lorentzian};
-    /// use metabodecon::spectrum::BrukerReader;
+    /// use metabodecon::spectrum::Bruker;
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// // Read all spectra from Bruker TopSpin format directories within the root.
-    /// let reader = BrukerReader::new();
     /// let path = "path/to/root";
     /// # let path = "../data/bruker/sim";
-    /// let spectra = reader.read_spectra(
+    /// let spectra = Bruker::read_spectra(
     ///     path,
     ///     // Experiment number
     ///     10,

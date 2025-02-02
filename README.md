@@ -68,7 +68,7 @@ use metabodecon::{deconvolution, spectrum};
 
 fn main() -> metabodecon::Result<()> {
     // Read a spectrum from Bruker TopSpin format
-    let spectrum = spectrum::BrukerReader.read_spectrum(
+    let spectrum = Bruker::read_spectrum(
         "data/bruker/blood/blood_01",
         // Experiment Number
         10,
@@ -78,7 +78,7 @@ fn main() -> metabodecon::Result<()> {
         (-2.208611, 11.807918),
     )?;
   
-    // Deconvoluter with default options
+    // Deconvoluter with default settings
     let mut deconvoluter = Deconvoluter::default();
   
     // Ignore the water artifact

@@ -5,8 +5,7 @@ use common::store_deconvolution;
 #[cfg(feature = "parallel")]
 #[cfg(test)]
 pub fn run_par_deconvolution(path: &str, data: &str) -> metabodecon::Result<Deconvolution> {
-    let reader = Hdf5Reader::new();
-    let spectrum = reader.read_spectrum(path, data)?;
+    let spectrum = Hdf5::read_spectrum(path, data)?;
     let deconvoluter = Deconvoluter::default();
 
     deconvoluter.par_deconvolute_spectrum(&spectrum)

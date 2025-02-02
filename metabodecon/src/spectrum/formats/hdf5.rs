@@ -30,17 +30,16 @@ use std::path::Path;
 /// # Example: Reading a Spectrum
 ///
 /// ```
-/// use metabodecon::spectrum::Hdf5Reader;
+/// use metabodecon::spectrum::Hdf5;
 ///
 /// # fn main() -> metabodecon::Result<()> {
-/// let reader = Hdf5Reader::new();
 /// let path = "path/to/file.h5";
 /// # let path = "../data/hdf5/blood.h5";
 /// let dataset = "dataset_01";
 /// # let dataset = "blood_01";
 ///
 /// // Read a single spectrum from the HDF5 file.
-/// let spectrum = reader.read_spectrum(path, dataset)?;
+/// let spectrum = Hdf5::read_spectrum(path, dataset)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -48,27 +47,21 @@ use std::path::Path;
 /// # Example: Reading Multiple Spectra
 ///
 /// ```
-/// use metabodecon::spectrum::Hdf5Reader;
+/// use metabodecon::spectrum::Hdf5;
 ///
 /// # fn main() -> metabodecon::Result<()> {
-/// let reader = Hdf5Reader::new();
 /// let path = "path/to/file.h5";
 /// # let path = "../data/hdf5/blood.h5";
 ///
 /// // Read all spectra from the HDF5 file.
-/// let spectra = reader.read_spectra(path)?;
+/// let spectra = Hdf5::read_spectra(path)?;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Default)]
-pub struct Hdf5Reader;
+#[derive(Debug)]
+pub enum Hdf5 {}
 
-impl Hdf5Reader {
-    /// Constructs a new `Hdf5Reader`.
-    pub fn new() -> Self {
-        Self
-    }
-
+impl Hdf5 {
     /// Reads the spectrum in the provided dataset from an HDF5 file.
     ///
     /// ```text
@@ -102,21 +95,20 @@ impl Hdf5Reader {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::spectrum::Hdf5Reader;
+    /// use metabodecon::spectrum::Hdf5;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let reader = Hdf5Reader::new();
     /// let path = "path/to/file.h5";
     /// # let path = "../data/hdf5/blood.h5";
     /// let dataset = "dataset_01";
     /// # let dataset = "blood_01";
     ///
     /// // Read a single spectrum from the HDF5 file.
-    /// let spectrum = reader.read_spectrum(path, dataset)?;
+    /// let spectrum = Hdf5::read_spectrum(path, dataset)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn read_spectrum<P: AsRef<Path>>(&self, path: P, dataset: &str) -> Result<Spectrum> {
+    pub fn read_spectrum<P: AsRef<Path>>(path: P, dataset: &str) -> Result<Spectrum> {
         let file = hdf5::File::open(path.as_ref())?;
 
         Self::read_from_file(&file, dataset)
@@ -165,19 +157,18 @@ impl Hdf5Reader {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::spectrum::Hdf5Reader;
+    /// use metabodecon::spectrum::Hdf5;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let reader = Hdf5Reader::new();
     /// let path = "path/to/file.h5";
     /// # let path = "../data/hdf5/blood.h5";
     ///
     /// // Read all spectra from the HDF5 file.
-    /// let spectra = reader.read_spectra(path)?;
+    /// let spectra = Hdf5::read_spectra(path)?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn read_spectra<P: AsRef<Path>>(&self, path: P) -> Result<Vec<Spectrum>> {
+    pub fn read_spectra<P: AsRef<Path>>(path: P) -> Result<Vec<Spectrum>> {
         let file = hdf5::File::open(path.as_ref())?;
         let datasets: Vec<String> = file.member_names()?.into_iter().collect();
         let spectra = datasets
@@ -237,16 +228,14 @@ mod tests {
     fn read_spectrum() {
         let path = "../data/hdf5/sim.h5";
         let dataset = "sim_01";
-        let reader = Hdf5Reader::new();
-        let spectrum = reader.read_spectrum(path, dataset).unwrap();
+        let spectrum = Hdf5::read_spectrum(path, dataset).unwrap();
         check_sim_spectrum!(spectrum);
     }
 
     #[test]
     fn read_spectra() {
         let path = "../data/hdf5/sim.h5";
-        let reader = Hdf5Reader::new();
-        let spectra = reader.read_spectra(path).unwrap();
+        let spectra = Hdf5::read_spectra(path).unwrap();
         assert_eq!(spectra.len(), 16);
         spectra.iter().for_each(|spectrum| {
             check_sim_spectrum!(spectrum);
