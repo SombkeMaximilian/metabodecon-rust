@@ -7,14 +7,14 @@ mod deconvolution;
 pub use deconvolution::Deconvolution;
 
 mod fitting;
-pub use fitting::FittingAlgo;
+pub use fitting::FittingSettings;
 pub use fitting::Lorentzian;
 
 mod peak_selection;
-pub use peak_selection::{ScoringAlgo, SelectionAlgo};
+pub use peak_selection::{ScoringMethods, SelectionSettings};
 
 mod smoothing;
-pub use smoothing::SmoothingAlgo;
+pub use smoothing::SmoothingSettings;
 
 pub mod error;
 

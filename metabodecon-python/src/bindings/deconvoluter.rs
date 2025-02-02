@@ -24,7 +24,7 @@ impl Deconvoluter {
     ) -> PyResult<()> {
         match self
             .inner
-            .set_smoothing_algo(deconvolution::SmoothingAlgo::MovingAverage {
+            .set_smoothing_settings(deconvolution::SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
             }) {
@@ -34,12 +34,12 @@ impl Deconvoluter {
     }
 
     pub fn set_noise_score_selector(&mut self, threshold: f64) -> PyResult<()> {
-        match self
-            .inner
-            .set_selection_algo(deconvolution::SelectionAlgo::NoiseScoreFilter {
-                scoring_algo: deconvolution::ScoringAlgo::MinimumSum,
+        match self.inner.set_selection_settings(
+            deconvolution::SelectionSettings::NoiseScoreFilter {
+                scoring_method: deconvolution::ScoringMethods::MinimumSum,
                 threshold,
-            }) {
+            },
+        ) {
             Ok(_) => Ok(()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -48,7 +48,7 @@ impl Deconvoluter {
     pub fn set_analytical_fitter(&mut self, iterations: usize) -> PyResult<()> {
         match self
             .inner
-            .set_fitting_algo(deconvolution::FittingAlgo::Analytical { iterations })
+            .set_fitting_settings(deconvolution::FittingSettings::Analytical { iterations })
         {
             Ok(_) => Ok(()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),

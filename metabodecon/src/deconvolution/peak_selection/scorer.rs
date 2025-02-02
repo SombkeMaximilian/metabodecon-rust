@@ -1,6 +1,6 @@
 use crate::deconvolution::peak_selection::peak::Peak;
 
-/// Trait interface for peak scoring algorithms.
+/// Trait interface for peak scoring methods.
 pub(crate) trait Scorer {
     /// Scores the given peak.
     fn score_peak(&self, peak: &Peak) -> f64;
@@ -9,7 +9,7 @@ pub(crate) trait Scorer {
 /// Scoring methods for the peaks.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Default)]
-pub enum ScoringAlgo {
+pub enum ScoringMethods {
     /// Minimum Sum of the absolute second derivative.
     ///
     /// The minimum sum scorer computes the sum of the absolute second
@@ -19,7 +19,7 @@ pub enum ScoringAlgo {
     MinimumSum,
 }
 
-/// Peak scoring algorithm based on the sum of second derivative values.
+/// Peak scoring method based on the sum of second derivative values.
 #[derive(Debug)]
 pub(crate) struct ScorerMinimumSum<'a> {
     /// The absolute second derivative of the signal as a reference.

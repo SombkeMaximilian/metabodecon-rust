@@ -9,5 +9,5 @@ pub(crate) use fitter_analytical::FitterAnalytical;
 pub(crate) use peak_stencil::PeakStencil;
 pub(crate) use reduced_spectrum::ReducedSpectrum;
 
-pub use fitter::FittingAlgo;
+pub use fitter::FittingSettings;
 pub use lorentzian::Lorentzian;

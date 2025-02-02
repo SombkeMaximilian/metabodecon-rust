@@ -1,8 +1,8 @@
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingAlgo, Lorentzian};
-use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionAlgo, Selector};
-use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingAlgo};
-use crate::deconvolution::{Deconvolution, ScoringAlgo, Settings};
+use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings, Lorentzian};
+use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionSettings, Selector};
+use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
+use crate::deconvolution::{Deconvolution, ScoringMethods, Settings};
 use crate::error::Result;
 use crate::spectrum::Spectrum;
 
@@ -89,21 +89,22 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use metabodecon::deconvolution::{
-///     Deconvoluter, FittingAlgo, ScoringAlgo, SelectionAlgo, SmoothingAlgo,
+///     Deconvoluter, FittingSettings, ScoringMethods, SelectionSettings,
+///     SmoothingSettings,
 /// };
 ///
 /// # fn main() -> metabodecon::Result<()> {
 /// // Create a new Deconvoluter with the desired settings.
 /// let mut deconvoluter = Deconvoluter::new(
-///     SmoothingAlgo::MovingAverage {
+///     SmoothingSettings::MovingAverage {
 ///         iterations: 3,
 ///         window_size: 3,
 ///     },
-///     SelectionAlgo::NoiseScoreFilter {
-///         scoring_algo: ScoringAlgo::MinimumSum,
+///     SelectionSettings::NoiseScoreFilter {
+///         scoring_method: ScoringMethods::MinimumSum,
 ///         threshold: 5.0,
 ///     },
-///     FittingAlgo::Analytical { iterations: 20 },
+///     FittingSettings::Analytical { iterations: 20 },
 /// )?;
 ///
 /// // Add a region to ignore during deconvolution.
@@ -113,12 +114,12 @@ use rayon::prelude::*;
 /// ```
 #[derive(Clone, Debug, Default)]
 pub struct Deconvoluter {
-    /// The smoothing algorithm to use.
-    smoothing_algo: SmoothingAlgo,
-    /// The peak selection algorithm to use.
-    selection_algo: SelectionAlgo,
-    /// The fitting algorithm to use.
-    fitting_algo: FittingAlgo,
+    /// The smoothing settings.
+    smoothing_settings: SmoothingSettings,
+    /// The peak selection settings.
+    selection_settings: SelectionSettings,
+    /// The fitting settings.
+    fitting_settings: FittingSettings,
     /// The regions to ignore during deconvolution.
     ignore_regions: Option<Vec<(f64, f64)>>,
 }
@@ -133,41 +134,42 @@ impl Deconvoluter {
     /// - A `window_size` of 0 for a moving average filter would mean that no
     ///   smoothing is applied.
     /// - Negative `threshold`s for a noise score filter wouldn't make sense.
-    /// - 0 `iterations` for an analytical fitting algorithm would mean that the
-    ///   fitting algorithm doesn't do anything.
+    /// - 0 `iterations` for the analytical fitting algorithm would mean that
+    ///   the fitting algorithm doesn't do anything.
     ///
     /// # Example
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, FittingAlgo, ScoringAlgo, SelectionAlgo, SmoothingAlgo,
+    ///     Deconvoluter, FittingSettings, ScoringMethods, SelectionSettings,
+    ///     SmoothingSettings,
     /// };
     ///
     /// let deconvoluter = Deconvoluter::new(
-    ///     SmoothingAlgo::MovingAverage {
+    ///     SmoothingSettings::MovingAverage {
     ///         iterations: 3,
     ///         window_size: 3,
     ///     },
-    ///     SelectionAlgo::NoiseScoreFilter {
-    ///         scoring_algo: ScoringAlgo::MinimumSum,
+    ///     SelectionSettings::NoiseScoreFilter {
+    ///         scoring_method: ScoringMethods::MinimumSum,
     ///         threshold: 5.0,
     ///     },
-    ///     FittingAlgo::Analytical { iterations: 20 },
+    ///     FittingSettings::Analytical { iterations: 20 },
     /// );
     /// ```
     pub fn new(
-        smoothing_algo: SmoothingAlgo,
-        selection_algo: SelectionAlgo,
-        fitting_algo: FittingAlgo,
+        smoothing_settings: SmoothingSettings,
+        selection_settings: SelectionSettings,
+        fitting_settings: FittingSettings,
     ) -> Result<Self> {
-        smoothing_algo.validate()?;
-        selection_algo.validate()?;
-        fitting_algo.validate()?;
+        smoothing_settings.validate()?;
+        selection_settings.validate()?;
+        fitting_settings.validate()?;
 
         Ok(Self {
-            smoothing_algo,
-            selection_algo,
-            fitting_algo,
+            smoothing_settings,
+            selection_settings,
+            fitting_settings,
             ignore_regions: None,
         })
     }
@@ -177,23 +179,23 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingSettings};
     ///
     /// let deconvoluter = Deconvoluter::default();
     ///
-    /// match deconvoluter.smoothing_algo() {
-    ///     SmoothingAlgo::MovingAverage {
+    /// match deconvoluter.smoothing_settings() {
+    ///     SmoothingSettings::MovingAverage {
     ///         iterations,
     ///         window_size,
     ///     } => {
     ///         assert_eq!(iterations, 2);
     ///         assert_eq!(window_size, 5);
     ///     }
-    ///     _ => panic!("Unexpected smoothing algorithm"),
+    ///     _ => panic!("Unexpected smoothing settings"),
     /// };
     /// ```
-    pub fn smoothing_algo(&self) -> SmoothingAlgo {
-        self.smoothing_algo
+    pub fn smoothing_settings(&self) -> SmoothingSettings {
+        self.smoothing_settings
     }
 
     /// Returns the peak selection settings.
@@ -202,27 +204,27 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringAlgo, SelectionAlgo,
+    ///     Deconvoluter, ScoringMethods, SelectionSettings,
     /// };
     ///
     /// let deconvoluter = Deconvoluter::default();
     ///
-    /// match deconvoluter.selection_algo() {
-    ///     SelectionAlgo::NoiseScoreFilter {
-    ///         scoring_algo,
+    /// match deconvoluter.selection_settings() {
+    ///     SelectionSettings::NoiseScoreFilter {
+    ///         scoring_method,
     ///         threshold,
     ///     } => {
-    ///         match scoring_algo {
-    ///             ScoringAlgo::MinimumSum => {}
-    ///             _ => panic!("Unexpected scoring algorithm"),
+    ///         match scoring_method {
+    ///             ScoringMethods::MinimumSum => {}
+    ///             _ => panic!("Unexpected scoring method"),
     ///         };
     ///         assert_eq!(threshold, 6.4);
     ///     }
-    ///     _ => panic!("Unexpected selection algorithm"),
+    ///     _ => panic!("Unexpected peak selection settings"),
     /// };
     /// ```
-    pub fn selection_algo(&self) -> SelectionAlgo {
-        self.selection_algo
+    pub fn selection_settings(&self) -> SelectionSettings {
+        self.selection_settings
     }
 
     /// Returns the fitting settings.
@@ -230,19 +232,19 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, FittingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, FittingSettings};
     ///
     /// let deconvoluter = Deconvoluter::default();
     ///
-    /// match deconvoluter.fitting_algo() {
-    ///     FittingAlgo::Analytical { iterations } => {
+    /// match deconvoluter.fitting_settings() {
+    ///     FittingSettings::Analytical { iterations } => {
     ///         assert_eq!(iterations, 10);
     ///     }
-    ///     _ => panic!("Unexpected fitting algorithm"),
+    ///     _ => panic!("Unexpected fitting settings"),
     /// };
     /// ```
-    pub fn fitting_algo(&self) -> FittingAlgo {
-        self.fitting_algo
+    pub fn fitting_settings(&self) -> FittingSettings {
+        self.fitting_settings
     }
 
     /// Returns the regions to ignore during deconvolution.
@@ -275,21 +277,21 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingSettings};
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
     ///
-    /// deconvoluter.set_smoothing_algo(SmoothingAlgo::MovingAverage {
+    /// deconvoluter.set_smoothing_settings(SmoothingSettings::MovingAverage {
     ///     iterations: 3,
     ///     window_size: 3,
     /// })?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_smoothing_algo(&mut self, smoothing_algo: SmoothingAlgo) -> Result<()> {
-        smoothing_algo.validate()?;
-        self.smoothing_algo = smoothing_algo;
+    pub fn set_smoothing_settings(&mut self, smoothing_settings: SmoothingSettings) -> Result<()> {
+        smoothing_settings.validate()?;
+        self.smoothing_settings = smoothing_settings;
 
         Ok(())
     }
@@ -302,28 +304,28 @@ impl Deconvoluter {
     /// invalid. For example, a negative `threshold` for a noise score filter
     /// wouldn't make sense.
     ///
-    /// [`InvalidSelectionSettings`]: Kind::InvalidSelectionSettings
-    ///
     /// # Example
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringAlgo, SelectionAlgo,
+    ///     Deconvoluter, ScoringMethods, SelectionSettings,
     /// };
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
     ///
-    /// deconvoluter.set_selection_algo(SelectionAlgo::NoiseScoreFilter {
-    ///     scoring_algo: ScoringAlgo::MinimumSum,
-    ///     threshold: 5.0,
-    /// })?;
+    /// deconvoluter.set_selection_settings(
+    ///     SelectionSettings::NoiseScoreFilter {
+    ///         scoring_method: ScoringMethods::MinimumSum,
+    ///         threshold: 5.0,
+    ///     },
+    /// )?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_selection_algo(&mut self, selection_algo: SelectionAlgo) -> Result<()> {
-        selection_algo.validate()?;
-        self.selection_algo = selection_algo;
+    pub fn set_selection_settings(&mut self, selection_settings: SelectionSettings) -> Result<()> {
+        selection_settings.validate()?;
+        self.selection_settings = selection_settings;
 
         Ok(())
     }
@@ -336,24 +338,22 @@ impl Deconvoluter {
     /// example, 0 `iterations` would mean that the fitting algorithm doesn't
     /// do anything.
     ///
-    /// [`InvalidFittingSettings`]: Kind::InvalidFittingSettings
-    ///
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, FittingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, FittingSettings};
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
     ///
     /// deconvoluter
-    ///     .set_fitting_algo(FittingAlgo::Analytical { iterations: 20 })?;
+    ///     .set_fitting_settings(FittingSettings::Analytical { iterations: 20 })?;
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_fitting_algo(&mut self, fitting_algo: FittingAlgo) -> Result<()> {
-        fitting_algo.validate()?;
-        self.fitting_algo = fitting_algo;
+    pub fn set_fitting_settings(&mut self, fitting_settings: FittingSettings) -> Result<()> {
+        fitting_settings.validate()?;
+        self.fitting_settings = fitting_settings;
 
         Ok(())
     }
@@ -372,7 +372,7 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingSettings};
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
@@ -433,7 +433,7 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingAlgo};
+    /// use metabodecon::deconvolution::{Deconvoluter, SmoothingSettings};
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
@@ -488,8 +488,8 @@ impl Deconvoluter {
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;
         let lorentzians = {
-            let fitter = match self.fitting_algo {
-                FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
+            let fitter = match self.fitting_settings {
+                FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
             };
             fitter.fit_lorentzian(spectrum, &peaks)
         };
@@ -500,9 +500,9 @@ impl Deconvoluter {
 
         Ok(Deconvolution::new(
             lorentzians,
-            self.smoothing_algo,
-            self.selection_algo,
-            self.fitting_algo,
+            self.smoothing_settings,
+            self.selection_settings,
+            self.fitting_settings,
             mse,
         ))
     }
@@ -548,8 +548,8 @@ impl Deconvoluter {
     pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
         let peaks = self.select_peaks(spectrum)?;
         let lorentzians = {
-            let fitter = match self.fitting_algo {
-                FittingAlgo::Analytical { iterations } => FitterAnalytical::new(iterations),
+            let fitter = match self.fitting_settings {
+                FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
             };
             fitter.par_fit_lorentzian(spectrum, &peaks)
         };
@@ -560,9 +560,9 @@ impl Deconvoluter {
 
         Ok(Deconvolution::new(
             lorentzians,
-            self.smoothing_algo,
-            self.selection_algo,
-            self.fitting_algo,
+            self.smoothing_settings,
+            self.selection_settings,
+            self.fitting_settings,
             mse,
         ))
     }
@@ -712,56 +712,51 @@ impl Deconvoluter {
     /// ```
     #[cfg(feature = "parallel")]
     pub fn optimize_settings(&mut self, reference: &Spectrum) -> Result<f64> {
-        let smoothing_algos = (2..=10)
+        let smoothing_settings = (2..=10)
             .flat_map(|iterations| {
                 (3..=7)
                     .step_by(2)
-                    .map(move |window_size| SmoothingAlgo::MovingAverage {
+                    .map(move |window_size| SmoothingSettings::MovingAverage {
                         iterations,
                         window_size,
                     })
             })
-            .collect::<Vec<SmoothingAlgo>>();
-        let selection_algos = (0..10)
-            .map(|coefficient| SelectionAlgo::NoiseScoreFilter {
-                scoring_algo: ScoringAlgo::MinimumSum,
+            .collect::<Vec<SmoothingSettings>>();
+        let selection_settings = (0..10)
+            .map(|coefficient| SelectionSettings::NoiseScoreFilter {
+                scoring_method: ScoringMethods::MinimumSum,
                 threshold: 5.0 + (coefficient as f64) * (8.0 - 5.0) / 9.0,
             })
-            .collect::<Vec<SelectionAlgo>>();
-        let fitting_algos = (5..=15)
+            .collect::<Vec<SelectionSettings>>();
+        let fitting_settings = (5..=15)
             .step_by(5)
-            .map(|iterations| FittingAlgo::Analytical { iterations })
-            .collect::<Vec<FittingAlgo>>();
+            .map(|iterations| FittingSettings::Analytical { iterations })
+            .collect::<Vec<FittingSettings>>();
 
-        let optimal_settings = smoothing_algos
+        let optimal_settings = smoothing_settings
             .par_iter()
-            .map(|smoothing_algo| {
+            .map(|smoothing| {
                 let mut deconvoluter = Deconvoluter::default();
                 deconvoluter
-                    .set_smoothing_algo(*smoothing_algo)
+                    .set_smoothing_settings(*smoothing)
                     .unwrap();
 
-                selection_algos
+                selection_settings
                     .iter()
-                    .map(|selection_algo| {
+                    .map(|selection| {
                         deconvoluter
-                            .set_selection_algo(*selection_algo)
+                            .set_selection_settings(*selection)
                             .unwrap();
 
-                        fitting_algos
+                        fitting_settings
                             .iter()
-                            .map(|fitting_algo| {
+                            .map(|fitting| {
                                 deconvoluter
-                                    .set_fitting_algo(*fitting_algo)
+                                    .set_fitting_settings(*fitting)
                                     .unwrap();
                                 let deconvolution = deconvoluter.deconvolute_spectrum(reference)?;
 
-                                Ok((
-                                    deconvolution.mse(),
-                                    *fitting_algo,
-                                    *selection_algo,
-                                    *smoothing_algo,
-                                ))
+                                Ok((deconvolution.mse(), *fitting, *selection, *smoothing))
                             })
                             .collect::<Result<Vec<_>>>()
                     })
@@ -773,29 +768,29 @@ impl Deconvoluter {
             .flatten()
             .min_by(|(mse_1, ..), (mse_2, ..)| f64::partial_cmp(mse_1, mse_2).unwrap())
             .unwrap();
-        let (mse, fitting_algo, selection_algo, smoothing_algo) = optimal_settings;
-        self.smoothing_algo = smoothing_algo;
-        self.selection_algo = selection_algo;
-        self.fitting_algo = fitting_algo;
+        let (mse, fitting, selection, smoothing) = optimal_settings;
+        self.smoothing_settings = smoothing;
+        self.selection_settings = selection;
+        self.fitting_settings = fitting;
 
         Ok(mse)
     }
 
     /// Internal helper function to perform the peak selection step.
     fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
-        let mut smoother = match self.smoothing_algo {
-            SmoothingAlgo::MovingAverage {
+        let mut smoother = match self.smoothing_settings {
+            SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
             } => MovingAverage::new(iterations, window_size),
         };
         let mut intensities = spectrum.intensities().to_vec();
         smoother.smooth_values(&mut intensities);
-        let selector = match self.selection_algo {
-            SelectionAlgo::NoiseScoreFilter {
-                scoring_algo,
+        let selector = match self.selection_settings {
+            SelectionSettings::NoiseScoreFilter {
+                scoring_method,
                 threshold,
-            } => NoiseScoreFilter::new(scoring_algo, threshold),
+            } => NoiseScoreFilter::new(scoring_method, threshold),
         };
         let ignore_regions = self.ignore_region_indices(spectrum);
         let peaks = selector.select_peaks(

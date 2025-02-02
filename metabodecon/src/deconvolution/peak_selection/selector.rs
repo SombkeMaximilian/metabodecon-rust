@@ -1,7 +1,7 @@
 use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::peak::Peak;
-use crate::deconvolution::peak_selection::scorer::ScoringAlgo;
+use crate::deconvolution::peak_selection::scorer::ScoringMethods;
 use crate::error::Result;
 
 /// Trait interface for peak selection algorithms.
@@ -18,12 +18,12 @@ pub(crate) trait Selector {
 /// Peak selection methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
-pub enum SelectionAlgo {
+pub enum SelectionSettings {
     /// Filter based on the score of peaks found in the signal free region.
     ///
     /// Finds peaks in the spectrum by analyzing the curvature of the signal
     /// through the second derivative and scores them based on the selected
-    /// scoring algorithm. Mean and standard deviation are calculated for the
+    /// scoring method. Mean and standard deviation are calculated for the
     /// scores of peaks in the signal free region (where only noise is present).
     /// Finally, peaks in the signal region are filtered according to the
     /// following criterion:
@@ -32,27 +32,29 @@ pub enum SelectionAlgo {
     /// score > mean + threshold * std_dev
     /// ```
     NoiseScoreFilter {
-        /// The scoring algorithm to use.
-        scoring_algo: ScoringAlgo,
+        /// The scoring method to use.
+        scoring_method: ScoringMethods,
         /// The threshold to apply to the scores.
         threshold: f64,
     },
 }
-impl Default for SelectionAlgo {
+impl Default for SelectionSettings {
     fn default() -> Self {
-        SelectionAlgo::NoiseScoreFilter {
-            scoring_algo: ScoringAlgo::default(),
+        SelectionSettings::NoiseScoreFilter {
+            scoring_method: ScoringMethods::default(),
             threshold: 6.4,
         }
     }
 }
 
-impl Settings for SelectionAlgo {
+impl Settings for SelectionSettings {
     fn validate(&self) -> Result<()> {
         match self {
-            SelectionAlgo::NoiseScoreFilter { threshold, .. } => {
+            SelectionSettings::NoiseScoreFilter { threshold, .. } => {
                 if *threshold < 0.0 {
-                    return Err(Error::new(Kind::InvalidSelectionSettings { algo: *self }).into());
+                    return Err(
+                        Error::new(Kind::InvalidSelectionSettings { settings: *self }).into(),
+                    );
                 }
             }
         }

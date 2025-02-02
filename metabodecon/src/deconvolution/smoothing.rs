@@ -5,4 +5,4 @@ mod smoother;
 pub(crate) use moving_average::MovingAverage;
 pub(crate) use smoother::Smoother;
 
-pub use smoother::SmoothingAlgo;
+pub use smoother::SmoothingSettings;

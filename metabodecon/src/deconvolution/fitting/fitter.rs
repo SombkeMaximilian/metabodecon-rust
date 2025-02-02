@@ -18,7 +18,7 @@ pub(crate) trait Fitter {
 /// Fitting methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
-pub enum FittingAlgo {
+pub enum FittingSettings {
     /// Fitting by solving a system of linear equations analytically.
     Analytical {
         /// The number of iterations to refine the fit.
@@ -26,18 +26,18 @@ pub enum FittingAlgo {
     },
 }
 
-impl Default for FittingAlgo {
+impl Default for FittingSettings {
     fn default() -> Self {
-        FittingAlgo::Analytical { iterations: 10 }
+        FittingSettings::Analytical { iterations: 10 }
     }
 }
 
-impl Settings for FittingAlgo {
+impl Settings for FittingSettings {
     fn validate(&self) -> crate::Result<()> {
         match self {
-            FittingAlgo::Analytical { iterations } => {
+            FittingSettings::Analytical { iterations } => {
                 if *iterations == 0 {
-                    return Err(Error::new(Kind::InvalidFittingSettings { algo: *self }).into());
+                    return Err(Error::new(Kind::InvalidFittingSettings { settings: *self }).into());
                 }
             }
         }

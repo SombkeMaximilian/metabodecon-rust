@@ -8,5 +8,5 @@ pub(crate) use noise_score_filter::NoiseScoreFilter;
 pub(crate) use peak::Peak;
 pub(crate) use selector::Selector;
 
-pub use scorer::ScoringAlgo;
-pub use selector::SelectionAlgo;
+pub use scorer::ScoringMethods;
+pub use selector::SelectionSettings;

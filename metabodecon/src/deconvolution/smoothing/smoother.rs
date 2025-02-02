@@ -11,7 +11,7 @@ pub(crate) trait Smoother<Type> {
 /// Smoothing methods for the signal intensities.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
-pub enum SmoothingAlgo {
+pub enum SmoothingSettings {
     /// Moving average low-pass filter.
     ///
     /// The moving average filter is a low-pass filter that replaces each value
@@ -25,24 +25,26 @@ pub enum SmoothingAlgo {
     },
 }
 
-impl Default for SmoothingAlgo {
+impl Default for SmoothingSettings {
     fn default() -> Self {
-        SmoothingAlgo::MovingAverage {
+        SmoothingSettings::MovingAverage {
             iterations: 2,
             window_size: 5,
         }
     }
 }
 
-impl Settings for SmoothingAlgo {
+impl Settings for SmoothingSettings {
     fn validate(&self) -> Result<()> {
         match self {
-            SmoothingAlgo::MovingAverage {
+            SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
             } => {
                 if *iterations == 0 || *window_size == 0 {
-                    return Err(Error::new(Kind::InvalidSmoothingSettings { algo: *self }).into());
+                    return Err(
+                        Error::new(Kind::InvalidSmoothingSettings { settings: *self }).into(),
+                    );
                 }
             }
         }

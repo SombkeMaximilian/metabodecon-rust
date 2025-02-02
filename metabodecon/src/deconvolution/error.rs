@@ -1,8 +1,8 @@
 //! Error types for the deconvolution process.
 
-use crate::deconvolution::fitting::FittingAlgo;
-use crate::deconvolution::peak_selection::SelectionAlgo;
-use crate::deconvolution::smoothing::SmoothingAlgo;
+use crate::deconvolution::fitting::FittingSettings;
+use crate::deconvolution::peak_selection::SelectionSettings;
+use crate::deconvolution::smoothing::SmoothingSettings;
 
 /// An `Error` that occurred during the deconvolution process.
 ///
@@ -45,7 +45,7 @@ pub enum Kind {
     /// average filter, are invalid.
     InvalidSmoothingSettings {
         /// The provided smoothing settings.
-        algo: SmoothingAlgo,
+        settings: SmoothingSettings,
     },
     /// The provided peak selection settings are invalid.
     ///
@@ -53,15 +53,15 @@ pub enum Kind {
     /// filter, are invalid.
     InvalidSelectionSettings {
         /// The provided peak selection settings.
-        algo: SelectionAlgo,
+        settings: SelectionSettings,
     },
     /// The provided fitting settings are invalid.
     ///
-    /// Some configurations, such as 0 `iterations` for an analytical fitting
+    /// Some configurations, such as 0 `iterations` for the analytical fitting
     /// algorithm, are invalid.
     InvalidFittingSettings {
         /// The provided fitting settings.
-        algo: FittingAlgo,
+        settings: FittingSettings,
     },
     /// The provided region to be ignored is invalid.
     ///
@@ -108,25 +108,25 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         use self::Kind::*;
         let description = match &self.kind {
-            InvalidSmoothingSettings { algo } => match algo {
-                SmoothingAlgo::MovingAverage { .. } => format!(
+            InvalidSmoothingSettings { settings } => match settings {
+                SmoothingSettings::MovingAverage { .. } => format!(
                     "invalid smoothing settings: {:?} \
                      window_size and iterations must be greater than 0",
-                    algo
+                    settings
                 ),
             },
-            InvalidSelectionSettings { algo } => match algo {
-                SelectionAlgo::NoiseScoreFilter { .. } => format!(
+            InvalidSelectionSettings { settings } => match settings {
+                SelectionSettings::NoiseScoreFilter { .. } => format!(
                     "invalid peak selection settings: {:?} \
                      threshold must be greater than 0",
-                    algo
+                    settings
                 ),
             },
-            InvalidFittingSettings { algo } => match algo {
-                FittingAlgo::Analytical { .. } => format!(
+            InvalidFittingSettings { settings } => match settings {
+                FittingSettings::Analytical { .. } => format!(
                     "invalid fitting settings: {:?} \
                      iterations must be greater than 0",
-                    algo
+                    settings
                 ),
             },
             InvalidIgnoreRegion { region } => format!(
