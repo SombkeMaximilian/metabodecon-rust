@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::Result;
 use crate::spectrum::error::{Error, Kind};
 
 /// Represents the ordering of 1D NMR spectrum data.

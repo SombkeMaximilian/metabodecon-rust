@@ -1,9 +1,11 @@
+use crate::Result;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings, Lorentzian};
-use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionSettings, Selector};
+use crate::deconvolution::peak_selection::{
+    NoiseScoreFilter, Peak, ScoringMethod, SelectionSettings, Selector,
+};
 use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
-use crate::deconvolution::{Deconvolution, ScoringMethod, Settings};
-use crate::error::Result;
+use crate::deconvolution::{Deconvolution, Settings};
 use crate::spectrum::Spectrum;
 
 #[cfg(feature = "parallel")]

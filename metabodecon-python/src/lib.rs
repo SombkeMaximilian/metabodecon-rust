@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 mod bindings;
-
 use bindings::{Deconvoluter, Deconvolution, Lorentzian, Spectrum};
 
 #[pymodule]

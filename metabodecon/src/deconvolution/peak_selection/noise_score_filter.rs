@@ -1,9 +1,8 @@
+use crate::Result;
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::peak_selection::detector::Detector;
-use crate::deconvolution::peak_selection::peak::Peak;
-use crate::deconvolution::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringMethod};
-use crate::deconvolution::peak_selection::selector::Selector;
-use crate::error::Result;
+use crate::deconvolution::peak_selection::{
+    Detector, Peak, Scorer, ScorerMinimumSum, ScoringMethod, Selector,
+};
 
 /// Peak selection algorithm based on the score of peaks found in the signal
 /// free region.

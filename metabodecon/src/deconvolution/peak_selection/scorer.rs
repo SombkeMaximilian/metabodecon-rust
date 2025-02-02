@@ -1,4 +1,4 @@
-use crate::deconvolution::peak_selection::peak::Peak;
+use crate::deconvolution::peak_selection::Peak;
 
 /// Trait interface for peak scoring methods.
 pub(crate) trait Scorer {

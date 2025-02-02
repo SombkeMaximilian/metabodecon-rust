@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::Result;
 
 /// Trait interface for deconvolution settings enums.
 pub(crate) trait Settings: Default + Clone {

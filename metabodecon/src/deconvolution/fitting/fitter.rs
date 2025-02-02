@@ -1,6 +1,6 @@
 use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::fitting::lorentzian::Lorentzian;
+use crate::deconvolution::fitting::Lorentzian;
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 

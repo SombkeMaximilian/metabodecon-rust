@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::Result;
 use crate::spectrum::Spectrum;
 use crate::spectrum::error::{Error, Kind};
 use crate::spectrum::macros::extract_capture;

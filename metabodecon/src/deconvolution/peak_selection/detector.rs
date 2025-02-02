@@ -1,5 +1,5 @@
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::peak_selection::peak::Peak;
+use crate::deconvolution::peak_selection::Peak;
 use crate::error::Result;
 
 /// Peak detection algorithm based on the second derivative of the signal.

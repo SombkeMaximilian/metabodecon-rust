@@ -1,8 +1,7 @@
+use crate::Result;
 use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::peak_selection::peak::Peak;
-use crate::deconvolution::peak_selection::scorer::ScoringMethod;
-use crate::error::Result;
+use crate::deconvolution::peak_selection::{Peak, ScoringMethod};
 
 /// Trait interface for peak selection algorithms.
 pub(crate) trait Selector {

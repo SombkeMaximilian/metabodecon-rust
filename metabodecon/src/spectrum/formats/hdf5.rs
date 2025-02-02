@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::Result;
 use crate::spectrum::Spectrum;
 use std::path::Path;
 
