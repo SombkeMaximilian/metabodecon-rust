@@ -2,7 +2,7 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings, Lorentzian};
 use crate::deconvolution::peak_selection::{NoiseScoreFilter, Peak, SelectionSettings, Selector};
 use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
-use crate::deconvolution::{Deconvolution, ScoringMethods, Settings};
+use crate::deconvolution::{Deconvolution, ScoringMethod, Settings};
 use crate::error::Result;
 use crate::spectrum::Spectrum;
 
@@ -87,7 +87,7 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use metabodecon::deconvolution::{
-///     Deconvoluter, FittingSettings, ScoringMethods, SelectionSettings,
+///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings,
 ///     SmoothingSettings,
 /// };
 ///
@@ -99,7 +99,7 @@ use rayon::prelude::*;
 ///         window_size: 3,
 ///     },
 ///     SelectionSettings::NoiseScoreFilter {
-///         scoring_method: ScoringMethods::MinimumSum,
+///         scoring_method: ScoringMethod::MinimumSum,
 ///         threshold: 5.0,
 ///     },
 ///     FittingSettings::Analytical { iterations: 20 },
@@ -139,7 +139,7 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, FittingSettings, ScoringMethods, SelectionSettings,
+    ///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings,
     ///     SmoothingSettings,
     /// };
     ///
@@ -149,7 +149,7 @@ impl Deconvoluter {
     ///         window_size: 3,
     ///     },
     ///     SelectionSettings::NoiseScoreFilter {
-    ///         scoring_method: ScoringMethods::MinimumSum,
+    ///         scoring_method: ScoringMethod::MinimumSum,
     ///         threshold: 5.0,
     ///     },
     ///     FittingSettings::Analytical { iterations: 20 },
@@ -202,7 +202,7 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringMethods, SelectionSettings,
+    ///     Deconvoluter, ScoringMethod, SelectionSettings,
     /// };
     ///
     /// let deconvoluter = Deconvoluter::default();
@@ -213,7 +213,7 @@ impl Deconvoluter {
     ///         threshold,
     ///     } => {
     ///         match scoring_method {
-    ///             ScoringMethods::MinimumSum => {}
+    ///             ScoringMethod::MinimumSum => {}
     ///             _ => panic!("Unexpected scoring method"),
     ///         };
     ///         assert_eq!(threshold, 6.4);
@@ -306,7 +306,7 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringMethods, SelectionSettings,
+    ///     Deconvoluter, ScoringMethod, SelectionSettings,
     /// };
     ///
     /// # fn main() -> metabodecon::Result<()> {
@@ -314,7 +314,7 @@ impl Deconvoluter {
     ///
     /// deconvoluter.set_selection_settings(
     ///     SelectionSettings::NoiseScoreFilter {
-    ///         scoring_method: ScoringMethods::MinimumSum,
+    ///         scoring_method: ScoringMethod::MinimumSum,
     ///         threshold: 5.0,
     ///     },
     /// )?;
@@ -717,7 +717,7 @@ impl Deconvoluter {
             .collect::<Vec<SmoothingSettings>>();
         let selection_settings = (0..10)
             .map(|coefficient| SelectionSettings::NoiseScoreFilter {
-                scoring_method: ScoringMethods::MinimumSum,
+                scoring_method: ScoringMethod::MinimumSum,
                 threshold: 5.0 + (coefficient as f64) * (8.0 - 5.0) / 9.0,
             })
             .collect::<Vec<SelectionSettings>>();

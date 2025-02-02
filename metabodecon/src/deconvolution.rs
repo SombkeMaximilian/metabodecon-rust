@@ -11,7 +11,7 @@ pub use fitting::FittingSettings;
 pub use fitting::Lorentzian;
 
 mod peak_selection;
-pub use peak_selection::{ScoringMethods, SelectionSettings};
+pub use peak_selection::{ScoringMethod, SelectionSettings};
 
 mod smoothing;
 pub use smoothing::SmoothingSettings;

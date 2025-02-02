@@ -9,7 +9,7 @@ pub(crate) trait Scorer {
 /// Scoring methods for the peaks.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Default)]
-pub enum ScoringMethods {
+pub enum ScoringMethod {
     /// Minimum Sum of the absolute second derivative.
     ///
     /// The minimum sum scorer computes the sum of the absolute second

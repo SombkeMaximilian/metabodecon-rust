@@ -36,7 +36,7 @@ impl Deconvoluter {
     pub fn set_noise_score_selector(&mut self, threshold: f64) -> PyResult<()> {
         match self.inner.set_selection_settings(
             deconvolution::SelectionSettings::NoiseScoreFilter {
-                scoring_method: deconvolution::ScoringMethods::MinimumSum,
+                scoring_method: deconvolution::ScoringMethod::MinimumSum,
                 threshold,
             },
         ) {

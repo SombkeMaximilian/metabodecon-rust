@@ -1,7 +1,7 @@
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::detector::Detector;
 use crate::deconvolution::peak_selection::peak::Peak;
-use crate::deconvolution::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringMethods};
+use crate::deconvolution::peak_selection::scorer::{Scorer, ScorerMinimumSum, ScoringMethod};
 use crate::deconvolution::peak_selection::selector::Selector;
 use crate::error::Result;
 
@@ -10,7 +10,7 @@ use crate::error::Result;
 #[derive(Debug)]
 pub(crate) struct NoiseScoreFilter {
     /// The scoring method to use.
-    scoring_method: ScoringMethods,
+    scoring_method: ScoringMethod,
     /// The threshold for filtering peaks.
     threshold: f64,
 }
@@ -68,7 +68,7 @@ impl Selector for NoiseScoreFilter {
 impl NoiseScoreFilter {
     /// Constructs a new `NoiseScoreFilter` with the given scoring algorithm and
     /// threshold.
-    pub(crate) fn new(scoring_method: ScoringMethods, threshold: f64) -> Self {
+    pub(crate) fn new(scoring_method: ScoringMethod, threshold: f64) -> Self {
         Self {
             scoring_method,
             threshold,
@@ -108,7 +108,7 @@ impl NoiseScoreFilter {
         signal_boundaries: (usize, usize),
     ) -> Result<Vec<Peak>> {
         let scorer = match self.scoring_method {
-            ScoringMethods::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
+            ScoringMethod::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
         };
         let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries)?;
 

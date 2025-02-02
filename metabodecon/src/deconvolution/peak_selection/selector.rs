@@ -1,7 +1,7 @@
 use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::peak::Peak;
-use crate::deconvolution::peak_selection::scorer::ScoringMethods;
+use crate::deconvolution::peak_selection::scorer::ScoringMethod;
 use crate::error::Result;
 
 /// Trait interface for peak selection algorithms.
@@ -33,7 +33,7 @@ pub enum SelectionSettings {
     /// ```
     NoiseScoreFilter {
         /// The scoring method to use.
-        scoring_method: ScoringMethods,
+        scoring_method: ScoringMethod,
         /// The threshold to apply to the scores.
         threshold: f64,
     },
@@ -41,7 +41,7 @@ pub enum SelectionSettings {
 impl Default for SelectionSettings {
     fn default() -> Self {
         SelectionSettings::NoiseScoreFilter {
-            scoring_method: ScoringMethods::default(),
+            scoring_method: ScoringMethod::default(),
             threshold: 6.4,
         }
     }
