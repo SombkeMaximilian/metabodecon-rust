@@ -254,7 +254,7 @@ impl BrukerReader {
         let chemical_shifts = (0..procs.data_size)
             .map(|i| {
                 procs.spectrum_maximum - acqus.spectrum_width
-                    + (i as f64) * acqus.spectrum_width / (procs.data_size as f64)
+                    + (i as f64) * acqus.spectrum_width / (procs.data_size as f64 - 1.0)
             })
             .collect::<Vec<f64>>();
         let intensities = self.read_one_r(one_r_path, procs)?;
