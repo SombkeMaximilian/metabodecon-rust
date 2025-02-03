@@ -77,6 +77,28 @@ impl Spectrum {
         }
     }
 
+    #[staticmethod]
+    pub fn write_hdf5(path: &str, spectrum: &Spectrum) -> PyResult<()> {
+        match spectrum::Hdf5::write_spectrum(path, spectrum.inner()) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
+    #[staticmethod]
+    pub fn write_hdf5_set(path: &str, spectra: Vec<Spectrum>) -> PyResult<()> {
+        match spectrum::Hdf5::write_spectra(
+            path,
+            &spectra
+                .iter()
+                .map(|spectrum| spectrum.inner().clone())
+                .collect::<Vec<_>>(),
+        ) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(PyValueError::new_err(e.to_string())),
+        }
+    }
+
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())

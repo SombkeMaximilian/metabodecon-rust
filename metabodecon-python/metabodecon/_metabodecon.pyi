@@ -113,3 +113,11 @@ class Spectrum:
     @staticmethod
     def from_hdf5_set(path: str) -> list["Spectrum"]:
         ...
+
+    @staticmethod
+    def write_hdf5(path: str, spectrum: "Spectrum") -> None:
+        ...
+
+    @staticmethod
+    def write_hdf5_set(path: str, spectra: list["Spectrum"]) -> None:
+        ...
