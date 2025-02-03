@@ -9,8 +9,8 @@ pub struct Spectrum {
     inner: spectrum::Spectrum,
 }
 
-impl Spectrum {
-    pub fn inner(&self) -> &spectrum::Spectrum {
+impl AsRef<spectrum::Spectrum> for Spectrum {
+    fn as_ref(&self) -> &spectrum::Spectrum {
         &self.inner
     }
 }
@@ -79,7 +79,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn write_hdf5(path: &str, spectrum: &Spectrum) -> PyResult<()> {
-        match spectrum::Hdf5::write_spectrum(path, spectrum.inner()) {
+        match spectrum::Hdf5::write_spectrum(path, spectrum.as_ref()) {
             Ok(_) => Ok(()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -87,13 +87,7 @@ impl Spectrum {
 
     #[staticmethod]
     pub fn write_hdf5_set(path: &str, spectra: Vec<Spectrum>) -> PyResult<()> {
-        match spectrum::Hdf5::write_spectra(
-            path,
-            &spectra
-                .iter()
-                .map(|spectrum| spectrum.inner().clone())
-                .collect::<Vec<_>>(),
-        ) {
+        match spectrum::Hdf5::write_spectra(path, &spectra) {
             Ok(_) => Ok(()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }

@@ -92,6 +92,12 @@ pub struct Spectrum {
     monotonicity: Monotonicity,
 }
 
+impl AsRef<Spectrum> for Spectrum {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl Spectrum {
     /// Constructs a `Spectrum` from the given data.
     ///

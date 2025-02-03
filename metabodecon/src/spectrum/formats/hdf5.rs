@@ -233,7 +233,7 @@ impl Hdf5 {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn write_spectrum<P: AsRef<Path>>(path: P, spectrum: &Spectrum) -> Result<()> {
+    pub fn write_spectrum<P: AsRef<Path>, S: AsRef<Spectrum>>(path: P, spectrum: S) -> Result<()> {
         let file = if path.as_ref().exists() {
             hdf5::File::open_rw(path.as_ref())?
         } else {
@@ -247,7 +247,7 @@ impl Hdf5 {
             .unwrap();
         let next = file.member_names()?.len() + 1;
         let dataset = format!("{}_{}", basename, next);
-        Self::write_to_file(&file, dataset.as_str(), spectrum)?;
+        Self::write_to_file(&file, dataset.as_str(), spectrum.as_ref())?;
 
         Ok(())
     }
@@ -309,7 +309,7 @@ impl Hdf5 {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn write_spectra<P: AsRef<Path>>(path: P, spectra: &[Spectrum]) -> Result<()> {
+    pub fn write_spectra<P: AsRef<Path>, S: AsRef<Spectrum>>(path: P, spectra: &[S]) -> Result<()> {
         let file = hdf5::File::create(path.as_ref())?;
         let basename = path
             .as_ref()
@@ -323,7 +323,7 @@ impl Hdf5 {
             .enumerate()
             .try_for_each(|(i, spectrum)| {
                 let dataset = format!("{basename}_{:0digits$}", i + 1, digits = digits);
-                Self::write_to_file(&file, dataset.as_str(), spectrum)
+                Self::write_to_file(&file, dataset.as_str(), spectrum.as_ref())
             })?;
 
         Ok(())

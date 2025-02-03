@@ -2,7 +2,6 @@ use crate::bindings::{Deconvolution, Spectrum};
 use metabodecon::deconvolution;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use rayon::prelude::*;
 
 #[pyclass]
 #[derive(Clone, Debug, Default)]
@@ -67,7 +66,7 @@ impl Deconvoluter {
     }
 
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
-        match self.inner.deconvolute_spectrum(spectrum.inner()) {
+        match self.inner.deconvolute_spectrum(spectrum.as_ref()) {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -76,7 +75,7 @@ impl Deconvoluter {
     pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
         match self
             .inner
-            .par_deconvolute_spectrum(spectrum.inner())
+            .par_deconvolute_spectrum(spectrum.as_ref())
         {
             Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
@@ -84,11 +83,7 @@ impl Deconvoluter {
     }
 
     pub fn deconvolute_spectra(&self, spectra: Vec<Spectrum>) -> PyResult<Vec<Deconvolution>> {
-        match spectra
-            .iter()
-            .map(|spectrum| self.inner.deconvolute_spectrum(spectrum.inner()))
-            .collect::<metabodecon::Result<Vec<deconvolution::Deconvolution>>>()
-        {
+        match self.inner.deconvolute_spectra(&spectra) {
             Ok(deconvolutions) => Ok(deconvolutions
                 .into_iter()
                 .map(Deconvolution::from_inner)
@@ -98,14 +93,7 @@ impl Deconvoluter {
     }
 
     pub fn par_deconvolute_spectra(&self, spectra: Vec<Spectrum>) -> PyResult<Vec<Deconvolution>> {
-        match spectra
-            .par_iter()
-            .map(|spectrum| {
-                self.inner
-                    .par_deconvolute_spectrum(spectrum.inner())
-            })
-            .collect::<metabodecon::Result<Vec<deconvolution::Deconvolution>>>()
-        {
+        match self.inner.par_deconvolute_spectra(&spectra) {
             Ok(deconvolutions) => Ok(deconvolutions
                 .into_iter()
                 .map(Deconvolution::from_inner)
@@ -115,7 +103,7 @@ impl Deconvoluter {
     }
 
     pub fn optimize_settings(&mut self, reference: &Spectrum) -> PyResult<f64> {
-        match self.inner.optimize_settings(reference.inner()) {
+        match self.inner.optimize_settings(reference.as_ref()) {
             Ok(mse) => Ok(mse),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }

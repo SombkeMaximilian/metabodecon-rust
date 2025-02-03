@@ -601,10 +601,13 @@ impl Deconvoluter {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn deconvolute_spectra(&self, spectra: &[Spectrum]) -> Result<Vec<Deconvolution>> {
+    pub fn deconvolute_spectra<S: AsRef<Spectrum>>(
+        &self,
+        spectra: &[S],
+    ) -> Result<Vec<Deconvolution>> {
         let deconvolutions = spectra
             .iter()
-            .map(|spectrum| self.deconvolute_spectrum(spectrum))
+            .map(|spectrum| self.deconvolute_spectrum(spectrum.as_ref()))
             .collect::<Result<Vec<Deconvolution>>>()?;
 
         Ok(deconvolutions)
@@ -647,10 +650,13 @@ impl Deconvoluter {
     /// # }
     /// ```
     #[cfg(feature = "parallel")]
-    pub fn par_deconvolute_spectra(&self, spectra: &[Spectrum]) -> Result<Vec<Deconvolution>> {
+    pub fn par_deconvolute_spectra<S: AsRef<Spectrum> + Send + Sync>(
+        &self,
+        spectra: &[S],
+    ) -> Result<Vec<Deconvolution>> {
         let deconvolutions = spectra
             .par_iter()
-            .map(|spectrum| self.par_deconvolute_spectrum(spectrum))
+            .map(|spectrum| self.par_deconvolute_spectrum(spectrum.as_ref()))
             .collect::<Result<Vec<Deconvolution>>>()?;
 
         Ok(deconvolutions)
