@@ -23,9 +23,7 @@ use std::path::Path;
 /// There can be any number of datasets in one file and their names do not need
 /// to follow a pattern. For example, blood_01 and sim_01 would be valid dataset
 /// names in the same file. The `spectrum` group contains the `data` and `meta`
-/// groups, which contain the raw data and metadata, respectively. The
-/// `spectrum` group contains the `data` and `meta` groups, which contain the
-/// raw data and metadata, respectively.
+/// groups, which contain the raw data and metadata, respectively.
 ///
 /// # Example: Reading a Spectrum
 ///
