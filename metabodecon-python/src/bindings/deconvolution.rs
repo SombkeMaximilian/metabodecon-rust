@@ -10,8 +10,8 @@ pub struct Deconvolution {
     inner: deconvolution::Deconvolution,
 }
 
-impl Deconvolution {
-    pub fn from_inner(inner: deconvolution::Deconvolution) -> Self {
+impl From<deconvolution::Deconvolution> for Deconvolution {
+    fn from(inner: deconvolution::Deconvolution) -> Self {
         Deconvolution { inner }
     }
 }

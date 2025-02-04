@@ -4,7 +4,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Spectrum {
     inner: spectrum::Spectrum,
 }

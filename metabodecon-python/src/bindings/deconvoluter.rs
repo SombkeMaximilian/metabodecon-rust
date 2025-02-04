@@ -13,7 +13,7 @@ pub struct Deconvoluter {
 impl Deconvoluter {
     #[new]
     pub fn new() -> Self {
-        Deconvoluter::default()
+        Self::default()
     }
 
     pub fn set_moving_average_smoother(
@@ -67,7 +67,7 @@ impl Deconvoluter {
 
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
         match self.inner.deconvolute_spectrum(spectrum.as_ref()) {
-            Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
+            Ok(deconvolution) => Ok(deconvolution.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -77,7 +77,7 @@ impl Deconvoluter {
             .inner
             .par_deconvolute_spectrum(spectrum.as_ref())
         {
-            Ok(deconvolution) => Ok(Deconvolution::from_inner(deconvolution)),
+            Ok(deconvolution) => Ok(deconvolution.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -86,7 +86,7 @@ impl Deconvoluter {
         match self.inner.deconvolute_spectra(&spectra) {
             Ok(deconvolutions) => Ok(deconvolutions
                 .into_iter()
-                .map(Deconvolution::from_inner)
+                .map(|deconvolution| deconvolution.into())
                 .collect()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -96,7 +96,7 @@ impl Deconvoluter {
         match self.inner.par_deconvolute_spectra(&spectra) {
             Ok(deconvolutions) => Ok(deconvolutions
                 .into_iter()
-                .map(Deconvolution::from_inner)
+                .map(|deconvolution| deconvolution.into())
                 .collect()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }

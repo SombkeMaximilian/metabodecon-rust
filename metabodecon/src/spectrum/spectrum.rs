@@ -80,7 +80,7 @@ impl Monotonicity {
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Spectrum {
     /// The chemical shifts in ppm.
     chemical_shifts: Box<[f64]>,
@@ -88,7 +88,7 @@ pub struct Spectrum {
     intensities: Box<[f64]>,
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
-    /// The monotonicity of the data. Used internally for validation.
+    /// The monotonicity of the data.
     monotonicity: Monotonicity,
 }
 
