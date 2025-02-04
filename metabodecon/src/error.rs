@@ -59,14 +59,13 @@ impl From<hdf5::Error> for Error {
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        use Error::*;
         match *self {
-            Spectrum(ref e) => e.fmt(f),
-            Deconvolution(ref e) => e.fmt(f),
+            Error::Spectrum(ref e) => e.fmt(f),
+            Error::Deconvolution(ref e) => e.fmt(f),
             #[cfg(any(feature = "bruker", feature = "jdx"))]
-            IoError(ref e) => e.fmt(f),
+            Error::IoError(ref e) => e.fmt(f),
             #[cfg(feature = "hdf5")]
-            Hdf5Error(ref e) => e.fmt(f),
+            Error::Hdf5Error(ref e) => e.fmt(f),
         }
     }
 }
