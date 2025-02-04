@@ -135,7 +135,9 @@ impl core::fmt::Display for Error {
                 region
             ),
             Kind::NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
-            Kind::EmptySignalRegion => "no peaks found in the signal region of the spectrum".to_string(),
+            Kind::EmptySignalRegion => {
+                "no peaks found in the signal region of the spectrum".to_string()
+            }
             Kind::EmptySignalFreeRegion => {
                 "no peaks found in the signal-free region of the spectrum".to_string()
             }

@@ -27,10 +27,10 @@ categories = [
 [features]
 default = ["parallel", "bruker", "hdf5", "jdx"]
 full = ["parallel", "bruker", "hdf5", "jdx"]
-parallel = ["rayon"]
-bruker = ["byteorder", "regex"]
+parallel = ["dep:rayon"]
+bruker = ["dep:byteorder", "dep:regex"]
 hdf5 = ["dep:hdf5"]
-jdx = ["regex"]
+jdx = ["dep:regex"]
 
 [dependencies]
 num-traits = "0.2.19"
@@ -40,7 +40,7 @@ hdf5 = { version = "0.8.1", optional = true }
 rayon = { version = "1.10.0", optional = true }
 
 [dev-dependencies]
-"float-cmp" = "0.10.0"
+float-cmp = "0.10.0"
 
 [lints]
 workspace = true

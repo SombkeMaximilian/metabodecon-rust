@@ -1,6 +1,7 @@
 /// Macro that extracts a capture group from a regular expression and returns
 /// the parsed value or an error if the capture group is missing or could not
 /// be parsed.
+#[cfg(any(feature = "bruker", feature = "jdx"))]
 macro_rules! extract_capture {
     ($re:expr, $text:expr, $name:expr, $path:expr) => {
         $re.captures($text)
@@ -49,6 +50,7 @@ macro_rules! check_sim_spectrum {
     };
 }
 
+#[cfg(any(feature = "bruker", feature = "jdx"))]
 pub(crate) use extract_capture;
 
 #[cfg(test)]

@@ -7,6 +7,9 @@ use crate::{deconvolution, spectrum};
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// Errors encountered by the Metabodecon library.
+///
+/// Marked as non-exhaustive because some variants will only be available with
+/// certain features enabled.
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
@@ -17,10 +20,12 @@ pub enum Error {
     /// An error that occurred during the [`deconvolution`] process.
     Deconvolution(deconvolution::error::Error),
     /// Wrapper for errors from [`std::io`].
+    #[cfg(any(feature = "bruker", feature = "jdx"))]
     IoError(std::io::Error),
     /// Wrapper for errors from the [hdf5 crate].
     ///
     /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
+    #[cfg(feature = "hdf5")]
     Hdf5Error(hdf5::Error),
 }
 
@@ -38,12 +43,14 @@ impl From<deconvolution::error::Error> for Error {
     }
 }
 
+#[cfg(any(feature = "bruker", feature = "jdx"))]
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Error::IoError(error)
     }
 }
 
+#[cfg(feature = "hdf5")]
 impl From<hdf5::Error> for Error {
     fn from(error: hdf5::Error) -> Self {
         Error::Hdf5Error(error)
@@ -56,7 +63,9 @@ impl core::fmt::Display for Error {
         match *self {
             Spectrum(ref e) => e.fmt(f),
             Deconvolution(ref e) => e.fmt(f),
+            #[cfg(any(feature = "bruker", feature = "jdx"))]
             IoError(ref e) => e.fmt(f),
+            #[cfg(feature = "hdf5")]
             Hdf5Error(ref e) => e.fmt(f),
         }
     }
