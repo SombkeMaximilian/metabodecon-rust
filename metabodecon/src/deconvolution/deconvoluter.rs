@@ -394,13 +394,14 @@ impl Deconvoluter {
     /// # }
     /// ```
     pub fn add_ignore_region(&mut self, new: (f64, f64)) -> Result<()> {
+        if !new.0.is_finite()
+            || !new.1.is_finite()
+            || f64::abs(new.0 - new.1) < 100.0 * f64::EPSILON
+        {
+            return Err(Error::new(Kind::InvalidIgnoreRegion { region: new }).into());
+        }
+
         if let Some(ignore_regions) = self.ignore_regions.as_mut() {
-            if !new.0.is_finite()
-                || !new.1.is_finite()
-                || f64::abs(new.0 - new.1) < 100.0 * f64::EPSILON
-            {
-                return Err(Error::new(Kind::InvalidIgnoreRegion { region: new }).into());
-            }
             ignore_regions.push((f64::min(new.0, new.1), f64::max(new.0, new.1)));
             ignore_regions.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             while let Some(overlap_position) = ignore_regions
@@ -422,7 +423,7 @@ impl Deconvoluter {
                 ignore_regions.insert(overlap_position, combined);
             }
         } else {
-            self.ignore_regions = Some(vec![new]);
+            self.ignore_regions = Some(vec![(f64::min(new.0, new.1), f64::max(new.0, new.1))]);
         }
 
         Ok(())
@@ -853,11 +854,11 @@ impl Deconvoluter {
             let indices = ignore_regions
                 .iter()
                 .filter_map(|(start, end)| {
-                    let min = f64::min(*start, *end);
-                    let max = f64::max(*start, *end);
+                    let first_index = usize::max(((*start - first) / step).floor() as usize, lower);
+                    let second_index = usize::min(((*end - first) / step).ceil() as usize, upper);
                     let boundaries = (
-                        usize::max(((min - first) / step).floor() as usize, lower),
-                        usize::min(((max - first) / step).ceil() as usize, upper),
+                        usize::min(first_index, second_index),
+                        usize::max(first_index, second_index),
                     );
                     if boundaries.0 < boundaries.1 - 1 {
                         Some(boundaries)
