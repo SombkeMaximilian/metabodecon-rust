@@ -262,8 +262,8 @@ impl Deconvoluter {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn ignore_regions(&self) -> Option<&Vec<(f64, f64)>> {
-        self.ignore_regions.as_ref()
+    pub fn ignore_regions(&self) -> Option<&[(f64, f64)]> {
+        self.ignore_regions.as_deref()
     }
 
     /// Sets the smoothing settings.
@@ -797,7 +797,7 @@ impl Deconvoluter {
         let peaks = selector.select_peaks(
             &intensities,
             spectrum.signal_boundaries_indices(),
-            &ignore_regions,
+            ignore_regions.as_deref(),
         )?;
 
         Ok(peaks)

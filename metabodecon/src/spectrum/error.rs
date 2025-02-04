@@ -132,9 +132,8 @@ impl From<Kind> for Error {
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        use self::Kind::*;
         let description = match &self.kind {
-            EmptyData {
+            Kind::EmptyData {
                 chemical_shifts,
                 intensities,
             } => format!(
@@ -143,7 +142,7 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
-            DataLengthMismatch {
+            Kind::DataLengthMismatch {
                 chemical_shifts,
                 intensities,
             } => format!(
@@ -152,18 +151,18 @@ impl core::fmt::Display for Error {
                  intensities has {} elements",
                 chemical_shifts, intensities
             ),
-            NonUniformSpacing { positions } => format!(
+            Kind::NonUniformSpacing { positions } => format!(
                 "chemical shifts are not uniformly spaced \
                  values at index {} or {} are either not uniformly spaced, \
                  not finite numbers, or their difference is near zero",
                 positions.0, positions.1
             ),
-            InvalidIntensities { position } => format!(
+            Kind::InvalidIntensities { position } => format!(
                 "intensities contain invalid values \
                  value at index {} is not a finite number",
                 position
             ),
-            InvalidSignalBoundaries {
+            Kind::InvalidSignalBoundaries {
                 signal_boundaries,
                 chemical_shifts_range,
             } => format!(
@@ -172,7 +171,7 @@ impl core::fmt::Display for Error {
                  spectrum range is {:?}",
                 signal_boundaries, chemical_shifts_range
             ),
-            MissingMetadata { path, regex } => format!(
+            Kind::MissingMetadata { path, regex } => format!(
                 "missing metadata \
                  expected in file at {:?} \
                  with regex {}",

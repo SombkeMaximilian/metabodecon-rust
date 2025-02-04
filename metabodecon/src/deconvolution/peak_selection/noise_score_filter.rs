@@ -41,7 +41,7 @@ impl Selector for NoiseScoreFilter {
         &self,
         intensities: &[f64],
         signal_boundaries: (usize, usize),
-        ignore_regions: &Option<Vec<(usize, usize)>>,
+        ignore_regions: Option<&[(usize, usize)]>,
     ) -> Result<Vec<Peak>> {
         let mut second_derivative = Self::second_derivative(intensities);
         let mut peaks = {

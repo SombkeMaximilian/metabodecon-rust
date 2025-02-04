@@ -10,7 +10,7 @@ pub(crate) trait Selector {
         &self,
         intensities: &[f64],
         signal_boundaries: (usize, usize),
-        ignore_regions: &Option<Vec<(usize, usize)>>,
+        ignore_regions: Option<&[(usize, usize)]>,
     ) -> Result<Vec<Peak>>;
 }
 

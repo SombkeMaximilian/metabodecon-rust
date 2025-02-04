@@ -106,38 +106,37 @@ impl From<Kind> for Error {
 
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-        use self::Kind::*;
         let description = match &self.kind {
-            InvalidSmoothingSettings { settings } => match settings {
+            Kind::InvalidSmoothingSettings { settings } => match settings {
                 SmoothingSettings::MovingAverage { .. } => format!(
                     "invalid smoothing settings: {:?} \
                      window_size and iterations must be greater than 0",
                     settings
                 ),
             },
-            InvalidSelectionSettings { settings } => match settings {
+            Kind::InvalidSelectionSettings { settings } => match settings {
                 SelectionSettings::NoiseScoreFilter { .. } => format!(
                     "invalid peak selection settings: {:?} \
                      threshold must be greater than 0",
                     settings
                 ),
             },
-            InvalidFittingSettings { settings } => match settings {
+            Kind::InvalidFittingSettings { settings } => match settings {
                 FittingSettings::Analytical { .. } => format!(
                     "invalid fitting settings: {:?} \
                      iterations must be greater than 0",
                     settings
                 ),
             },
-            InvalidIgnoreRegion { region } => format!(
+            Kind::InvalidIgnoreRegion { region } => format!(
                 "invalid ignore region: {:?} \
                  the region must be a tuple of two finite floating point numbers \
                  with a difference that is not near 0",
                 region
             ),
-            NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
-            EmptySignalRegion => "no peaks found in the signal region of the spectrum".to_string(),
-            EmptySignalFreeRegion => {
+            Kind::NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
+            Kind::EmptySignalRegion => "no peaks found in the signal region of the spectrum".to_string(),
+            Kind::EmptySignalFreeRegion => {
                 "no peaks found in the signal-free region of the spectrum".to_string()
             }
         };
