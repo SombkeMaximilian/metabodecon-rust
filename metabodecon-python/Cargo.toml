@@ -31,7 +31,6 @@ crate-type = ["cdylib"]
 metabodecon = { path = "../metabodecon", features = ["full"] }
 numpy = "0.23.0"
 pyo3 = { version = "0.23.2", features = ["extension-module"] }
-rayon = "1.10.0"
 
 [lints]
 workspace = true
