@@ -180,6 +180,14 @@ suggestions and bug reports. I will get back to them after my thesis is done.
 - Martina Häckl et al. “An R-Package for the Deconvolution and Integration of 1D NMR Data: MetaboDecon1D”.
   [[DOI]](https://doi.org/10.3390/metabo11070452)
   [[MDPI]](https://www.mdpi.com/2218-1989/11/7/452)
+- JCAMP. JCAMP-DX: A Standard Form for the Exchange of Infrared Spectra in Computer Readable Form.
+  [[JCAMP]](http://www.jcamp-dx.org/protocols/dxir01.pdf)
+- JCAMP. JCAMP-DX for NMR.
+  [[JCAMP]](http://www.jcamp-dx.org/protocols/dxnmr01.pdf)
+- JCAMP. An Extension to the JCAMP-DX Standard File Format, JCAMP-DX V.5.01.
+  [[JCAMP]](http://www.jcamp-dx.org/protocols/dx5-01-correctedv2.pdf)
+- JCAMP. A Generic JCAMP-DX Standard File Format, JCAMP-DX V.6.00.
+  [[JCAMP]](http://www.jcamp-dx.org/drafts/JCAMP6_2b%20Draft.pdf)
 
 ## License
 
