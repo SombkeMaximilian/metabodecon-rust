@@ -42,7 +42,7 @@ impl std::fmt::Display for SmoothingSettings {
                 window_size,
             } => write!(
                 f,
-                "Moving average filter (iterations: {}, window size: {})",
+                "Moving Average Filter [number of iterations: {}, window size: {}]",
                 iterations, window_size
             ),
         }

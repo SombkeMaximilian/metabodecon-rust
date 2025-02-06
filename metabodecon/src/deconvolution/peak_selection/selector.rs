@@ -37,6 +37,7 @@ pub enum SelectionSettings {
         threshold: f64,
     },
 }
+
 impl Default for SelectionSettings {
     fn default() -> Self {
         SelectionSettings::NoiseScoreFilter {
@@ -54,7 +55,7 @@ impl std::fmt::Display for SelectionSettings {
                 threshold,
             } => write!(
                 f,
-                "Noise score filter (scoring method: {}, threshold: {})",
+                "Noise Score Filter [scoring method: {}, score threshold: {}]",
                 scoring_method, threshold
             ),
         }

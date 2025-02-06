@@ -22,7 +22,7 @@ pub enum ScoringMethod {
 impl std::fmt::Display for ScoringMethod {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ScoringMethod::MinimumSum => write!(f, "Minimum Sum Scorer"),
+            ScoringMethod::MinimumSum => write!(f, "Minimum Sum"),
         }
     }
 }
