@@ -8,6 +8,12 @@ pub struct Lorentzian {
     inner: deconvolution::Lorentzian,
 }
 
+impl AsRef<deconvolution::Lorentzian> for Lorentzian {
+    fn as_ref(&self) -> &deconvolution::Lorentzian {
+        &self.inner
+    }
+}
+
 impl From<deconvolution::Lorentzian> for Lorentzian {
     fn from(value: deconvolution::Lorentzian) -> Self {
         Self { inner: value }
@@ -89,10 +95,6 @@ impl Lorentzian {
 
     #[staticmethod]
     pub fn superposition(x: f64, lorentzians: Vec<Lorentzian>) -> f64 {
-        let lorentzians = lorentzians
-            .iter()
-            .map(|l| l.inner)
-            .collect::<Vec<_>>();
         deconvolution::Lorentzian::superposition(x, &lorentzians)
     }
 
@@ -102,10 +104,6 @@ impl Lorentzian {
         x: PyReadonlyArray1<'_, f64>,
         lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
-        let lorentzians = lorentzians
-            .iter()
-            .map(|l| l.inner)
-            .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
             &deconvolution::Lorentzian::superposition_vec(x.as_slice().unwrap(), &lorentzians),
@@ -118,10 +116,6 @@ impl Lorentzian {
         x: PyReadonlyArray1<'_, f64>,
         lorentzians: Vec<Lorentzian>,
     ) -> Bound<'py, PyArray1<f64>> {
-        let lorentzians = lorentzians
-            .iter()
-            .map(|l| l.inner)
-            .collect::<Vec<_>>();
         PyArray1::from_slice(
             py,
             &deconvolution::Lorentzian::par_superposition_vec(x.as_slice().unwrap(), &lorentzians),

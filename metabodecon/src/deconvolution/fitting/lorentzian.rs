@@ -112,6 +112,12 @@ pub struct Lorentzian {
     maximum_position: f64,
 }
 
+impl AsRef<Lorentzian> for Lorentzian {
+    fn as_ref(&self) -> &Self {
+        self
+    }
+}
+
 impl Lorentzian {
     /// Constructs a new `Lorentzian` from the given parameters.
     ///
@@ -636,10 +642,10 @@ impl Lorentzian {
     ///     epsilon = 1e-6
     /// );
     /// ```
-    pub fn superposition(x: f64, lorentzians: &[Self]) -> f64 {
+    pub fn superposition<L: AsRef<Lorentzian>>(x: f64, lorentzians: &[L]) -> f64 {
         lorentzians
             .iter()
-            .map(|lorentzian| lorentzian.evaluate(x))
+            .map(|lorentzian| lorentzian.as_ref().evaluate(x))
             .sum()
     }
 
@@ -666,7 +672,7 @@ impl Lorentzian {
     /// // Evaluate the superposition of the Lorentzians at the chemical shifts.
     /// let sup = Lorentzian::superposition_vec(&chemical_shifts, &triplet);
     /// ```
-    pub fn superposition_vec(x: &[f64], lorentzians: &[Self]) -> Vec<f64> {
+    pub fn superposition_vec<L: AsRef<Lorentzian>>(x: &[f64], lorentzians: &[L]) -> Vec<f64> {
         x.iter()
             .map(|&x| Self::superposition(x, lorentzians))
             .collect()
@@ -696,7 +702,10 @@ impl Lorentzian {
     /// let sup = Lorentzian::par_superposition_vec(&chemical_shifts, &triplet);
     /// ```
     #[cfg(feature = "parallel")]
-    pub fn par_superposition_vec(x: &[f64], lorentzians: &[Self]) -> Vec<f64> {
+    pub fn par_superposition_vec<L: AsRef<Lorentzian> + Send + Sync>(
+        x: &[f64],
+        lorentzians: &[L],
+    ) -> Vec<f64> {
         x.par_iter()
             .map(|&x| Self::superposition(x, lorentzians))
             .collect()

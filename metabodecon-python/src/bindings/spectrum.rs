@@ -15,6 +15,12 @@ impl AsRef<spectrum::Spectrum> for Spectrum {
     }
 }
 
+impl From<spectrum::Spectrum> for Spectrum {
+    fn from(inner: spectrum::Spectrum) -> Self {
+        Spectrum { inner }
+    }
+}
+
 #[pymethods]
 impl Spectrum {
     #[new]
@@ -24,7 +30,7 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
     ) -> PyResult<Self> {
         match spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries) {
-            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
+            Ok(spectrum) => Ok(spectrum.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -37,7 +43,7 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
     ) -> PyResult<Self> {
         match spectrum::Bruker::read_spectrum(path, experiment, processing, signal_boundaries) {
-            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
+            Ok(spectrum) => Ok(spectrum.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -52,7 +58,7 @@ impl Spectrum {
         match spectrum::Bruker::read_spectra(path, experiment, processing, signal_boundaries) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
-                .map(|spectrum| Spectrum { inner: spectrum })
+                .map(|spectrum| spectrum.into())
                 .collect()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
@@ -61,7 +67,7 @@ impl Spectrum {
     #[staticmethod]
     pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
         match spectrum::Hdf5::read_spectrum(path, dataset) {
-            Ok(spectrum) => Ok(Spectrum { inner: spectrum }),
+            Ok(spectrum) => Ok(spectrum.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
     }
@@ -71,7 +77,7 @@ impl Spectrum {
         match spectrum::Hdf5::read_spectra(path) {
             Ok(spectra) => Ok(spectra
                 .into_iter()
-                .map(|spectrum| Spectrum { inner: spectrum })
+                .map(|spectrum| spectrum.into())
                 .collect()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
         }
