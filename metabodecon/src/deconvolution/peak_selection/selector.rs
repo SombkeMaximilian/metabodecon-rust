@@ -46,6 +46,21 @@ impl Default for SelectionSettings {
     }
 }
 
+impl std::fmt::Display for SelectionSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SelectionSettings::NoiseScoreFilter {
+                scoring_method,
+                threshold,
+            } => write!(
+                f,
+                "Noise score filter (scoring method: {}, threshold: {})",
+                scoring_method, threshold
+            ),
+        }
+    }
+}
+
 impl Settings for SelectionSettings {
     fn validate(&self) -> Result<()> {
         match self {

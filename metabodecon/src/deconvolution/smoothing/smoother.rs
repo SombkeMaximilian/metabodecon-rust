@@ -34,6 +34,21 @@ impl Default for SmoothingSettings {
     }
 }
 
+impl std::fmt::Display for SmoothingSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SmoothingSettings::MovingAverage {
+                iterations,
+                window_size,
+            } => write!(
+                f,
+                "Moving average filter (iterations: {}, window size: {})",
+                iterations, window_size
+            ),
+        }
+    }
+}
+
 impl Settings for SmoothingSettings {
     fn validate(&self) -> Result<()> {
         match self {

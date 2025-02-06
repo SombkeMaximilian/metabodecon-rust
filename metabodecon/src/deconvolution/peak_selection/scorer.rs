@@ -19,6 +19,14 @@ pub enum ScoringMethod {
     MinimumSum,
 }
 
+impl std::fmt::Display for ScoringMethod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ScoringMethod::MinimumSum => write!(f, "Minimum Sum Scorer"),
+        }
+    }
+}
+
 /// Peak scoring method based on the sum of second derivative values.
 #[derive(Debug)]
 pub(crate) struct ScorerMinimumSum<'a> {
