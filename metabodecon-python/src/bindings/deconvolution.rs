@@ -25,8 +25,8 @@ impl Deconvolution {
             self.inner
                 .lorentzians()
                 .iter()
-                .map(|l| Lorentzian::from_inner(*l))
-                .collect::<Vec<_>>(),
+                .map(|l| (*l).into())
+                .collect::<Vec<Lorentzian>>(),
         )
     }
 

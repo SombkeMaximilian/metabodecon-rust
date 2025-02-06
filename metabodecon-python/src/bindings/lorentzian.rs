@@ -8,9 +8,9 @@ pub struct Lorentzian {
     inner: deconvolution::Lorentzian,
 }
 
-impl Lorentzian {
-    pub fn from_inner(inner: deconvolution::Lorentzian) -> Self {
-        Lorentzian { inner }
+impl From<deconvolution::Lorentzian> for Lorentzian {
+    fn from(value: deconvolution::Lorentzian) -> Self {
+        Self { inner: value }
     }
 }
 
