@@ -104,6 +104,9 @@ mod macros;
 mod spectrum;
 pub use spectrum::{Monotonicity, Spectrum};
 
+mod meta;
+pub use meta::{AcquisitionMode, Nucleus, ReferenceCompound, ReferencingMethod, Solvent};
+
 mod formats;
 #[cfg(feature = "bruker")]
 pub use formats::Bruker;
