@@ -4,9 +4,9 @@ pub enum AcquisitionMode {
     /// Single channel detection.
     Qf,
     /// Quadrature detection in sequential mode.
-    Qsim,
-    /// Quadrature detection in simultaneous mode.
     Qseq,
+    /// Quadrature detection in simultaneous mode.
+    Qsim,
     /// Digital quadrature detection.
     Dqd,
 }
