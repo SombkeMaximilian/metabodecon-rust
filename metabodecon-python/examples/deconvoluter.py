@@ -4,7 +4,7 @@ import time
 
 
 def main():
-    blood = md.Spectrum.from_hdf5("../../data/hdf5/blood.h5", "blood_01")
+    blood = md.Spectrum.read_hdf5("../../data/hdf5/blood.h5", "blood_01")
     blood.signal_boundaries = (-2.208611, 11.807918)
     water_boundaries = (4.699535, 4.899771)
 

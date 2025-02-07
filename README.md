@@ -98,7 +98,7 @@ import matplotlib.pyplot as plt
 import metabodecon as md
 
 # Read a spectrum from Bruker TopSpin format
-spectrum = md.Spectrum.from_bruker(
+spectrum = md.Spectrum.read_bruker(
     "data/bruker/blood/blood_01",
     # Experiment Number
     10,

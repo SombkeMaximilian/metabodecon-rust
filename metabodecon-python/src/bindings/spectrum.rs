@@ -36,7 +36,7 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn from_bruker(
+    pub fn read_bruker(
         path: &str,
         experiment: u32,
         processing: u32,
@@ -49,7 +49,7 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn from_bruker_set(
+    pub fn read_bruker_set(
         path: &str,
         experiment: u32,
         processing: u32,
@@ -65,7 +65,7 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn from_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
+    pub fn read_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
         match spectrum::Hdf5::read_spectrum(path, dataset) {
             Ok(spectrum) => Ok(spectrum.into()),
             Err(e) => Err(PyValueError::new_err(e.to_string())),
@@ -73,7 +73,7 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn from_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
+    pub fn read_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
         match spectrum::Hdf5::read_spectra(path) {
             Ok(spectra) => Ok(spectra
                 .into_iter()

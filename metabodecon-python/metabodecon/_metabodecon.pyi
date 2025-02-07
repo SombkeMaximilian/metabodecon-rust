@@ -96,22 +96,22 @@ class Spectrum:
         ...
 
     @staticmethod
-    def from_bruker(path: str, experiment: int, processing: int,
+    def read_bruker(path: str, experiment: int, processing: int,
                     signal_boundaries: tuple[float, float]) -> "Spectrum":
         ...
 
     @staticmethod
-    def from_bruker_set(path: str, experiment: int, processing: int,
+    def read_bruker_set(path: str, experiment: int, processing: int,
                         signal_boundaries: tuple[float, float]) -> list[
         "Spectrum"]:
         ...
 
     @staticmethod
-    def from_hdf5(path: str, dataset: str) -> "Spectrum":
+    def read_hdf5(path: str, dataset: str) -> "Spectrum":
         ...
 
     @staticmethod
-    def from_hdf5_set(path: str) -> list["Spectrum"]:
+    def read_hdf5_set(path: str) -> list["Spectrum"]:
         ...
 
     @staticmethod

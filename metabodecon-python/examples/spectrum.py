@@ -15,21 +15,21 @@ def main():
     print(spectrum.intensities)
     print(spectrum.signal_boundaries)
 
-    blood = md.Spectrum.from_hdf5("../../data/hdf5/blood.h5", "blood_01")
+    blood = md.Spectrum.read_hdf5("../../data/hdf5/blood.h5", "blood_01")
     plt.figure(figsize = (12, 8), dpi = 200)
     plt.plot(blood.chemical_shifts, blood.intensities)
     plt.show()
     plt.close()
 
     signal = (-2.208611, 11.807917)
-    blood = md.Spectrum.from_bruker("../../data/bruker/blood/blood_01", 10, 10, signal)
+    blood = md.Spectrum.read_bruker("../../data/bruker/blood/blood_01", 10, 10, signal)
     plt.figure(figsize = (12, 8), dpi = 200)
     plt.plot(blood.chemical_shifts, blood.intensities)
     plt.show()
     plt.close()
 
     signal = (3.339007, 3.553942)
-    sim_set = md.Spectrum.from_bruker_set("../../data/bruker/sim", 10, 10, signal)
+    sim_set = md.Spectrum.read_bruker_set("../../data/bruker/sim", 10, 10, signal)
     for spectrum in sim_set[0:4]:
         plt.figure(figsize = (12, 8), dpi = 200)
         plt.plot(spectrum.chemical_shifts, spectrum.intensities)
