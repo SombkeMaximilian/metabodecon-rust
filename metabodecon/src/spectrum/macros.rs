@@ -3,30 +3,22 @@
 /// be parsed.
 #[cfg(any(feature = "bruker", feature = "jdx"))]
 macro_rules! extract_capture {
-    ($re:expr, $text:expr, $name:expr, $path:expr) => {
+    ($re:expr, $text:expr, $name:expr, $path:expr) => {{
+        let make_error = || {
+            Error::new(Kind::MissingMetadata {
+                path: std::path::PathBuf::from($path.as_ref()),
+                regex: $re.to_string(),
+            })
+        };
+
         $re.captures($text)
-            .ok_or_else(|| {
-                Error::new(Kind::MissingMetadata {
-                    path: std::path::PathBuf::from($path.as_ref()),
-                    regex: $re.to_string(),
-                })
-            })?
+            .ok_or_else(&make_error)?
             .name($name)
-            .ok_or_else(|| {
-                Error::new(Kind::MissingMetadata {
-                    path: std::path::PathBuf::from($path.as_ref()),
-                    regex: $re.to_string(),
-                })
-            })?
+            .ok_or_else(&make_error)?
             .as_str()
             .parse()
-            .map_err(|_| {
-                Error::new(Kind::MissingMetadata {
-                    path: std::path::PathBuf::from($path.as_ref()),
-                    regex: $re.to_string(),
-                })
-            })?
-    };
+            .map_err(|_| make_error())?
+    }};
 }
 
 /// Test utility macro to check if the simulated spectrum was read correctly.
