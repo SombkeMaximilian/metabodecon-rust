@@ -66,4 +66,20 @@ impl Settings for SmoothingSettings {
 
         Ok(())
     }
+
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                SmoothingSettings::MovingAverage {
+                    iterations: iterations1,
+                    window_size: window_size1,
+                },
+                SmoothingSettings::MovingAverage {
+                    iterations: iterations2,
+                    window_size: window_size2,
+                },
+            ) => *iterations1 == *iterations2 && *window_size1 == *window_size2,
+        }
+    }
 }

@@ -4,4 +4,8 @@ use crate::Result;
 pub(crate) trait Settings: Default + Clone {
     /// Validates the settings.
     fn validate(&self) -> Result<()>;
+
+    /// Compares the settings with another instance.
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool;
 }

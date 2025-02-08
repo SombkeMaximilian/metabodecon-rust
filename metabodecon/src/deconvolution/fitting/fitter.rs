@@ -58,4 +58,18 @@ impl Settings for FittingSettings {
 
         Ok(())
     }
+
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                FittingSettings::Analytical {
+                    iterations: iterations1,
+                },
+                FittingSettings::Analytical {
+                    iterations: iterations2,
+                },
+            ) => *iterations1 == *iterations2,
+        }
+    }
 }

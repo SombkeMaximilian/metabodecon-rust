@@ -66,7 +66,7 @@ impl Settings for SelectionSettings {
     fn validate(&self) -> Result<()> {
         match self {
             SelectionSettings::NoiseScoreFilter { threshold, .. } => {
-                if *threshold < 0.0 {
+                if *threshold <= 0.0 || !threshold.is_finite() {
                     return Err(
                         Error::new(Kind::InvalidSelectionSettings { settings: *self }).into(),
                     );
@@ -75,5 +75,24 @@ impl Settings for SelectionSettings {
         }
 
         Ok(())
+    }
+
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool {
+        match (self, other) {
+            (
+                SelectionSettings::NoiseScoreFilter {
+                    scoring_method: scoring_method1,
+                    threshold: threshold1,
+                },
+                SelectionSettings::NoiseScoreFilter {
+                    scoring_method: scoring_method2,
+                    threshold: threshold2,
+                },
+            ) => {
+                ScoringMethod::compare(scoring_method1, scoring_method2)
+                    && float_cmp::approx_eq!(f64, *threshold1, *threshold2)
+            }
+        }
     }
 }

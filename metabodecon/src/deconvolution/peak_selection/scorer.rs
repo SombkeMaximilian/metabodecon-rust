@@ -1,3 +1,5 @@
+use crate::Result;
+use crate::deconvolution::Settings;
 use crate::deconvolution::peak_selection::Peak;
 
 /// Trait interface for peak scoring methods.
@@ -23,6 +25,21 @@ impl std::fmt::Display for ScoringMethod {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ScoringMethod::MinimumSum => write!(f, "Minimum Sum"),
+        }
+    }
+}
+
+impl Settings for ScoringMethod {
+    fn validate(&self) -> Result<()> {
+        match self {
+            ScoringMethod::MinimumSum => Ok(()),
+        }
+    }
+
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool {
+        match (self, other) {
+            (ScoringMethod::MinimumSum, ScoringMethod::MinimumSum) => true,
         }
     }
 }
