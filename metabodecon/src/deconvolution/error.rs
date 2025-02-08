@@ -108,32 +108,51 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let description = match &self.kind {
             Kind::InvalidSmoothingSettings { settings } => match settings {
-                SmoothingSettings::MovingAverage { .. } => format!(
-                    "invalid smoothing settings: {:?} \
-                     window_size and iterations must be greater than 0",
-                    settings
-                ),
+                SmoothingSettings::MovingAverage {
+                    iterations,
+                    window_size,
+                } => match (*iterations == 0, *window_size == 0) {
+                    (true, true) => "moving average filter parameters cannot be 0".to_string(),
+                    (true, false) => "moving average filter iterations cannot be 0".to_string(),
+                    (false, true) => "moving average filter window size cannot be 0".to_string(),
+                    (false, false) => unreachable!("valid settings falsely detected as invalid"),
+                },
             },
             Kind::InvalidSelectionSettings { settings } => match settings {
-                SelectionSettings::NoiseScoreFilter { .. } => format!(
-                    "invalid peak selection settings: {:?} \
-                     threshold must be greater than 0",
-                    settings
-                ),
+                SelectionSettings::NoiseScoreFilter { threshold, .. } => {
+                    match (threshold.is_finite(), *threshold <= 0.0) {
+                        (false, _) => {
+                            "noise score filter threshold must be a finite number".to_string()
+                        }
+                        (true, true) => {
+                            "noise score filter threshold must be greater than 0".to_string()
+                        }
+                        (true, false) => unreachable!("valid settings falsely detected as invalid"),
+                    }
+                }
             },
             Kind::InvalidFittingSettings { settings } => match settings {
-                FittingSettings::Analytical { .. } => format!(
-                    "invalid fitting settings: {:?} \
-                     iterations must be greater than 0",
-                    settings
-                ),
+                FittingSettings::Analytical { iterations } => match *iterations == 0 {
+                    true => "analytical fitting iterations cannot be 0".to_string(),
+                    false => unreachable!("valid settings falsely detected as invalid"),
+                },
             },
-            Kind::InvalidIgnoreRegion { region } => format!(
-                "invalid ignore region: {:?} \
-                 the region must be a tuple of two finite floating point numbers \
-                 with a difference that is not near 0",
-                region
-            ),
+            Kind::InvalidIgnoreRegion { region } => {
+                match (
+                    region.0.is_finite() && region.1.is_finite(),
+                    f64::abs(region.0 - region.1) > 100.0 * f64::EPSILON,
+                ) {
+                    (false, _) => format!(
+                        "ignore region boundaries [{}, {}] contains non-finite values",
+                        region.0, region.1
+                    ),
+                    (true, false) => format!(
+                        "ignore region boundaries [{}, {}] are (almost) equal",
+                        region.0, region.1
+                    ),
+                    (true, true) => unreachable!("valid ignore region falsely detected as invalid"),
+                }
+            }
             Kind::NoPeaksDetected => "no peaks detected in the spectrum".to_string(),
             Kind::EmptySignalRegion => {
                 "no peaks found in the signal region of the spectrum".to_string()

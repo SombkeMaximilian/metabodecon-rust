@@ -878,7 +878,124 @@ impl Deconvoluter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::Error;
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn invalid_smoothing_settings() {
+        let mut deconvoluter = Deconvoluter::default();
+        let zero_iterations = SmoothingSettings::MovingAverage {
+            iterations: 0,
+            window_size: 3,
+        };
+        let zero_window_size = SmoothingSettings::MovingAverage {
+            iterations: 2,
+            window_size: 0,
+        };
+        let zero_both = SmoothingSettings::MovingAverage {
+            iterations: 0,
+            window_size: 0,
+        };
+        let errors = [
+            deconvoluter
+                .set_smoothing_settings(zero_iterations)
+                .unwrap_err(),
+            deconvoluter
+                .set_smoothing_settings(zero_window_size)
+                .unwrap_err(),
+            deconvoluter
+                .set_smoothing_settings(zero_both)
+                .unwrap_err(),
+        ];
+        let expected_context = [zero_iterations, zero_window_size, zero_both];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| match error {
+                Error::Deconvolution(inner) => match inner.kind() {
+                    Kind::InvalidSmoothingSettings { settings } => {
+                        assert!(SmoothingSettings::compare(settings, &context));
+                    }
+                    _ => panic!("unexpected kind: {:?}", inner),
+                },
+                _ => panic!("unexpected error: {:?}", error),
+            });
+    }
+
+    #[test]
+    fn invalid_selection_settings() {
+        let mut deconvoluter = Deconvoluter::default();
+        let zero_threshold = SelectionSettings::NoiseScoreFilter {
+            scoring_method: ScoringMethod::default(),
+            threshold: 0.0,
+        };
+        let nan_threshold = SelectionSettings::NoiseScoreFilter {
+            scoring_method: ScoringMethod::default(),
+            threshold: f64::NAN,
+        };
+        let inf_threshold = SelectionSettings::NoiseScoreFilter {
+            scoring_method: ScoringMethod::default(),
+            threshold: f64::INFINITY,
+        };
+        let neg_inf_threshold = SelectionSettings::NoiseScoreFilter {
+            scoring_method: ScoringMethod::default(),
+            threshold: f64::NEG_INFINITY,
+        };
+        let errors = [
+            deconvoluter
+                .set_selection_settings(zero_threshold)
+                .unwrap_err(),
+            deconvoluter
+                .set_selection_settings(nan_threshold)
+                .unwrap_err(),
+            deconvoluter
+                .set_selection_settings(inf_threshold)
+                .unwrap_err(),
+            deconvoluter
+                .set_selection_settings(neg_inf_threshold)
+                .unwrap_err(),
+        ];
+        let expected_context = [
+            zero_threshold,
+            nan_threshold,
+            inf_threshold,
+            neg_inf_threshold,
+        ];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| match error {
+                Error::Deconvolution(inner) => match inner.kind() {
+                    Kind::InvalidSelectionSettings { settings } => {
+                        assert!(SelectionSettings::compare(settings, &context));
+                    }
+                    _ => panic!("unexpected kind: {:?}", inner),
+                },
+                _ => panic!("unexpected error: {:?}", error),
+            });
+    }
+
+    #[test]
+    fn invalid_fitting_settings() {
+        let mut deconvoluter = Deconvoluter::default();
+        let zero_iterations = FittingSettings::Analytical { iterations: 0 };
+        let errors = [deconvoluter
+            .set_fitting_settings(zero_iterations)
+            .unwrap_err()];
+        let expected_context = [zero_iterations];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| match error {
+                Error::Deconvolution(inner) => match inner.kind() {
+                    Kind::InvalidFittingSettings { settings } => {
+                        assert!(FittingSettings::compare(settings, &context));
+                    }
+                    _ => panic!("unexpected kind: {:?}", inner),
+                },
+                _ => panic!("unexpected error: {:?}", error),
+            });
+    }
 
     #[test]
     fn add_ignore_region() {
@@ -889,16 +1006,64 @@ mod tests {
         deconvoluter
             .add_ignore_region((3.0, 4.0))
             .unwrap();
-
         assert!(deconvoluter.ignore_regions().is_some());
         assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 2);
-
         deconvoluter
             .add_ignore_region((2.0, 3.0))
             .unwrap();
         assert_eq!(deconvoluter.ignore_regions().unwrap().len(), 1);
         assert_approx_eq!(f64, deconvoluter.ignore_regions().unwrap()[0].0, 1.0);
         assert_approx_eq!(f64, deconvoluter.ignore_regions().unwrap()[0].1, 4.0);
+    }
+
+    #[test]
+    fn invalid_ignore_region() {
+        let mut deconvoluter = Deconvoluter::default();
+        let errors = [
+            deconvoluter
+                .add_ignore_region((f64::NAN, 1.0))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((1.0, f64::NAN))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((f64::INFINITY, 1.0))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((1.0, f64::INFINITY))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((f64::NEG_INFINITY, 1.0))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((1.0, f64::NEG_INFINITY))
+                .unwrap_err(),
+            deconvoluter
+                .add_ignore_region((1.0, 1.0))
+                .unwrap_err(),
+        ];
+        let expected_context = [
+            (f64::NAN, 1.0),
+            (1.0, f64::NAN),
+            (f64::INFINITY, 1.0),
+            (1.0, f64::INFINITY),
+            (f64::NEG_INFINITY, 1.0),
+            (1.0, f64::NEG_INFINITY),
+            (1.0, 1.0),
+        ];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| match error {
+                Error::Deconvolution(inner) => match inner.kind() {
+                    Kind::InvalidIgnoreRegion { region } => {
+                        assert_approx_eq!(f64, region.0, context.0);
+                        assert_approx_eq!(f64, region.1, context.1);
+                    }
+                    _ => panic!("Unexpected kind: {:?}", inner.kind()),
+                },
+                _ => panic!("Unexpected error: {:?}", error),
+            });
     }
 
     #[test]
@@ -911,7 +1076,6 @@ mod tests {
             .add_ignore_region((3.0, 4.0))
             .unwrap();
         deconvoluter.clear_ignore_regions();
-
         assert!(deconvoluter.ignore_regions().is_none());
     }
 }

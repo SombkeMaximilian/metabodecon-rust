@@ -160,8 +160,7 @@ impl Spectrum {
         Self::validate_lengths(&chemical_shifts, &intensities)?;
         Self::validate_spacing(&chemical_shifts)?;
         Self::validate_intensities(&intensities)?;
-        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
-            .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
+        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1]).unwrap();
         let signal_boundaries =
             Self::validate_boundaries(monotonicity, &chemical_shifts, signal_boundaries)?;
 
@@ -311,8 +310,7 @@ impl Spectrum {
     pub fn set_chemical_shifts(&mut self, chemical_shifts: Vec<f64>) -> Result<()> {
         Self::validate_lengths(&chemical_shifts, self.intensities())?;
         Self::validate_spacing(&chemical_shifts)?;
-        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1])
-            .ok_or_else(|| Error::new(Kind::NonUniformSpacing { positions: (0, 1) }))?;
+        let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1]).unwrap();
         let signal_boundaries =
             Self::validate_boundaries(monotonicity, &chemical_shifts, self.signal_boundaries)?;
         if monotonicity != self.monotonicity {
@@ -598,19 +596,24 @@ impl Spectrum {
     fn validate_spacing(chemical_shifts: &[f64]) -> Result<()> {
         let step_size = chemical_shifts[1] - chemical_shifts[0];
         if step_size.abs() < 100.0 * f64::EPSILON {
-            return Err(Error::new(Kind::NonUniformSpacing { positions: (0, 1) }).into());
+            return Err(Error::new(Kind::NonUniformSpacing {
+                step_size,
+                positions: (0, 1),
+            })
+            .into());
         }
 
         if let Some(position) = chemical_shifts.windows(2).position(|w| {
             (w[1] - w[0] - step_size).abs() > 100.0 * f64::EPSILON || !(w[1] - w[0]).is_finite()
         }) {
-            return Err(Error::new(Kind::NonUniformSpacing {
+            Err(Error::new(Kind::NonUniformSpacing {
+                step_size,
                 positions: (position, position + 1),
             })
-            .into());
+            .into())
+        } else {
+            Ok(())
         }
-
-        Ok(())
     }
 
     /// Internal helper function to validate the intensities and return an error
@@ -621,14 +624,22 @@ impl Spectrum {
     /// The following errors are possible:
     /// - [`InvalidIntensities`](Kind::InvalidIntensities)
     fn validate_intensities(intensities: &[f64]) -> Result<()> {
-        if let Some(position) = intensities
+        let positions = intensities
             .iter()
-            .position(|intensity| !intensity.is_finite())
-        {
-            return Err(Error::new(Kind::InvalidIntensities { position }).into());
-        }
+            .enumerate()
+            .filter_map(|(i, intensity)| {
+                if !intensity.is_finite() {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<usize>>();
 
-        Ok(())
+        match positions.is_empty() {
+            true => Ok(()),
+            false => Err(Error::new(Kind::InvalidIntensities { positions }).into()),
+        }
     }
 
     /// Internal helper function to validate the boundaries and return an error
@@ -645,9 +656,8 @@ impl Spectrum {
         signal_boundaries: (f64, f64),
     ) -> Result<(f64, f64)> {
         let chemical_shifts_range = (chemical_shifts[0], *chemical_shifts.last().unwrap());
-        if f64::abs(signal_boundaries.0 - signal_boundaries.1) < 100.0 * f64::EPSILON
-            || !(signal_boundaries.0 - signal_boundaries.1).is_finite()
-        {
+        let width = signal_boundaries.0 - signal_boundaries.1;
+        if f64::abs(width) < 100.0 * f64::EPSILON || !width.is_finite() {
             return Err(Error::new(Kind::InvalidSignalBoundaries {
                 signal_boundaries,
                 chemical_shifts_range,
@@ -696,7 +706,7 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::error::Error;
+    use crate::Error;
     use float_cmp::assert_approx_eq;
 
     #[test]
@@ -731,9 +741,9 @@ mod tests {
                             assert_eq!(*chemical_shifts, context.0);
                             assert_eq!(*intensities, context.1);
                         }
-                        _ => panic!("Unexpected kind: {:?}", inner),
+                        _ => panic!("unexpected kind: {:?}", inner),
                     },
-                    _ => panic!("Unexpected error: {:?}", error),
+                    _ => panic!("unexpected error: {:?}", error),
                 };
             });
     }
@@ -759,11 +769,143 @@ mod tests {
                             assert_eq!(*chemical_shifts, context.0);
                             assert_eq!(*intensities, context.1);
                         }
-                        _ => panic!("Unexpected kind: {:?}", inner),
+                        _ => panic!("unexpected kind: {:?}", inner),
                     },
-                    _ => panic!("Unexpected error: {:?}", error),
+                    _ => panic!("unexpected error: {:?}", error),
                 };
             })
+    }
+
+    #[test]
+    fn non_uniform_spacing() {
+        let d = (1..=10).map(|i| i as f64).collect::<Vec<f64>>();
+        let s = (2.0, 9.0);
+        let nan_step = (1..=10)
+            .map(|i| if i > 1 { i as f64 } else { f64::NAN })
+            .collect();
+        let inf_step = (1..=10)
+            .map(|i| if i > 1 { i as f64 } else { f64::INFINITY })
+            .collect();
+        let neg_inf_step = (1..=10)
+            .map(|i| if i > 1 { i as f64 } else { f64::NEG_INFINITY })
+            .collect();
+        let zero_step = (1..=10)
+            .map(|i| if i > 1 { i as f64 } else { 2.0 })
+            .collect();
+        let one_nan = (1..=10)
+            .map(|i| if i != 5 { i as f64 } else { f64::NAN })
+            .collect();
+        let one_inf = (1..=10)
+            .map(|i| if i != 5 { i as f64 } else { f64::INFINITY })
+            .collect();
+        let one_neg_inf = (1..=10)
+            .map(|i| if i != 5 { i as f64 } else { f64::NEG_INFINITY })
+            .collect();
+        let one_zero = (1..=10)
+            .map(|i| if i < 5 { i as f64 } else { (i - 1) as f64 })
+            .collect();
+        let errors = [
+            Spectrum::new(nan_step, d.clone(), s).unwrap_err(),
+            Spectrum::new(inf_step, d.clone(), s).unwrap_err(),
+            Spectrum::new(neg_inf_step, d.clone(), s).unwrap_err(),
+            Spectrum::new(zero_step, d.clone(), s).unwrap_err(),
+            Spectrum::new(one_nan, d.clone(), s).unwrap_err(),
+            Spectrum::new(one_inf, d.clone(), s).unwrap_err(),
+            Spectrum::new(one_neg_inf, d.clone(), s).unwrap_err(),
+            Spectrum::new(one_zero, d.clone(), s).unwrap_err(),
+        ];
+        let expected_context = [
+            (f64::NAN, (0, 1)),
+            (f64::NEG_INFINITY, (0, 1)),
+            (f64::INFINITY, (0, 1)),
+            (0.0, (0, 1)),
+            (1.0, (3, 4)),
+            (1.0, (3, 4)),
+            (1.0, (3, 4)),
+            (1.0, (3, 4)),
+        ];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::NonUniformSpacing {
+                            step_size,
+                            positions,
+                        } => {
+                            assert_approx_eq!(f64, *step_size, context.0);
+                            assert_eq!(*positions, context.1);
+                        }
+                        _ => panic!("unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("unexpected error: {:?}", error),
+                };
+            });
+    }
+
+    #[test]
+    fn invalid_intensities() {
+        let d = (1..=10).map(|i| i as f64).collect::<Vec<f64>>();
+        let s = (2.0, 9.0);
+        let one_nan = (0..10)
+            .map(|i| if i < 9 { 0.0 } else { f64::NAN })
+            .collect();
+        let one_inf = (0..10)
+            .map(|i| if i < 9 { 0.0 } else { f64::INFINITY })
+            .collect();
+        let one_neg_inf = (0..10)
+            .map(|i| if i < 9 { 0.0 } else { f64::NEG_INFINITY })
+            .collect();
+        let five_nan = (0..10)
+            .map(|i| if i < 5 { 0.0 } else { f64::NAN })
+            .collect();
+        let five_inf = (0..10)
+            .map(|i| if i < 5 { 0.0 } else { f64::INFINITY })
+            .collect();
+        let five_neg_inf = (0..10)
+            .map(|i| if i < 5 { 0.0 } else { f64::NEG_INFINITY })
+            .collect();
+        let all_nan = vec![f64::NAN; 10];
+        let all_inf = vec![f64::INFINITY; 10];
+        let all_neg_inf = vec![f64::NEG_INFINITY; 10];
+        let errors = [
+            Spectrum::new(d.clone(), one_nan, s).unwrap_err(),
+            Spectrum::new(d.clone(), one_inf, s).unwrap_err(),
+            Spectrum::new(d.clone(), one_neg_inf, s).unwrap_err(),
+            Spectrum::new(d.clone(), five_nan, s).unwrap_err(),
+            Spectrum::new(d.clone(), five_inf, s).unwrap_err(),
+            Spectrum::new(d.clone(), five_neg_inf, s).unwrap_err(),
+            Spectrum::new(d.clone(), all_nan, s).unwrap_err(),
+            Spectrum::new(d.clone(), all_inf, s).unwrap_err(),
+            Spectrum::new(d.clone(), all_neg_inf, s).unwrap_err(),
+        ];
+        let expected_context = [
+            (vec![9], 1),
+            (vec![9], 1),
+            (vec![9], 1),
+            (vec![5, 6, 7, 8, 9], 5),
+            (vec![5, 6, 7, 8, 9], 5),
+            (vec![5, 6, 7, 8, 9], 5),
+            ((0..10).collect::<Vec<usize>>(), 10),
+            ((0..10).collect::<Vec<usize>>(), 10),
+            ((0..10).collect::<Vec<usize>>(), 10),
+        ];
+        errors
+            .into_iter()
+            .zip(expected_context)
+            .for_each(|(error, context)| {
+                match error {
+                    Error::Spectrum(inner) => match inner.kind() {
+                        Kind::InvalidIntensities { positions } => {
+                            assert_eq!(*positions, context.0);
+                            assert_eq!(positions.len(), context.1);
+                        }
+                        _ => panic!("unexpected kind: {:?}", inner),
+                    },
+                    _ => panic!("unexpected error: {:?}", error),
+                };
+            });
     }
 
     #[test]
@@ -771,14 +913,22 @@ mod tests {
         let d = vec![1.0, 2.0, 3.0];
         let r = (1.0, 3.0);
         let errors = [
+            Spectrum::new(d.clone(), d.clone(), (f64::NAN, 3.0)).unwrap_err(),
             Spectrum::new(d.clone(), d.clone(), (0.0, 3.0)).unwrap_err(),
             Spectrum::new(d.clone(), d.clone(), (1.0, 4.0)).unwrap_err(),
             Spectrum::new(d.clone(), d.clone(), (2.0, 2.0)).unwrap_err(),
+            Spectrum::new(d.clone(), d.clone(), (4.0, 4.0)).unwrap_err(),
         ];
-        let expected_contest = [((0.0, 3.0), r), ((1.0, 4.0), r), ((2.0, 2.0), r)];
+        let expected_context = [
+            ((f64::NAN, 3.0), r),
+            ((0.0, 3.0), r),
+            ((1.0, 4.0), r),
+            ((2.0, 2.0), r),
+            ((4.0, 4.0), r),
+        ];
         errors
             .into_iter()
-            .zip(expected_contest)
+            .zip(expected_context)
             .for_each(|(error, context)| {
                 match error {
                     Error::Spectrum(inner) => match inner.kind() {
@@ -791,9 +941,9 @@ mod tests {
                             assert_approx_eq!(f64, chemical_shifts_range.0, context.1.0);
                             assert_approx_eq!(f64, chemical_shifts_range.1, context.1.1);
                         }
-                        _ => panic!("Unexpected kind: {:?}", inner),
+                        _ => panic!("unexpected kind: {:?}", inner),
                     },
-                    _ => panic!("Unexpected error: {:?}", error),
+                    _ => panic!("unexpected error: {:?}", error),
                 };
             });
     }

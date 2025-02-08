@@ -75,9 +75,15 @@ pub enum Kind {
     /// * the difference between two values being very close to zero
     /// * non-finite values in the chemical shifts
     ///
+    /// Note that this error will short-circuit the construction of the
+    /// [`Spectrum`] at the first occurrence of non-uniform spacing, meaning
+    /// subsequent values are not checked.
+    ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     NonUniformSpacing {
-        /// The positions of the non-uniformly spaced chemical shifts.
+        /// The step size computed from the first two chemical shifts.
+        step_size: f64,
+        /// The positions of the chemical shifts that are not uniformly spaced.
         positions: (usize, usize),
     },
     /// The intensities contain invalid values.
@@ -86,8 +92,8 @@ pub enum Kind {
     /// steps. Therefore, this state is considered inconsistent and results in
     /// an error.
     InvalidIntensities {
-        /// The position of the first invalid intensity that was found.
-        position: usize,
+        /// The positions of the invalid intensities.
+        positions: Vec<usize>,
     },
     /// The signal boundaries are invalid.
     ///
@@ -136,41 +142,106 @@ impl core::fmt::Display for Error {
             Kind::EmptyData {
                 chemical_shifts,
                 intensities,
-            } => format!(
-                "input data is empty \
-                 chemical shifts has {} elements, \
-                 intensities has {} elements",
-                chemical_shifts, intensities
-            ),
+            } => match (*chemical_shifts == 0, *intensities == 0) {
+                (true, true) => "chemical shifts and intensities are empty".to_string(),
+                (true, false) => "chemical shifts are empty".to_string(),
+                (false, true) => "intensities are empty".to_string(),
+                _ => unreachable!("shifts/intensities falsely detected as empty"),
+            },
             Kind::DataLengthMismatch {
                 chemical_shifts,
                 intensities,
             } => format!(
-                "input data lengths are mismatched \
-                 chemical shifts has {} elements, \
-                 intensities has {} elements",
+                "lengths of chemical shifts [{}] and intensities [{}] do not match",
                 chemical_shifts, intensities
             ),
-            Kind::NonUniformSpacing { positions } => format!(
-                "chemical shifts are not uniformly spaced \
-                 values at index {} or {} are either not uniformly spaced, \
-                 not finite numbers, or their difference is near zero",
-                positions.0, positions.1
-            ),
-            Kind::InvalidIntensities { position } => format!(
-                "intensities contain invalid values \
-                 value at index {} is not a finite number",
-                position
-            ),
+            Kind::NonUniformSpacing {
+                step_size,
+                positions,
+            } => match (step_size.is_finite(), *step_size > 100.0 * f64::EPSILON) {
+                (false, _) => format!(
+                    "step size of the chemical shifts could not be computed \
+                     due to non-finite values at indices [{}, {}]",
+                    positions.0, positions.1
+                ),
+                (true, false) => format!(
+                    "step size of the chemical shifts could not be computed \
+                     due to (almost) identical values at indices [{}, {}]",
+                    positions.0, positions.1
+                ),
+                (true, true) => format!(
+                    "chemical shifts that are not uniformly spaced found at indices [{}, {}] \
+                     (expected step size is [{}] from the first two values)",
+                    positions.0, positions.1, step_size
+                ),
+            },
+            Kind::InvalidIntensities { positions } => match positions.len() {
+                0 => unreachable!("error should not be created without invalid intensities"),
+                1 => format!(
+                    "intensities contains a non-finite value at index [{}]",
+                    positions[0]
+                ),
+                2..=5 => format!(
+                    "intensities contain non-finite values at indices [{}]",
+                    positions
+                        .iter()
+                        .map(|pos| pos.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", ")
+                ),
+                _ => format!(
+                    "intensities contain non-finite values at indices [{}, ...] \
+                     ({} invalid values)",
+                    positions[..5]
+                        .iter()
+                        .map(|pos| pos.to_string())
+                        .collect::<Vec<_>>()
+                        .join(", "),
+                    positions.len()
+                ),
+            },
             Kind::InvalidSignalBoundaries {
                 signal_boundaries,
                 chemical_shifts_range,
-            } => format!(
-                "signal boundaries are invalid \
-                 boundaries are {:?}, \
-                 spectrum range is {:?}",
-                signal_boundaries, chemical_shifts_range
-            ),
+            } => {
+                let boundary_width = signal_boundaries.0 - signal_boundaries.1;
+                let is_finite = signal_boundaries.0.is_finite() && signal_boundaries.1.is_finite();
+                let is_spaced = f64::abs(boundary_width) > 100.0 * f64::EPSILON;
+                let is_contained = (signal_boundaries.0 > chemical_shifts_range.0
+                    && signal_boundaries.1 < chemical_shifts_range.1)
+                    || (signal_boundaries.0 < chemical_shifts_range.0
+                        && signal_boundaries.1 > chemical_shifts_range.1);
+
+                match (is_finite, is_spaced, is_contained) {
+                    (false, _, _) => format!(
+                        "signal boundaries [{}, {}] contain non-finite values",
+                        signal_boundaries.0, signal_boundaries.1
+                    ),
+                    (true, false, true) => format!(
+                        "signal boundaries [{}, {}] are \
+                         (almost) equal",
+                        signal_boundaries.0, signal_boundaries.1
+                    ),
+                    (true, true, false) => format!(
+                        "signal boundaries [{}, {}] are \
+                         not within the range of chemical shifts [{}, {}]",
+                        signal_boundaries.0,
+                        signal_boundaries.1,
+                        chemical_shifts_range.0,
+                        chemical_shifts_range.1
+                    ),
+                    (true, false, false) => format!(
+                        "signal boundaries [{}, {}] are \
+                         (almost) equal and \
+                         not within the range of chemical shifts [{}, {}]",
+                        signal_boundaries.0,
+                        signal_boundaries.1,
+                        chemical_shifts_range.0,
+                        chemical_shifts_range.1
+                    ),
+                    _ => unreachable!("valid signal boundaries falsely detected as invalid"),
+                }
+            }
             Kind::MissingMetadata { path, regex } => format!(
                 "missing metadata \
                  expected in file at {:?} \
