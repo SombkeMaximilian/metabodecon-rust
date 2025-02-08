@@ -1,12 +1,13 @@
 use crate::deconvolution::fitting::{FittingSettings, Lorentzian};
 use crate::deconvolution::peak_selection::SelectionSettings;
 use crate::deconvolution::smoothing::SmoothingSettings;
+use std::sync::Arc;
 
 /// Data structure representing the result of a deconvolution.
 #[derive(Clone, Debug)]
 pub struct Deconvolution {
     /// The deconvoluted signals.
-    lorentzians: Vec<Lorentzian>,
+    lorentzians: Arc<[Lorentzian]>,
     /// The smoothing parameters used.
     smoothing_settings: SmoothingSettings,
     /// The peak selection parameters used.
@@ -27,7 +28,7 @@ impl Deconvolution {
         mse: f64,
     ) -> Self {
         Self {
-            lorentzians,
+            lorentzians: lorentzians.into(),
             smoothing_settings,
             selection_settings,
             fitting_settings,

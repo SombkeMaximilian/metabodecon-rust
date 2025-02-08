@@ -1,5 +1,5 @@
 use metabodecon::spectrum;
-use numpy::{PyArray1, PyReadonlyArray1};
+use numpy::PyArray1;
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
@@ -112,31 +112,6 @@ impl Spectrum {
     #[getter]
     pub fn signal_boundaries(&self) -> (f64, f64) {
         self.inner.signal_boundaries()
-    }
-
-    #[setter]
-    pub fn set_chemical_shifts(
-        &mut self,
-        chemical_shifts: PyReadonlyArray1<'_, f64>,
-    ) -> PyResult<()> {
-        match self
-            .inner
-            .set_chemical_shifts(chemical_shifts.as_slice()?.to_vec())
-        {
-            Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
-    #[setter]
-    pub fn set_intensities(&mut self, intensities_raw: PyReadonlyArray1<'_, f64>) -> PyResult<()> {
-        match self
-            .inner
-            .set_intensities(intensities_raw.as_slice()?.to_vec())
-        {
-            Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
     }
 
     #[setter]
