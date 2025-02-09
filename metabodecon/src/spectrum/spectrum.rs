@@ -575,8 +575,14 @@ impl Spectrum {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Error;
+    use crate::{Error, assert_send, assert_sync};
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(Spectrum);
+        assert_sync!(Spectrum);
+    }
 
     #[test]
     fn new() {

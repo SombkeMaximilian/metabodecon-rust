@@ -878,8 +878,14 @@ impl Deconvoluter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Error;
+    use crate::{Error, assert_send, assert_sync};
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn thread_safe() {
+        assert_send!(Deconvoluter);
+        assert_sync!(Deconvoluter);
+    }
 
     #[test]
     fn invalid_smoothing_settings() {

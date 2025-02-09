@@ -99,8 +99,6 @@
 //! # }
 //! ```
 
-mod macros;
-
 mod spectrum;
 pub use spectrum::{Monotonicity, Spectrum};
 

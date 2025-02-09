@@ -63,3 +63,15 @@ impl Deconvolution {
         self.mse
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{assert_send, assert_sync};
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(Deconvolution);
+        assert_sync!(Deconvolution);
+    }
+}

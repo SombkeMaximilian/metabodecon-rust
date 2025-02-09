@@ -1,3 +1,8 @@
+#[cfg(any(feature = "bruker", feature = "jdx"))]
+mod extract_capture;
+#[cfg(any(feature = "bruker", feature = "jdx"))]
+pub(crate) use extract_capture::extract_capture;
+
 #[cfg(feature = "bruker")]
 mod bruker;
 #[cfg(feature = "bruker")]

@@ -1,7 +1,6 @@
 use crate::Result;
 use crate::spectrum::Spectrum;
-use crate::spectrum::error::{Error, Kind};
-use crate::spectrum::macros::extract_capture;
+use crate::spectrum::formats::extract_capture;
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{File, read_to_string};
@@ -346,13 +345,13 @@ impl Bruker {
     /// # Errors
     ///
     /// The following errors are possible:
-    /// - [`MissingMetaData`](Kind::MissingMetadata)
+    /// - [`MissingMetaData`](crate::spectrum::error::Kind::MissingMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_acquisition_parameters<P: AsRef<Path>>(path: P) -> Result<AcquisitionParameters> {
         let acqus = read_to_string(path.as_ref())?;
         let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
 
-        let spectrum_width = extract_capture!(width_re, &acqus, "width", path);
+        let spectrum_width = extract_capture(width_re, "width", &acqus, &path)?;
 
         Ok(AcquisitionParameters { spectrum_width })
     }
@@ -363,7 +362,7 @@ impl Bruker {
     /// # Errors
     ///
     /// The following errors are possible:
-    /// - [`MissingMetaData`](Kind::MissingMetadata)
+    /// - [`MissingMetaData`](crate::spectrum::error::Kind::MissingMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_processing_parameters<P: AsRef<Path>>(path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
@@ -373,17 +372,17 @@ impl Bruker {
         let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
         let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
 
-        let spectrum_maximum = extract_capture!(maximum_re, &procs, "maximum", path);
-        let scaling_exponent = extract_capture!(exponent_re, &procs, "exponent", path);
-        let endian = match extract_capture!(endian_re, &procs, "endian", path) {
+        let spectrum_maximum = extract_capture(maximum_re, "maximum", &procs, &path)?;
+        let scaling_exponent = extract_capture(exponent_re, "exponent", &procs, &path)?;
+        let endian = match extract_capture(endian_re, "endian", &procs, &path)? {
             0 => Endian::Little,
             _ => Endian::Big,
         };
-        let data_type = match extract_capture!(data_type_re, &procs, "data_type", path) {
+        let data_type = match extract_capture(data_type_re, "data_type", &procs, &path)? {
             0 => Type::I32,
             _ => Type::F64,
         };
-        let data_size = extract_capture!(data_size_re, &procs, "data_size", path);
+        let data_size = extract_capture(data_size_re, "data_size", &procs, &path)?;
 
         Ok(ProcessingParameters {
             spectrum_maximum,
@@ -454,7 +453,7 @@ impl Bruker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::spectrum::macros::check_sim_spectrum;
+    use crate::check_sim_spectrum;
     use float_cmp::assert_approx_eq;
 
     #[test]
