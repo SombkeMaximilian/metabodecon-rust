@@ -696,7 +696,12 @@ mod tests {
                             step_size,
                             positions,
                         } => {
-                            assert_approx_eq!(f64, *step_size, context.0);
+                            assert_eq!(step_size.is_nan(), context.0.is_nan());
+                            assert_eq!(step_size.is_infinite(), context.0.is_infinite());
+                            assert_eq!(step_size.is_sign_positive(), context.0.is_sign_positive());
+                            if step_size.is_finite() && context.0.is_finite() {
+                                assert_approx_eq!(f64, *step_size, context.0);
+                            };
                             assert_eq!(*positions, context.1);
                         }
                         _ => panic!("unexpected kind: {:?}", inner),
