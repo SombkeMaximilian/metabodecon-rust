@@ -285,6 +285,7 @@ impl Spectrum {
     /// # Ok(())
     /// # }
     /// ```
+    #[allow(clippy::len_without_is_empty)] // Can never be empty.
     pub fn len(&self) -> usize {
         self.chemical_shifts.len()
     }
