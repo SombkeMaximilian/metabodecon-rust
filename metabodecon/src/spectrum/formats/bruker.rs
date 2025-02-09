@@ -150,22 +150,22 @@ enum Type {
 #[derive(Debug)]
 struct AcquisitionParameters {
     /// The spectral width in ppm.
-    pub spectrum_width: f64,
+    spectrum_width: f64,
 }
 
 /// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
     /// The maximum chemical shift in ppm.
-    pub spectrum_maximum: f64,
+    spectrum_maximum: f64,
     /// The size of the data, expected to be 2^15 or 2^17.
-    pub data_size: usize,
+    data_size: usize,
     /// The endianness of the data.
-    pub endian: Endian,
+    endian: Endian,
     /// The data type of the raw signal intensities.
-    pub data_type: Type,
+    data_type: Type,
     /// The scaling exponent of the data, if the data is stored as integers.
-    pub scaling_exponent: i32,
+    scaling_exponent: i32,
 }
 
 impl Bruker {
