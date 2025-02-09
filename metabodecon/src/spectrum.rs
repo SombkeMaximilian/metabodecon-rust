@@ -101,6 +101,11 @@
 mod spectrum;
 pub use spectrum::Spectrum;
 
+#[cfg(feature = "serde")]
+mod serialized_spectrum;
+#[cfg(feature = "serde")]
+pub(crate) use serialized_spectrum::SerializedSpectrum;
+
 pub mod meta;
 
 mod formats;

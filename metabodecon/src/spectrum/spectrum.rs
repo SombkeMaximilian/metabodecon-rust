@@ -1,7 +1,12 @@
 use crate::Result;
-use crate::spectrum::meta::Monotonicity;
 use crate::spectrum::error::{Error, Kind};
+use crate::spectrum::meta::Monotonicity;
 use std::sync::Arc;
+
+#[cfg(feature = "serde")]
+use crate::spectrum::SerializedSpectrum;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
@@ -54,6 +59,28 @@ pub struct Spectrum {
 impl AsRef<Spectrum> for Spectrum {
     fn as_ref(&self) -> &Self {
         self
+    }
+}
+
+#[cfg(feature = "serde")]
+impl Serialize for Spectrum {
+    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        SerializedSpectrum::from(self).serialize(serializer)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl<'de> Deserialize<'de> for Spectrum {
+    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        SerializedSpectrum::deserialize(deserializer)?
+            .try_into()
+            .map_err(serde::de::Error::custom)
     }
 }
 
