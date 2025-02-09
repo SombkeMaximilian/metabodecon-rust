@@ -302,6 +302,28 @@ impl Spectrum {
         Ok(())
     }
 
+    /// Returns the number of chemical shift, intensity pairs in the `Spectrum`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),
+    /// )?;
+    ///
+    /// assert_eq!(spectrum.len(), 3);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn len(&self) -> usize {
+        self.chemical_shifts.len()
+    }
+
     /// Computes the step size between two consecutive chemical shifts in ppm.
     ///
     /// # Example
@@ -862,6 +884,7 @@ mod tests {
             (1.5, 4.5),
         )
         .unwrap();
+        assert_eq!(spectrum.len(), 5);
         assert_approx_eq!(f64, spectrum.step(), 1.0);
         assert_approx_eq!(f64, spectrum.width(), 4.0);
         assert_approx_eq!(f64, spectrum.range().0, 1.0);
