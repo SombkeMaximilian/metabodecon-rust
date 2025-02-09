@@ -118,7 +118,7 @@ impl NoiseScoreFilter {
             return Err(Error::new(Kind::EmptySignalRegion).into());
         }
 
-        let scores_sfr: Vec<f64> = peaks[0..boundaries.0]
+        let scores_sfr = peaks[0..boundaries.0]
             .iter()
             .chain(peaks[boundaries.1..].iter())
             .map(|peak| scorer.score_peak(peak))
@@ -199,10 +199,10 @@ mod tests {
     #[test]
     fn peak_region_boundaries() {
         let signal_region_boundaries: (usize, usize) = (3, 7);
-        let peaks: Vec<Peak> = vec![2, 4, 5, 8]
+        let peaks = vec![2, 4, 5, 8]
             .into_iter()
             .map(|i| Peak::new(i - 1, i, i + 1))
-            .collect();
+            .collect::<Vec<Peak>>();
         assert_eq!(
             NoiseScoreFilter::peak_region_boundaries(&peaks, signal_region_boundaries).unwrap(),
             (1, 3)

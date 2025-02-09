@@ -246,7 +246,7 @@ impl Bruker {
                 procs.spectrum_maximum - acqus.spectrum_width
                     + (i as f64) * acqus.spectrum_width / (procs.data_size as f64 - 1.0)
             })
-            .collect::<Vec<f64>>();
+            .collect();
         let intensities = Self::read_one_r(one_r_path, procs)?;
         let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 

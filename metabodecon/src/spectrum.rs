@@ -24,7 +24,6 @@
 //! # fn main() -> metabodecon::Result<()> {
 //! // Generate 2^15 chemical shifts between 0 and 10 ppm.
 //! let chemical_shifts = (0..2_u32.pow(15))
-//!     .into_iter()
 //!     .map(|i| i as f64 * 10.0 / (2_f64.powi(15) - 1.0))
 //!     .collect::<Vec<f64>>();
 //!

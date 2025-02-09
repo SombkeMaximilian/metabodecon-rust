@@ -99,12 +99,12 @@ impl<'a> Detector<'a> {
     pub(crate) fn detect_peaks(&self) -> Result<Vec<Peak>> {
         let peak_centers = self.find_peak_centers();
         let peak_borders = self.find_peak_borders(&peak_centers);
-        let peaks: Vec<Peak> = peak_centers
+        let peaks = peak_centers
             .into_iter()
             .zip(peak_borders)
             .filter(|(_, (left, right))| *left != 0 && *right != self.second_derivative.len() + 1)
             .map(|(center, (left, right))| Peak::new(left, center, right))
-            .collect();
+            .collect::<Vec<Peak>>();
         if peaks.is_empty() {
             return Err(Error::new(Kind::NoPeaksDetected).into());
         }

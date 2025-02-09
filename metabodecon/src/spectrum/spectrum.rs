@@ -16,7 +16,6 @@ use std::sync::Arc;
 /// # fn main() -> metabodecon::Result<()> {
 /// // Generate 2^15 chemical shifts between 0 and 10 ppm.
 /// let chemical_shifts = (0..2_u32.pow(15))
-///     .into_iter()
 ///     .map(|i| i as f64 * 10.0 / (2_f64.powi(15) - 1.0))
 ///     .collect::<Vec<f64>>();
 ///
@@ -88,7 +87,6 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// // Generate 2^15 chemical shifts between 0 and 10 ppm.
     /// let chemical_shifts = (0..2_u32.pow(15))
-    ///     .into_iter()
     ///     .map(|i| i as f64 * 10.0 / (2_f64.powi(15) - 1.0))
     ///     .collect::<Vec<f64>>();
     ///
@@ -637,7 +635,7 @@ mod tests {
                     },
                     _ => panic!("unexpected error: {:?}", error),
                 };
-            })
+            });
     }
 
     #[test]
@@ -751,9 +749,9 @@ mod tests {
             (vec![5, 6, 7, 8, 9], 5),
             (vec![5, 6, 7, 8, 9], 5),
             (vec![5, 6, 7, 8, 9], 5),
-            ((0..10).collect::<Vec<usize>>(), 10),
-            ((0..10).collect::<Vec<usize>>(), 10),
-            ((0..10).collect::<Vec<usize>>(), 10),
+            ((0..10).collect(), 10),
+            ((0..10).collect(), 10),
+            ((0..10).collect(), 10),
         ];
         errors
             .into_iter()
