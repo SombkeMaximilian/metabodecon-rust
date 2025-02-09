@@ -100,10 +100,9 @@
 //! ```
 
 mod spectrum;
-pub use spectrum::{Monotonicity, Spectrum};
+pub use spectrum::Spectrum;
 
-mod meta;
-pub use meta::{AcquisitionMode, Nucleus, ReferenceCompound, ReferencingMethod, Solvent};
+pub mod meta;
 
 mod formats;
 #[cfg(feature = "bruker")]
