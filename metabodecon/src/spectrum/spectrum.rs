@@ -10,8 +10,52 @@ use serde::{Deserialize, Serialize};
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
-/// `Spectrum` is a fixed size container that holds the chemical shifts, signal
-/// intensities and metadata of a 1D NMR spectrum.
+/// `Spectrum` is a fixed-size, read-only container that holds the chemical
+/// shifts, signal intensities, and metadata of a 1D NMR spectrum.
+///
+/// # Invariants
+///
+/// A valid `Spectrum` instance maintains the following conditions:
+/// - The chemical shifts and intensities must have the same length and cannot
+///   be empty.
+/// - The chemical shifts must be evenly spaced.
+/// - Both chemical shifts and intensities must contain only finite values (no
+///   NaN or infinity).
+/// - The signal boundaries must lie within the range of chemical shifts.
+///
+/// # Thread Safety
+///
+/// The `Spectrum` type is both [`Send`] and [`Sync`], meaning it can be safely
+/// shared and accessed across threads. This is possible because:
+/// - The data is stored using [`Arc`], which is thread-safe for shared
+///   ownership.
+/// - The structure is read-only, so no mutable access is required.
+///
+/// This makes `Spectrum` suitable for use in concurrent or parallel
+/// applications.
+///
+/// # Serialization with `serde`
+///
+/// When the `serde` feature is enabled, `Spectrum` can be serialized and
+/// deserialized using `serde`. However, storing `Spectrum` instances as text
+/// files (e.g., JSON) is not advised because NMR spectra are typically large.
+/// While the chemical shifts are encoded efficiently as a range and a size
+/// (rather than storing all values individually), the resulting files can still
+/// be quite large. For better performance, consider using binary formats like
+/// [bincode].
+///
+/// [bincode]: https://docs.rs/bincode/latest/
+///
+/// # Parsing from Common NMR Formats
+///
+/// `Spectrum` can be parsed from common NMR file formats, such as:
+/// - **Bruker**: Use the [`Bruker`] interface to parse Bruker-formatted data.
+///   Requires the `bruker` feature.
+/// - **JCAMP-DX**: Use the [`JcampDx`] interface to parse JCAMP-DX files
+///   Requires the `jdx` feature.
+///
+/// [`Bruker`]: crate::spectrum::Bruker
+/// [`JcampDx`]: crate::spectrum::JcampDx
 ///
 /// # Example: Constructing a `Spectrum` manually
 ///
@@ -24,7 +68,7 @@ use serde::{Deserialize, Serialize};
 ///     .map(|i| i as f64 * 10.0 / (2_f64.powi(15) - 1.0))
 ///     .collect::<Vec<f64>>();
 ///
-/// // Generate intensities using 3 Lorentzian peaks.
+/// // Generate intensities using 2 Lorentzian peaks.
 /// let intensities = chemical_shifts
 ///     .iter()
 ///     .map(|x| {
@@ -79,15 +123,14 @@ impl Spectrum {
     ///
     /// # Errors
     ///
-    /// The input data is checked for validity to ensure that the `Spectrum` is
-    /// well-formed and in a consistent state. The following conditions are
-    /// checked:
-    /// - The chemical shifts and intensities are not empty.
-    /// - The lengths of the chemical shifts and intensities match.
-    /// - All chemical shift values are finite and uniformly spaced.
-    /// - All intensity values are finite.
-    /// - The signal region boundaries are within the range of the chemical
-    ///   shifts.
+    /// If any of the invariants cannot be established from the input data, an
+    /// error is returned. The following conditions are checked:
+    /// - The chemical shifts and intensities must have the same length and
+    ///   cannot be empty.
+    /// - The chemical shifts must be evenly spaced.
+    /// - Both chemical shifts and intensities must contain only finite values
+    ///   (no NaN or infinity).
+    /// - The signal boundaries must lie within the range of chemical shifts.
     ///
     /// # Example
     ///
@@ -100,7 +143,7 @@ impl Spectrum {
     ///     .map(|i| i as f64 * 10.0 / (2_f64.powi(15) - 1.0))
     ///     .collect::<Vec<f64>>();
     ///
-    /// // Generate intensities using 3 Lorentzian peaks.
+    /// // Generate intensities using 2 Lorentzian peaks.
     /// let intensities = chemical_shifts
     ///     .iter()
     ///     .map(|x| {
