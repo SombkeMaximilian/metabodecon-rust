@@ -1,6 +1,7 @@
 use crate::Result;
 use crate::deconvolution::error::{Error, Kind};
-use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings, Lorentzian};
+use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings};
+use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::{
     NoiseScoreFilter, Peak, ScoringMethod, SelectionSettings, Selector,
 };

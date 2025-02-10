@@ -6,9 +6,11 @@ pub use deconvoluter::Deconvoluter;
 mod deconvolution;
 pub use deconvolution::Deconvolution;
 
+mod lorentzian;
+pub use lorentzian::Lorentzian;
+
 mod fitting;
 pub use fitting::FittingSettings;
-pub use fitting::Lorentzian;
 
 mod peak_selection;
 pub use peak_selection::{ScoringMethod, SelectionSettings};

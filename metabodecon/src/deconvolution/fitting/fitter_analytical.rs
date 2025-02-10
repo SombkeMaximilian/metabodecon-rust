@@ -1,4 +1,5 @@
-use crate::deconvolution::fitting::{Fitter, Lorentzian, PeakStencil, ReducedSpectrum};
+use crate::deconvolution::fitting::{Fitter, PeakStencil, ReducedSpectrum};
+use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 

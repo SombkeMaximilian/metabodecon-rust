@@ -1,4 +1,5 @@
-use crate::deconvolution::fitting::{FittingSettings, Lorentzian};
+use crate::deconvolution::fitting::FittingSettings;
+use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::SelectionSettings;
 use crate::deconvolution::smoothing::SmoothingSettings;
 use std::sync::Arc;

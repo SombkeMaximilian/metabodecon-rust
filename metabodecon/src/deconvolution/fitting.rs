@@ -5,9 +5,6 @@ pub use fitter::FittingSettings;
 mod fitter_analytical;
 pub(crate) use fitter_analytical::FitterAnalytical;
 
-mod lorentzian;
-pub use lorentzian::Lorentzian;
-
 mod peak_stencil;
 pub(crate) use peak_stencil::PeakStencil;
 
