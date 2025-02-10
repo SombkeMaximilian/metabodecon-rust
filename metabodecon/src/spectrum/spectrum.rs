@@ -114,23 +114,27 @@ impl AsRef<Spectrum> for Spectrum {
 impl Spectrum {
     /// Constructs a `Spectrum` from the given data.
     ///
-    /// Note that this is generally not the recommended way to create `Spectrum`
-    /// objects. See [`BrukerReader`] and [`JdxReader`] for parsing 1D NMR data
-    /// from Bruker TopSpin and JCAMP-DX file formats.
+    /// This method creates a `Spectrum` from raw data, including chemical
+    /// shifts, intensities, and signal boundaries. However, this is generally
+    /// not the recommended way to create `Spectrum` objects. Instead, consider
+    /// using [`Bruker`] or [`JcampDx`] to parse NMR data from supported file
+    /// formats.
     ///
-    /// [`BrukerReader`]: crate::spectrum::Bruker
-    /// [`JdxReader`]: crate::spectrum::JcampDx
+    /// [`Bruker`]: crate::spectrum::Bruker
+    /// [`JcampDx`]: crate::spectrum::JcampDx
     ///
     /// # Errors
     ///
-    /// If any of the invariants cannot be established from the input data, an
-    /// error is returned. The following conditions are checked:
+    /// This method returns an error if the input data violates any of the
+    /// invariants required for a valid `Spectrum`. Specifically, the following
+    /// conditions are checked:
     /// - The chemical shifts and intensities must have the same length and
     ///   cannot be empty.
     /// - The chemical shifts must be evenly spaced.
     /// - Both chemical shifts and intensities must contain only finite values
     ///   (no NaN or infinity).
-    /// - The signal boundaries must lie within the range of chemical shifts.
+    /// - The signal boundaries must lie within the range of the chemical
+    ///   shifts.
     ///
     /// # Example
     ///
@@ -194,8 +198,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_eq!(spectrum.chemical_shifts().len(), 3);
@@ -219,9 +223,9 @@ impl Spectrum {
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0], // Intensities
-    ///     (1.0, 3.0),
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_eq!(spectrum.intensities().len(), 3);
@@ -245,9 +249,9 @@ impl Spectrum {
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0), // Signal boundaries
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 1.0);
@@ -268,13 +272,13 @@ impl Spectrum {
     /// use metabodecon::spectrum::meta::Monotonicity;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let spectrum_increasing =
+    /// let increasing =
     ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
-    /// let spectrum_decreasing =
+    /// let decreasing =
     ///     Spectrum::new(vec![3.0, 2.0, 1.0], vec![3.0, 2.0, 1.0], (3.0, 1.0))?;
     ///
-    /// assert_eq!(spectrum_increasing.monotonicity(), Monotonicity::Increasing);
-    /// assert_eq!(spectrum_decreasing.monotonicity(), Monotonicity::Decreasing);
+    /// assert_eq!(increasing.monotonicity(), Monotonicity::Increasing);
+    /// assert_eq!(decreasing.monotonicity(), Monotonicity::Decreasing);
     /// # Ok(())
     /// # }
     /// ```
@@ -284,12 +288,16 @@ impl Spectrum {
 
     /// Sets the signal region boundaries of the `Spectrum`.
     ///
+    /// The boundaries are automatically reordered to match the ordering of the
+    /// chemical shifts (ascending or descending) if necessary.
+    ///
     /// # Errors
     ///
-    /// The input data is checked for validity to ensure that the `Spectrum` is
-    /// well-formed and in a consistent state. Checks if the signal boundaries
-    /// are within the range of the chemical shifts. Reorders the boundaries to
-    /// match the chemical shifts if necessary.
+    /// Returns an error if the boundaries are outside the range of the chemical
+    /// shifts or contain non-finite values (NaN or infinity).
+    ///
+    /// These checks ensure the `Spectrum` remains in a valid and consistent
+    /// state.
     ///
     /// # Example
     ///
@@ -299,9 +307,9 @@ impl Spectrum {
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut spectrum = Spectrum::new(
-    ///     vec![1.0, 2.0, 3.0],
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0), // Signal boundaries
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     /// spectrum.set_signal_boundaries((1.25, 2.75))?;
     ///
@@ -320,7 +328,7 @@ impl Spectrum {
         Ok(())
     }
 
-    /// Returns the number of chemical shift, intensity pairs in the `Spectrum`.
+    /// Returns the number of chemical shift-intensity pairs in the `Spectrum`.
     ///
     /// # Example
     ///
@@ -331,16 +339,41 @@ impl Spectrum {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
     ///     vec![1.0, 2.0, 3.0], // Intensities
-    ///     (1.0, 3.0),
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_eq!(spectrum.len(), 3);
     /// # Ok(())
     /// # }
     /// ```
-    #[allow(clippy::len_without_is_empty)] // Can never be empty.
     pub fn len(&self) -> usize {
         self.chemical_shifts.len()
+    }
+
+    /// Returns `true` if the `Spectrum` is empty.
+    ///
+    /// Due to the invariants of the `Spectrum` type, an empty `Spectrum` is
+    /// impossible to create. This method is provided for consistency with
+    /// other collection types.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    ///
+    /// assert!(!spectrum.is_empty());
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn is_empty(&self) -> bool {
+        self.chemical_shifts.is_empty() && self.intensities.is_empty()
     }
 
     /// Computes the step size between two consecutive chemical shifts in ppm.
@@ -354,8 +387,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.step(), 1.0);
@@ -368,7 +401,10 @@ impl Spectrum {
 
     /// Computes the range of the `Spectrum` in ppm.
     ///
-    /// The range is sorted in the same order as the chemical shifts.
+    /// The range is returned as a tuple `(first, last)`. The order of the range
+    /// matches the ordering of the chemical shifts, i.e. an increasing
+    /// `Spectrum` would return `(min, max)`, while a decreasing `Spectrum`
+    /// would return `(max, min)`.
     ///
     /// # Example
     ///
@@ -379,8 +415,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.range().0, 1.0);
@@ -397,6 +433,9 @@ impl Spectrum {
 
     /// Computes the width of the `Spectrum` in ppm.
     ///
+    /// The width is the absolute difference between the first and last chemical
+    /// shift.
+    ///
     /// # Example
     ///
     /// ```
@@ -406,8 +445,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.width(), 2.0);
@@ -420,6 +459,9 @@ impl Spectrum {
 
     /// Computes the center of the `Spectrum` in ppm.
     ///
+    /// The center is calculated as the midpoint between the first and last
+    /// chemical shift.
+    ///
     /// # Example
     ///
     /// ```
@@ -429,8 +471,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0],
-    ///     (1.0, 3.0),
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
     ///
     /// assert_approx_eq!(f64, spectrum.center(), 2.0);
@@ -453,8 +495,8 @@ impl Spectrum {
     /// # fn main() -> metabodecon::Result<()> {
     /// let spectrum = Spectrum::new(
     ///     vec![1.0, 2.0, 3.0, 4.0, 5.0], // Chemical shifts
-    ///     vec![1.0, 2.0, 3.0, 4.0, 5.0],
-    ///     (2.25, 3.75), // Signal boundaries
+    ///     vec![1.0, 2.0, 3.0, 4.0, 5.0], // Intensities
+    ///     (2.25, 3.75),                  // Signal boundaries
     /// )?;
     ///
     /// assert_eq!(spectrum.signal_boundaries_indices(), (1, 3));
