@@ -3,6 +3,9 @@ use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::{Peak, ScoringMethod};
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Trait interface for peak selection algorithms.
 pub(crate) trait Selector {
     /// Detects peaks in a spectrum and returns the ones that pass a filter.
@@ -17,6 +20,11 @@ pub(crate) trait Selector {
 /// Peak selection methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "method", rename_all_fields = "camelCase")
+)]
 pub enum SelectionSettings {
     /// Filter based on the score of peaks found in the signal free region.
     ///

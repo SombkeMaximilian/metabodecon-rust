@@ -2,6 +2,9 @@ use crate::Result;
 use crate::deconvolution::Settings;
 use crate::deconvolution::peak_selection::Peak;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Trait interface for peak scoring methods.
 pub(crate) trait Scorer {
     /// Scores the given peak.
@@ -11,6 +14,11 @@ pub(crate) trait Scorer {
 /// Scoring methods for the peaks.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug, Default)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "method", rename_all_fields = "camelCase")
+)]
 pub enum ScoringMethod {
     /// Minimum Sum of the absolute second derivative.
     ///

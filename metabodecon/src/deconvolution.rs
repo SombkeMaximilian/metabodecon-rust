@@ -9,6 +9,11 @@ pub use deconvolution::Deconvolution;
 mod lorentzian;
 pub use lorentzian::Lorentzian;
 
+#[cfg(feature = "serde")]
+mod serialized_representations;
+#[cfg(feature = "serde")]
+pub(crate) use serialized_representations::{SerializedDeconvolution, SerializedLorentzian};
+
 mod fitting;
 pub use fitting::FittingSettings;
 

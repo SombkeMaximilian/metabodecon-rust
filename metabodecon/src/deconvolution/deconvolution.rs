@@ -4,8 +4,18 @@ use crate::deconvolution::peak_selection::SelectionSettings;
 use crate::deconvolution::smoothing::SmoothingSettings;
 use std::sync::Arc;
 
+#[cfg(feature = "serde")]
+use crate::deconvolution::SerializedDeconvolution;
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Data structure representing the result of a deconvolution.
 #[derive(Clone, Debug)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(into = "SerializedDeconvolution", try_from = "SerializedDeconvolution")
+)]
 pub struct Deconvolution {
     /// The deconvoluted signals.
     lorentzians: Arc<[Lorentzian]>,
@@ -17,6 +27,12 @@ pub struct Deconvolution {
     fitting_settings: FittingSettings,
     /// The mean squared error of the deconvolution.
     mse: f64,
+}
+
+impl AsRef<Deconvolution> for Deconvolution {
+    fn as_ref(&self) -> &Deconvolution {
+        self
+    }
 }
 
 impl Deconvolution {
@@ -68,11 +84,66 @@ impl Deconvolution {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::deconvolution::ScoringMethod;
     use crate::{assert_send, assert_sync};
+    use float_cmp::assert_approx_eq;
 
     #[test]
     fn thread_safety() {
         assert_send!(Deconvolution);
         assert_sync!(Deconvolution);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialization_round_trip() {
+        let lorentzians = vec![
+            Lorentzian::new(5.5, 0.25, 3.0),
+            Lorentzian::new(7.0, 0.16, 5.0),
+            Lorentzian::new(5.5, 0.25, 7.0),
+        ];
+        let deconvolution = Deconvolution::new(
+            lorentzians.clone(),
+            SmoothingSettings::default(),
+            SelectionSettings::default(),
+            FittingSettings::default(),
+            0.5,
+        );
+        let serialized = serde_json::to_string(&deconvolution).unwrap();
+        let deserialized = serde_json::from_str::<Deconvolution>(&serialized).unwrap();
+        deconvolution
+            .lorentzians
+            .iter()
+            .zip(deserialized.lorentzians())
+            .for_each(|(init, rec)| {
+                assert_approx_eq!(f64, init.sfhw(), rec.sfhw());
+                assert_approx_eq!(f64, init.hw2(), rec.hw2());
+                assert_approx_eq!(f64, init.maxp(), rec.maxp());
+            });
+        match deserialized.smoothing_settings() {
+            SmoothingSettings::MovingAverage {
+                iterations,
+                window_size,
+            } => {
+                assert_eq!(iterations, 2);
+                assert_eq!(window_size, 5);
+            }
+        };
+        match deserialized.selection_settings() {
+            SelectionSettings::NoiseScoreFilter {
+                scoring_method,
+                threshold,
+            } => {
+                match scoring_method {
+                    ScoringMethod::MinimumSum => {}
+                }
+                assert_approx_eq!(f64, threshold, 6.4);
+            }
+        };
+        match deserialized.fitting_settings() {
+            FittingSettings::Analytical { iterations } => {
+                assert_eq!(iterations, 10);
+            }
+        };
     }
 }

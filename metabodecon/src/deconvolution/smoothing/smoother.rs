@@ -2,6 +2,9 @@ use crate::deconvolution::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Trait interface for smoothing algorithms.
 pub(crate) trait Smoother<Type> {
     /// Smooths the given sequence of values in place.
@@ -11,6 +14,11 @@ pub(crate) trait Smoother<Type> {
 /// Smoothing methods for the signal intensities.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "method", rename_all_fields = "camelCase")
+)]
 pub enum SmoothingSettings {
     /// Moving average low-pass filter.
     ///

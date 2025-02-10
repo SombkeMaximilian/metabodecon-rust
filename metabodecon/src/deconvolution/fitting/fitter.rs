@@ -4,6 +4,9 @@ use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
 
+#[cfg(feature = "serde")]
+use serde::{Deserialize, Serialize};
+
 /// Trait interface for fitting algorithms.
 pub(crate) trait Fitter {
     /// Fits Lorentzian functions to a spectrum using the given peaks.
@@ -18,6 +21,11 @@ pub(crate) trait Fitter {
 /// Fitting methods.
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(tag = "method", rename_all_fields = "camelCase")
+)]
 pub enum FittingSettings {
     /// Fitting by solving a system of linear equations analytically.
     Analytical {
