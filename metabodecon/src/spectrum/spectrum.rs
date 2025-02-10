@@ -6,7 +6,7 @@ use std::sync::Arc;
 #[cfg(feature = "serde")]
 use crate::spectrum::SerializedSpectrum;
 #[cfg(feature = "serde")]
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
@@ -45,6 +45,11 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 /// # }
 /// ```
 #[derive(Clone, Debug)]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(into = "SerializedSpectrum", try_from = "SerializedSpectrum")
+)]
 pub struct Spectrum {
     /// The chemical shifts in ppm.
     chemical_shifts: Arc<[f64]>,
@@ -59,28 +64,6 @@ pub struct Spectrum {
 impl AsRef<Spectrum> for Spectrum {
     fn as_ref(&self) -> &Self {
         self
-    }
-}
-
-#[cfg(feature = "serde")]
-impl Serialize for Spectrum {
-    fn serialize<S>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        SerializedSpectrum::from(self).serialize(serializer)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<'de> Deserialize<'de> for Spectrum {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        SerializedSpectrum::deserialize(deserializer)?
-            .try_into()
-            .map_err(serde::de::Error::custom)
     }
 }
 
@@ -889,5 +872,44 @@ mod tests {
         assert_approx_eq!(f64, spectrum.range().1, 5.0);
         assert_approx_eq!(f64, spectrum.center(), 3.0);
         assert_eq!(spectrum.signal_boundaries_indices(), (0, 4));
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialization_round_trip() {
+        let chemical_shifts = (0..2_u32.pow(8))
+            .map(|i| i as f64 * 10.0 / (2_f64.powi(8) - 1.0))
+            .collect::<Vec<f64>>();
+        let intensities = chemical_shifts
+            .iter()
+            .map(|x| {
+                1.0 * 0.25 / (0.25_f64.powi(2) + (x - 3.0).powi(2))
+                    + 1.0 * 0.25 / (0.25_f64.powi(2) + (x - 7.0).powi(2))
+            })
+            .collect::<Vec<f64>>();
+        let signal_boundaries = (1.0, 9.0);
+        let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries).unwrap();
+        let serialized = serde_json::to_string(&spectrum).unwrap();
+        let deserialized: Spectrum = serde_json::from_str(&serialized).unwrap();
+        assert_approx_eq!(
+            f64,
+            spectrum.signal_boundaries().0,
+            deserialized.signal_boundaries().0
+        );
+        assert_approx_eq!(
+            f64,
+            spectrum.signal_boundaries().1,
+            deserialized.signal_boundaries().1
+        );
+        spectrum
+            .chemical_shifts()
+            .iter()
+            .zip(deserialized.chemical_shifts())
+            .for_each(|(&init, &rec)| assert_approx_eq!(f64, init, rec));
+        spectrum
+            .intensities()
+            .iter()
+            .zip(deserialized.intensities())
+            .for_each(|(&init, &rec)| assert_approx_eq!(f64, init, rec));
     }
 }

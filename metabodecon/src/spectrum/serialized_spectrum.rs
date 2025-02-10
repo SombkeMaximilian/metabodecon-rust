@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 /// the spectrum are enough to reconstruct the chemical shifts. Storing them is
 /// still useful as they frequently need to be accessed. This form only contains
 /// the essential information needed to reconstruct the original [`Spectrum`].
-#[derive(Debug, Serialize, Deserialize)]
-#[cfg_attr(test, derive(Clone))]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(rename = "Spectrum", rename_all = "camelCase")]
 pub(crate) struct SerializedSpectrum {
     /// The intensities in arbitrary units.
     intensities: Vec<f64>,
@@ -181,7 +181,6 @@ mod tests {
                     } => {
                         assert_eq!(*chemical_shifts, context.0);
                         assert_eq!(*intensities, context.1);
-                        println!("{}", inner);
                     }
                     _ => panic!("unexpected kind: {:?}", inner),
                 },
@@ -210,7 +209,6 @@ mod tests {
                     } => {
                         assert_eq!(*chemical_shifts, context.0);
                         assert_eq!(*intensities, context.1);
-                        println!("{}", inner);
                     }
                     _ => panic!("unexpected kind: {:?}", inner),
                 },
