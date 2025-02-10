@@ -53,7 +53,7 @@ impl Lorentzian {
 
     #[getter]
     pub fn parameters(&self) -> (f64, f64, f64) {
-        self.inner.retransformed_parameters()
+        self.inner.untransformed_parameters()
     }
 
     #[setter]
@@ -74,7 +74,7 @@ impl Lorentzian {
     #[setter]
     pub fn set_parameters(&mut self, parameters: (f64, f64, f64)) {
         self.inner
-            .set_retransformed_parameters(parameters.0, parameters.1, parameters.2);
+            .set_untransformed_parameters(parameters.0, parameters.1, parameters.2);
     }
 
     pub fn evaluate(&self, x: f64) -> f64 {
