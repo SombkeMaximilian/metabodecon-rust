@@ -808,5 +808,16 @@ mod tests {
             .for_each(|(&yc, &ye)| {
                 assert_approx_eq!(f64, yc, ye);
             });
+        #[cfg(feature = "parallel")]
+        {
+            let computed_intensities =
+                Lorentzian::par_superposition_vec(&chemical_shifts, &lorentzians);
+            computed_intensities
+                .iter()
+                .zip(expected_intensities.iter())
+                .for_each(|(&yc, &ye)| {
+                    assert_approx_eq!(f64, yc, ye);
+                });
+        }
     }
 }
