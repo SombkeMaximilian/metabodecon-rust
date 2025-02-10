@@ -975,7 +975,7 @@ mod tests {
         let signal_boundaries = (1.0, 9.0);
         let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries).unwrap();
         let serialized = serde_json::to_string(&spectrum).unwrap();
-        let deserialized: Spectrum = serde_json::from_str(&serialized).unwrap();
+        let deserialized = serde_json::from_str::<Spectrum>(&serialized).unwrap();
         assert_approx_eq!(
             f64,
             spectrum.signal_boundaries().0,
@@ -990,11 +990,11 @@ mod tests {
             .chemical_shifts()
             .iter()
             .zip(deserialized.chemical_shifts())
-            .for_each(|(&init, &rec)| assert_approx_eq!(f64, init, rec));
+            .for_each(|(init, rec)| assert_approx_eq!(f64, *init, *rec));
         spectrum
             .intensities()
             .iter()
             .zip(deserialized.intensities())
-            .for_each(|(&init, &rec)| assert_approx_eq!(f64, init, rec));
+            .for_each(|(init, rec)| assert_approx_eq!(f64, *init, *rec));
     }
 }
