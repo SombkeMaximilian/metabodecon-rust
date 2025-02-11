@@ -4,7 +4,7 @@ use crate::spectrum::Spectrum;
 /// Data structure to store the points for approximating a peak with a
 /// [`Lorentzian`].
 ///
-/// [`Lorentzian`]: crate::deconvolution::fitting::Lorentzian
+/// [`Lorentzian`]: crate::deconvolution::lorentzian::Lorentzian
 #[derive(Debug)]
 pub(crate) struct PeakStencil {
     /// Left chemical shift data point in ppm.
