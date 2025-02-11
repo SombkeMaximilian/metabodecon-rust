@@ -19,10 +19,8 @@ Current planned and implemented features include (additional suggestions are wel
    - [x] Internal HDF5 format
    - [x] Bruker
    - [ ] JCAMP-DX
-- [ ] Storing 1D NMR spectra in HDF5 files
-- [x] Preprocessing of 1D NMR spectra
-   - [x] Removal of the solvent signal
-   - [x] Smoothing of the signal intensities (various methods)
+- [x] Storing 1D NMR spectra in HDF5 files
+- [ ] Preprocessing of 1D NMR spectra
 - [x] Peak detection in 1D NMR spectra
    - [x] Curvature analysis
 - [x] Fitting of peaks to deconvolute 1D NMR spectra
