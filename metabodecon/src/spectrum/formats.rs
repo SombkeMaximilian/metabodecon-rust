@@ -8,11 +8,6 @@ mod bruker;
 #[cfg(feature = "bruker")]
 pub use bruker::Bruker;
 
-#[cfg(feature = "hdf5")]
-mod hdf5;
-#[cfg(feature = "hdf5")]
-pub use hdf5::Hdf5;
-
 #[cfg(feature = "jdx")]
 mod jcampdx;
 #[cfg(feature = "jdx")]

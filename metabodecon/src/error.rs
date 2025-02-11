@@ -22,11 +22,6 @@ pub enum Error {
     /// Wrapper for errors from [`std::io`].
     #[cfg(any(feature = "bruker", feature = "jdx"))]
     IoError(std::io::Error),
-    /// Wrapper for errors from the [hdf5 crate].
-    ///
-    /// [hdf5 crate]: https://docs.rs/crate/hdf5/latest
-    #[cfg(feature = "hdf5")]
-    Hdf5Error(hdf5::Error),
 }
 
 impl std::error::Error for Error {}
@@ -50,13 +45,6 @@ impl From<std::io::Error> for Error {
     }
 }
 
-#[cfg(feature = "hdf5")]
-impl From<hdf5::Error> for Error {
-    fn from(error: hdf5::Error) -> Self {
-        Error::Hdf5Error(error)
-    }
-}
-
 impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         match *self {
@@ -64,8 +52,6 @@ impl core::fmt::Display for Error {
             Error::Deconvolution(ref e) => e.fmt(f),
             #[cfg(any(feature = "bruker", feature = "jdx"))]
             Error::IoError(ref e) => e.fmt(f),
-            #[cfg(feature = "hdf5")]
-            Error::Hdf5Error(ref e) => e.fmt(f),
         }
     }
 }

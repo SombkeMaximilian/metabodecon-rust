@@ -6,7 +6,7 @@ edition = "2021"
 rust-version = "1.78.0"
 description = """
     A library for 1D NMR spectra, offering data structure definitions,
-    common NMR file format parsing (Bruker TopSpin, JCAMP-DX, HDF5),
+    common NMR file format parsing (Bruker TopSpin, JCAMP-DX),
     preprocessing, signal deconvolution, and spectrum alignment.
 """
 readme = "../README.md"
@@ -25,11 +25,10 @@ categories = [
 ]
 
 [features]
-default = ["parallel", "bruker", "hdf5", "jdx", "serde"]
-full = ["parallel", "bruker", "hdf5", "jdx", "serde"]
+default = ["parallel", "bruker", "jdx", "serde"]
+full = ["parallel", "bruker", "jdx", "serde"]
 parallel = ["dep:rayon"]
 bruker = ["dep:byteorder", "dep:regex"]
-hdf5 = ["dep:hdf5"]
 jdx = ["dep:regex"]
 serde = ["dep:serde"]
 
@@ -37,7 +36,6 @@ serde = ["dep:serde"]
 num-traits = "0.2.19"
 regex = { version = "1.11.1", optional = true }
 byteorder = { version = "1.5.0", optional = true }
-hdf5 = { version = "0.8.1", optional = true }
 rayon = { version = "1.10.0", optional = true }
 serde = { version = "1.0.217", features = ["derive"], optional = true }
 

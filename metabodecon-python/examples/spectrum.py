@@ -3,12 +3,6 @@ import metabodecon as md
 
 
 def main():
-    blood = md.Spectrum.read_hdf5("../../data/hdf5/blood.h5", "blood_01")
-    plt.figure(figsize = (12, 8), dpi = 200)
-    plt.plot(blood.chemical_shifts, blood.intensities)
-    plt.show()
-    plt.close()
-
     signal = (-2.208611, 11.807917)
     blood = md.Spectrum.read_bruker("../../data/bruker/blood/blood_01", 10, 10, signal)
     plt.figure(figsize = (12, 8), dpi = 200)

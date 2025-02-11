@@ -64,41 +64,6 @@ impl Spectrum {
         }
     }
 
-    #[staticmethod]
-    pub fn read_hdf5(path: &str, dataset: &str) -> PyResult<Self> {
-        match spectrum::Hdf5::read_spectrum(path, dataset) {
-            Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
-    #[staticmethod]
-    pub fn read_hdf5_set(path: &str) -> PyResult<Vec<Self>> {
-        match spectrum::Hdf5::read_spectra(path) {
-            Ok(spectra) => Ok(spectra
-                .into_iter()
-                .map(|spectrum| spectrum.into())
-                .collect()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
-    #[staticmethod]
-    pub fn write_hdf5(path: &str, spectrum: &Spectrum) -> PyResult<()> {
-        match spectrum::Hdf5::write_spectrum(path, spectrum.as_ref()) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
-    #[staticmethod]
-    pub fn write_hdf5_set(path: &str, spectra: Vec<Spectrum>) -> PyResult<()> {
-        match spectrum::Hdf5::write_spectra(path, &spectra) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
-        }
-    }
-
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())

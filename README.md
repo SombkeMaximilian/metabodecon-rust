@@ -16,10 +16,9 @@ Current planned and implemented features include (additional suggestions are wel
 
 - [x] Efficient representation of 1D NMR spectra
 - [ ] Read 1D NMR spectra from various formats
-   - [x] Internal HDF5 format
    - [x] Bruker
    - [ ] JCAMP-DX
-- [x] Storing 1D NMR spectra in HDF5 files
+- [x] Serialization of the data structures with Serde
 - [ ] Preprocessing of 1D NMR spectra
 - [x] Peak detection in 1D NMR spectra
    - [x] Curvature analysis

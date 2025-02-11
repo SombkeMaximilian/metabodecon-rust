@@ -4,8 +4,8 @@ import time
 
 
 def main():
-    blood = md.Spectrum.read_hdf5("../../data/hdf5/blood.h5", "blood_01")
-    blood.signal_boundaries = (-2.208611, 11.807918)
+    signal = (-2.208611, 11.807917)
+    blood = md.Spectrum.read_bruker("../../data/bruker/blood/blood_01", 10, 10, signal)
     water_boundaries = (4.699535, 4.899771)
 
     deconvoluter = md.Deconvoluter()

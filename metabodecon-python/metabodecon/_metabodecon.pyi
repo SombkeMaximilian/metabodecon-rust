@@ -105,19 +105,3 @@ class Spectrum:
                         signal_boundaries: tuple[float, float]) -> list[
         "Spectrum"]:
         ...
-
-    @staticmethod
-    def read_hdf5(path: str, dataset: str) -> "Spectrum":
-        ...
-
-    @staticmethod
-    def read_hdf5_set(path: str) -> list["Spectrum"]:
-        ...
-
-    @staticmethod
-    def write_hdf5(path: str, spectrum: "Spectrum") -> None:
-        ...
-
-    @staticmethod
-    def write_hdf5_set(path: str, spectra: list["Spectrum"]) -> None:
-        ...

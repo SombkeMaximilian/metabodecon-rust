@@ -9,8 +9,7 @@
 //!
 //! * Tools for working with 1D NMR data, Lorentzian peak shapes, and
 //!   deconvolution results
-//! * Functionality for reading data from the Bruker TopSpin, JCAMP-DX, and HDF5
-//!   formats
+//! * Functionality for reading data from the various NMR storage formats
 //! * An implementation of the automated feature extraction algorithm for the
 //!   deconvolution of 1D NMR spectra described in [Koh et al. (2009)]
 //! * An implementation of the alignment algorithm described in [Vu et al.

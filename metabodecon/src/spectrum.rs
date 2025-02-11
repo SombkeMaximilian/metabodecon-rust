@@ -6,8 +6,6 @@
 //! - [`Spectrum`]: A container for spectral 1D NMR data and metadata.
 //! - [`Bruker`]: An interface for parsing Bruker TopSpin NMR data.
 //! - [`JcampDx`]: An interface for parsing spectra from JCAMP-DX files. (WIP)
-//! - [`Hdf5`]: An interface for reading from and writing to HDF5 files in the
-//!   format used by this library.
 //!
 //! # Example: Reading multiple spectra from Bruker TopSpin format
 //!
@@ -90,8 +88,6 @@ pub mod meta;
 mod formats;
 #[cfg(feature = "bruker")]
 pub use formats::Bruker;
-#[cfg(feature = "hdf5")]
-pub use formats::Hdf5;
 #[cfg(feature = "jdx")]
 pub use formats::JcampDx;
 

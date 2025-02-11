@@ -2,8 +2,10 @@ use criterion::{Criterion, criterion_group, criterion_main};
 use metabodecon::{deconvolution::*, spectrum::*};
 
 fn single_spectrum(c: &mut Criterion) {
-    let sim_spectrum = Hdf5::read_spectrum("../data/hdf5/sim.h5", "sim_01").unwrap();
-    let blood_spectrum = Hdf5::read_spectrum("../data/hdf5/blood.h5", "blood_01").unwrap();
+    let sim_path = "../data/bruker/sim/sim_01";
+    let blood_path = "../data/bruker/blood/blood_01";
+    let sim_spectrum = Bruker::read_spectrum(sim_path, 10, 10, (3.339007, 3.553942)).unwrap();
+    let blood_spectrum = Bruker::read_spectrum(blood_path, 10, 10, (-2.2, 11.8)).unwrap();
     let deconvoluter = Deconvoluter::default();
 
     // Sequential
@@ -24,8 +26,10 @@ fn single_spectrum(c: &mut Criterion) {
 }
 
 fn multiple_spectra(c: &mut Criterion) {
-    let sim_spectra = Hdf5::read_spectra("../data/hdf5/sim.h5").unwrap();
-    let blood_spectra = Hdf5::read_spectra("../data/hdf5/blood.h5").unwrap();
+    let sim_path = "../data/bruker/sim";
+    let blood_path = "../data/bruker/blood";
+    let sim_spectra = Bruker::read_spectra(sim_path, 10, 10, (3.339007, 3.553942)).unwrap();
+    let blood_spectra = Bruker::read_spectra(blood_path, 10, 10, (-2.2, 11.8)).unwrap();
     let deconvoluter = Deconvoluter::default();
 
     // Only the parallel case is interesting here
