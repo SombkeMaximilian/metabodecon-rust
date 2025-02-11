@@ -25,7 +25,7 @@ categories = [
 ]
 
 [features]
-default = ["parallel", "bruker", "hdf5", "jdx"]
+default = ["parallel", "bruker", "hdf5", "jdx", "serde"]
 full = ["parallel", "bruker", "hdf5", "jdx", "serde"]
 parallel = ["dep:rayon"]
 bruker = ["dep:byteorder", "dep:regex"]
