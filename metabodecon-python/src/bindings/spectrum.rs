@@ -1,6 +1,6 @@
+use crate::MetabodeconError;
 use metabodecon::spectrum;
 use numpy::PyArray1;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -31,7 +31,7 @@ impl Spectrum {
     ) -> PyResult<Self> {
         match spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -44,7 +44,7 @@ impl Spectrum {
     ) -> PyResult<Self> {
         match spectrum::Bruker::read_spectrum(path, experiment, processing, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -60,7 +60,7 @@ impl Spectrum {
                 .into_iter()
                 .map(|spectrum| spectrum.into())
                 .collect()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -86,7 +86,7 @@ impl Spectrum {
             .set_signal_boundaries(signal_boundaries)
         {
             Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 }

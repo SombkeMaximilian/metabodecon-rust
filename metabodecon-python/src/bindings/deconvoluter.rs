@@ -1,6 +1,6 @@
+use crate::MetabodeconError;
 use crate::bindings::{Deconvolution, Spectrum};
 use metabodecon::deconvolution;
-use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -28,7 +28,7 @@ impl Deconvoluter {
                 window_size,
             }) {
             Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -40,7 +40,7 @@ impl Deconvoluter {
             },
         ) {
             Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -50,14 +50,14 @@ impl Deconvoluter {
             .set_fitting_settings(deconvolution::FittingSettings::Analytical { iterations })
         {
             Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
     pub fn add_ignore_region(&mut self, new: (f64, f64)) -> PyResult<()> {
         match self.inner.add_ignore_region(new) {
             Ok(_) => Ok(()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -68,7 +68,7 @@ impl Deconvoluter {
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> PyResult<Deconvolution> {
         match self.inner.deconvolute_spectrum(spectrum.as_ref()) {
             Ok(deconvolution) => Ok(deconvolution.into()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -78,7 +78,7 @@ impl Deconvoluter {
             .par_deconvolute_spectrum(spectrum.as_ref())
         {
             Ok(deconvolution) => Ok(deconvolution.into()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -88,7 +88,7 @@ impl Deconvoluter {
                 .into_iter()
                 .map(|deconvolution| deconvolution.into())
                 .collect()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
@@ -98,14 +98,14 @@ impl Deconvoluter {
                 .into_iter()
                 .map(|deconvolution| deconvolution.into())
                 .collect()),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 
     pub fn optimize_settings(&mut self, reference: &Spectrum) -> PyResult<f64> {
         match self.inner.optimize_settings(reference.as_ref()) {
             Ok(mse) => Ok(mse),
-            Err(e) => Err(PyValueError::new_err(e.to_string())),
+            Err(e) => Err(MetabodeconError::from(e).into()),
         }
     }
 }
