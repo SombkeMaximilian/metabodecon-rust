@@ -11,8 +11,8 @@ pub struct Deconvolution {
 }
 
 impl From<deconvolution::Deconvolution> for Deconvolution {
-    fn from(inner: deconvolution::Deconvolution) -> Self {
-        Deconvolution { inner }
+    fn from(value: deconvolution::Deconvolution) -> Self {
+        Deconvolution { inner: value }
     }
 }
 

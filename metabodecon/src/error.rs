@@ -26,20 +26,20 @@ pub enum Error {
 impl std::error::Error for Error {}
 
 impl From<spectrum::error::Error> for Error {
-    fn from(error: spectrum::error::Error) -> Self {
-        Error::Spectrum(error)
+    fn from(value: spectrum::error::Error) -> Self {
+        Error::Spectrum(value)
     }
 }
 
 impl From<deconvolution::error::Error> for Error {
-    fn from(error: deconvolution::error::Error) -> Self {
-        Error::Deconvolution(error)
+    fn from(value: deconvolution::error::Error) -> Self {
+        Error::Deconvolution(value)
     }
 }
 
 impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Error::IoError(error)
+    fn from(value: std::io::Error) -> Self {
+        Error::IoError(value)
     }
 }
 

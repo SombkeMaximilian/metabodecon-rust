@@ -99,8 +99,8 @@ pub enum Kind {
 impl std::error::Error for Error {}
 
 impl From<Kind> for Error {
-    fn from(kind: Kind) -> Self {
-        Self { kind }
+    fn from(value: Kind) -> Self {
+        Self { kind: value }
     }
 }
 

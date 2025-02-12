@@ -16,8 +16,8 @@ impl AsRef<spectrum::Spectrum> for Spectrum {
 }
 
 impl From<spectrum::Spectrum> for Spectrum {
-    fn from(inner: spectrum::Spectrum) -> Self {
-        Spectrum { inner }
+    fn from(value: spectrum::Spectrum) -> Self {
+        Spectrum { inner: value }
     }
 }
 
