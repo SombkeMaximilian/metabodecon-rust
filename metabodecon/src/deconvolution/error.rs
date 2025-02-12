@@ -143,7 +143,7 @@ impl core::fmt::Display for Error {
                     f64::abs(region.0 - region.1) > 100.0 * f64::EPSILON,
                 ) {
                     (false, _) => format!(
-                        "ignore region boundaries [{}, {}] contains non-finite values",
+                        "ignore region boundaries [{}, {}] contain non-finite values",
                         region.0, region.1
                     ),
                     (true, false) => format!(
