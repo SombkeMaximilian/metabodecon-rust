@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 
 create_exception!(metabodecon, Error, PyException);
 create_exception!(metabodecon, Unexpected, Error);
+create_exception!(metabodecon, SerializationError, Error);
 
 create_exception!(metabodecon, SpectrumError, Error);
 create_exception!(metabodecon, EmptyData, SpectrumError);
@@ -86,42 +87,41 @@ impl From<MetabodeconError> for PyErr {
     }
 }
 
-impl MetabodeconError {
-    pub(crate) fn error_module(py: Python) -> PyResult<Bound<PyModule>> {
-        let exceptions = PyModule::new(py, "exceptions")?;
-        exceptions.add("Error", py.get_type::<Error>())?;
-        exceptions.add("Unexpected", py.get_type::<Unexpected>())?;
-        exceptions.add("SpectrumError", py.get_type::<SpectrumError>())?;
-        exceptions.add("EmptyData", py.get_type::<EmptyData>())?;
-        exceptions.add("DataLengthMismatch", py.get_type::<DataLengthMismatch>())?;
-        exceptions.add("NonUniformSpacing", py.get_type::<NonUniformSpacing>())?;
-        exceptions.add("InvalidIntensities", py.get_type::<InvalidIntensities>())?;
-        exceptions.add(
-            "InvalidSignalBoundaries",
-            py.get_type::<InvalidSignalBoundaries>(),
-        )?;
-        exceptions.add("MissingMetadata", py.get_type::<MissingMetadata>())?;
-        exceptions.add("DeconvolutionError", py.get_type::<DeconvolutionError>())?;
-        exceptions.add(
-            "InvalidSmoothingSettings",
-            py.get_type::<InvalidSmoothingSettings>(),
-        )?;
-        exceptions.add(
-            "InvalidSelectionSettings",
-            py.get_type::<InvalidSelectionSettings>(),
-        )?;
-        exceptions.add(
-            "InvalidFittingSettings",
-            py.get_type::<InvalidFittingSettings>(),
-        )?;
-        exceptions.add("InvalidIgnoreRegion", py.get_type::<InvalidIgnoreRegion>())?;
-        exceptions.add("NoPeaksDetected", py.get_type::<NoPeaksDetected>())?;
-        exceptions.add("EmptySignalRegion", py.get_type::<EmptySignalRegion>())?;
-        exceptions.add(
-            "EmptySignalFreeRegion",
-            py.get_type::<EmptySignalFreeRegion>(),
-        )?;
+pub(crate) fn error_module(py: Python) -> PyResult<Bound<PyModule>> {
+    let exceptions = PyModule::new(py, "exceptions")?;
+    exceptions.add("Error", py.get_type::<Error>())?;
+    exceptions.add("Unexpected", py.get_type::<Unexpected>())?;
+    exceptions.add("SerializationError", py.get_type::<SerializationError>())?;
+    exceptions.add("SpectrumError", py.get_type::<SpectrumError>())?;
+    exceptions.add("EmptyData", py.get_type::<EmptyData>())?;
+    exceptions.add("DataLengthMismatch", py.get_type::<DataLengthMismatch>())?;
+    exceptions.add("NonUniformSpacing", py.get_type::<NonUniformSpacing>())?;
+    exceptions.add("InvalidIntensities", py.get_type::<InvalidIntensities>())?;
+    exceptions.add(
+        "InvalidSignalBoundaries",
+        py.get_type::<InvalidSignalBoundaries>(),
+    )?;
+    exceptions.add("MissingMetadata", py.get_type::<MissingMetadata>())?;
+    exceptions.add("DeconvolutionError", py.get_type::<DeconvolutionError>())?;
+    exceptions.add(
+        "InvalidSmoothingSettings",
+        py.get_type::<InvalidSmoothingSettings>(),
+    )?;
+    exceptions.add(
+        "InvalidSelectionSettings",
+        py.get_type::<InvalidSelectionSettings>(),
+    )?;
+    exceptions.add(
+        "InvalidFittingSettings",
+        py.get_type::<InvalidFittingSettings>(),
+    )?;
+    exceptions.add("InvalidIgnoreRegion", py.get_type::<InvalidIgnoreRegion>())?;
+    exceptions.add("NoPeaksDetected", py.get_type::<NoPeaksDetected>())?;
+    exceptions.add("EmptySignalRegion", py.get_type::<EmptySignalRegion>())?;
+    exceptions.add(
+        "EmptySignalFreeRegion",
+        py.get_type::<EmptySignalFreeRegion>(),
+    )?;
 
-        Ok(exceptions)
-    }
+    Ok(exceptions)
 }

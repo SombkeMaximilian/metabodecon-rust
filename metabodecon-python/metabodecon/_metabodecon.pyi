@@ -51,6 +51,20 @@ class Deconvolution:
     def par_superposition_vec(self, x: np.ndarray) -> np.ndarray:
         ...
 
+    def write_json(self, path: str) -> None:
+        ...
+
+    @staticmethod
+    def read_json(path: str) -> "Deconvolution":
+        ...
+
+    def write_bin(self, path:str) -> None:
+        ...
+
+    @staticmethod
+    def read_bin(path: str) -> "Deconvolution":
+        ...
+
 
 class Lorentzian:
     sf: float
@@ -104,4 +118,18 @@ class Spectrum:
     def read_bruker_set(path: str, experiment: int, processing: int,
                         signal_boundaries: tuple[float, float]) -> list[
         "Spectrum"]:
+        ...
+
+    def write_json(self, path: str) -> None:
+        ...
+
+    @staticmethod
+    def read_json(path: str) -> "Spectrum":
+        ...
+
+    def write_bin(self, path:str) -> None:
+        ...
+
+    @staticmethod
+    def read_bin(path: str) -> "Spectrum":
         ...

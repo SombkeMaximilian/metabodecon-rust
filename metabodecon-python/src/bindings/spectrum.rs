@@ -1,4 +1,5 @@
 use crate::MetabodeconError;
+use crate::error::SerializationError;
 use metabodecon::spectrum;
 use numpy::PyArray1;
 use pyo3::prelude::*;
@@ -87,6 +88,44 @@ impl Spectrum {
         {
             Ok(_) => Ok(()),
             Err(e) => Err(MetabodeconError::from(e).into()),
+        }
+    }
+
+    pub fn write_json(&self, path: &str) -> PyResult<()> {
+        let serialized = match serde_json::to_string_pretty(&self.as_ref()) {
+            Ok(serialized) => serialized,
+            Err(error) => return Err(SerializationError::new_err(error.to_string())),
+        };
+        std::fs::write(path, serialized)?;
+
+        Ok(())
+    }
+
+    #[staticmethod]
+    pub fn read_json(path: &str) -> PyResult<Self> {
+        let serialized = std::fs::read_to_string(path)?;
+        match serde_json::from_str::<spectrum::Spectrum>(&serialized) {
+            Ok(deserialized) => Ok(deserialized.into()),
+            Err(error) => Err(SerializationError::new_err(error.to_string())),
+        }
+    }
+
+    pub fn write_bin(&self, path: &str) -> PyResult<()> {
+        let serialized = match rmp_serde::to_vec(&self.as_ref()) {
+            Ok(serialized) => serialized,
+            Err(error) => return Err(SerializationError::new_err(error.to_string())),
+        };
+        std::fs::write(path, serialized)?;
+
+        Ok(())
+    }
+
+    #[staticmethod]
+    pub fn read_bin(path: &str) -> PyResult<Self> {
+        let serialized = std::fs::read(path)?;
+        match rmp_serde::from_slice::<spectrum::Spectrum>(&serialized) {
+            Ok(deserialized) => Ok(deserialized.into()),
+            Err(error) => Err(SerializationError::new_err(error.to_string())),
         }
     }
 }
