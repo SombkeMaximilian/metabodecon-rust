@@ -20,7 +20,6 @@ pub enum Error {
     /// An error that occurred during the [`deconvolution`] process.
     Deconvolution(deconvolution::error::Error),
     /// Wrapper for errors from [`std::io`].
-    #[cfg(any(feature = "bruker", feature = "jdx"))]
     IoError(std::io::Error),
 }
 
@@ -38,7 +37,6 @@ impl From<deconvolution::error::Error> for Error {
     }
 }
 
-#[cfg(any(feature = "bruker", feature = "jdx"))]
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {
         Error::IoError(error)
@@ -50,7 +48,6 @@ impl core::fmt::Display for Error {
         match *self {
             Error::Spectrum(ref e) => e.fmt(f),
             Error::Deconvolution(ref e) => e.fmt(f),
-            #[cfg(any(feature = "bruker", feature = "jdx"))]
             Error::IoError(ref e) => e.fmt(f),
         }
     }
