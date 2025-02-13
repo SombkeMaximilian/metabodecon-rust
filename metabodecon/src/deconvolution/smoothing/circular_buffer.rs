@@ -1,15 +1,17 @@
 use num_traits::Zero;
+use std::collections::VecDeque;
 
 /// FIFO buffer with a fixed capacity that wraps around and overwrites old
 /// elements when full.
 #[derive(Debug)]
 pub(crate) struct CircularBuffer<Type> {
     /// The underlying storage for the buffer.
-    buffer: Box<[Type]>,
-    /// The index of the next element to be pushed.
-    index: usize,
-    /// The number of elements currently in the buffer.
-    num_elements: usize,
+    buffer: VecDeque<Type>,
+    /// The maximum number of elements the buffer can hold.
+    ///
+    /// This has to be stored separately because [`VecDeque`] only guarantees
+    /// that it can hold at least this many elements.
+    capacity: usize,
 }
 
 impl<Type: Copy + Zero> CircularBuffer<Type> {
@@ -22,16 +24,15 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
         assert!(capacity > 0, "capacity must be greater than zero");
 
         Self {
-            buffer: vec![Type::zero(); capacity].into_boxed_slice(),
-            index: 0,
-            num_elements: 0,
+            buffer: VecDeque::with_capacity(capacity),
+            capacity,
         }
     }
 
     /// Inserts a new element into the buffer and returns the oldest element if
     /// the buffer was already full or `None` otherwise.
     pub(crate) fn next(&mut self, value: Type) -> Option<Type> {
-        let popped_value: Option<Type> = if self.num_elements == self.buffer.len() {
+        let popped_value = if self.buffer.len() == self.capacity {
             self.pop()
         } else {
             None
@@ -43,34 +44,29 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 
     /// Inserts a new element into the buffer.
     pub(crate) fn push(&mut self, value: Type) {
-        self.buffer[self.index] = value;
-        self.index = (self.index + 1) % self.buffer.len();
-        if self.num_elements < self.buffer.len() {
-            self.num_elements += 1;
-        }
+        self.buffer.push_back(value);
     }
 
     /// Removes and returns the oldest element from the buffer or `None` if the
     /// buffer was already empty.
     pub(crate) fn pop(&mut self) -> Option<Type> {
-        if self.num_elements == 0 {
-            return None;
-        }
-        let index: usize = (self.index + self.buffer.len() - self.num_elements) % self.buffer.len();
-        self.num_elements -= 1;
-
-        Some(self.buffer[index])
+        self.buffer.pop_front()
     }
 
     /// Resets the buffer to its initial state.
     pub(crate) fn clear(&mut self) {
-        self.index = 0;
-        self.num_elements = 0;
+        self.buffer.clear();
     }
 
     /// Returns the number of elements currently in the buffer.
-    pub(crate) fn num_elements(&self) -> usize {
-        self.num_elements
+    pub(crate) fn len(&self) -> usize {
+        self.buffer.len()
+    }
+
+    /// Returns the capacity of the buffer.
+    #[cfg(test)]
+    pub(crate) fn capacity(&self) -> usize {
+        self.buffer.capacity()
     }
 }
 
@@ -80,15 +76,16 @@ mod tests {
 
     #[test]
     fn new() {
-        let buffer: CircularBuffer<i32> = CircularBuffer::new(3);
-        assert_eq!(buffer.num_elements(), 0);
+        let buffer: CircularBuffer<i32> = CircularBuffer::new(10);
+        assert_eq!(buffer.len(), 0);
+        assert_eq!(buffer.capacity(), 10);
     }
 
     #[test]
     fn push() {
         let mut buffer: CircularBuffer<i32> = CircularBuffer::new(3);
         buffer.push(1);
-        assert_eq!(buffer.num_elements(), 1);
+        assert_eq!(buffer.len(), 1);
     }
 
     #[test]
@@ -97,7 +94,7 @@ mod tests {
         buffer.push(1);
         buffer.push(2);
         assert_eq!(buffer.pop(), Some(1));
-        assert_eq!(buffer.num_elements(), 1);
+        assert_eq!(buffer.len(), 1);
     }
 
     #[test]
@@ -107,7 +104,7 @@ mod tests {
         buffer.push(2);
         buffer.push(3);
         assert_eq!(buffer.next(4), Some(1));
-        assert_eq!(buffer.num_elements(), 3);
+        assert_eq!(buffer.len(), 3);
     }
 
     #[test]
@@ -117,6 +114,6 @@ mod tests {
         buffer.push(2);
         buffer.push(3);
         buffer.clear();
-        assert_eq!(buffer.num_elements(), 0);
+        assert_eq!(buffer.len(), 0);
     }
 }

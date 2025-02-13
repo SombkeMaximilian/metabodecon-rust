@@ -108,7 +108,7 @@ where
         if let Some(popped_value) = self.buffer.next(value) {
             self.sum -= popped_value;
         } else {
-            self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
+            self.div = self.one / Type::from_usize(self.buffer.len()).unwrap();
         }
     }
 
@@ -116,7 +116,7 @@ where
     /// division factor, and returns the removed value (if any).
     fn pop_last(&mut self) -> Option<Type> {
         if let Some(popped_value) = self.buffer.pop() {
-            self.div = self.one / Type::from_usize(self.buffer.num_elements()).unwrap();
+            self.div = self.one / Type::from_usize(self.buffer.len()).unwrap();
             self.sum -= popped_value;
             Some(popped_value)
         } else {
