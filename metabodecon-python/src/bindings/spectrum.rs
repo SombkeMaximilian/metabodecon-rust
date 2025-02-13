@@ -92,7 +92,7 @@ impl Spectrum {
     }
 
     pub fn write_json(&self, path: &str) -> PyResult<()> {
-        let serialized = match serde_json::to_string_pretty(&self.as_ref()) {
+        let serialized = match serde_json::to_string_pretty(self.as_ref()) {
             Ok(serialized) => serialized,
             Err(error) => return Err(SerializationError::new_err(error.to_string())),
         };
@@ -111,7 +111,7 @@ impl Spectrum {
     }
 
     pub fn write_bin(&self, path: &str) -> PyResult<()> {
-        let serialized = match rmp_serde::to_vec(&self.as_ref()) {
+        let serialized = match rmp_serde::to_vec(self.as_ref()) {
             Ok(serialized) => serialized,
             Err(error) => return Err(SerializationError::new_err(error.to_string())),
         };
@@ -123,6 +123,7 @@ impl Spectrum {
     #[staticmethod]
     pub fn read_bin(path: &str) -> PyResult<Self> {
         let serialized = std::fs::read(path)?;
+
         match rmp_serde::from_slice::<spectrum::Spectrum>(&serialized) {
             Ok(deserialized) => Ok(deserialized.into()),
             Err(error) => Err(SerializationError::new_err(error.to_string())),
