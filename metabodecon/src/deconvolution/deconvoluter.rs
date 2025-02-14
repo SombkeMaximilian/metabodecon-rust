@@ -3,11 +3,12 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings};
 use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::{
-    NoiseScoreFilter, Peak, ScoringMethod, SelectionSettings, Selector,
+    NoiseScoreFilter, ScoringMethod, SelectionSettings, Selector,
 };
 use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
 use crate::deconvolution::{Deconvolution, Settings};
 use crate::spectrum::Spectrum;
+use std::sync::Arc;
 
 #[cfg(feature = "parallel")]
 use rayon::prelude::*;
@@ -113,16 +114,27 @@ use rayon::prelude::*;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct Deconvoluter {
     /// The smoothing settings.
-    smoothing_settings: SmoothingSettings,
+    smoother: Arc<dyn Smoother<f64>>,
     /// The peak selection settings.
-    selection_settings: SelectionSettings,
+    selector: Arc<dyn Selector>,
     /// The fitting settings.
-    fitting_settings: FittingSettings,
+    fitter: Arc<dyn Fitter>,
     /// The regions to ignore during deconvolution.
     ignore_regions: Option<Vec<(f64, f64)>>,
+}
+
+impl Default for Deconvoluter {
+    fn default() -> Self {
+        Self::new(
+            SmoothingSettings::default(),
+            SelectionSettings::default(),
+            FittingSettings::default(),
+        )
+        .unwrap()
+    }
 }
 
 impl Deconvoluter {
@@ -167,10 +179,26 @@ impl Deconvoluter {
         selection_settings.validate()?;
         fitting_settings.validate()?;
 
+        let smoother = Arc::new(match smoothing_settings {
+            SmoothingSettings::MovingAverage {
+                iterations,
+                window_size,
+            } => MovingAverage::<f64>::new(iterations, window_size),
+        });
+        let selector = Arc::new(match selection_settings {
+            SelectionSettings::NoiseScoreFilter {
+                scoring_method,
+                threshold,
+            } => NoiseScoreFilter::new(scoring_method, threshold),
+        });
+        let fitter = Arc::new(match fitting_settings {
+            FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
+        });
+
         Ok(Self {
-            smoothing_settings,
-            selection_settings,
-            fitting_settings,
+            smoother,
+            selector,
+            fitter,
             ignore_regions: None,
         })
     }
@@ -196,7 +224,7 @@ impl Deconvoluter {
     /// };
     /// ```
     pub fn smoothing_settings(&self) -> SmoothingSettings {
-        self.smoothing_settings
+        self.smoother.settings()
     }
 
     /// Returns the peak selection settings.
@@ -225,7 +253,7 @@ impl Deconvoluter {
     /// };
     /// ```
     pub fn selection_settings(&self) -> SelectionSettings {
-        self.selection_settings
+        self.selector.settings()
     }
 
     /// Returns the fitting settings.
@@ -245,7 +273,7 @@ impl Deconvoluter {
     /// };
     /// ```
     pub fn fitting_settings(&self) -> FittingSettings {
-        self.fitting_settings
+        self.fitter.settings()
     }
 
     /// Returns the regions to ignore during deconvolution.
@@ -292,7 +320,12 @@ impl Deconvoluter {
     /// ```
     pub fn set_smoothing_settings(&mut self, smoothing_settings: SmoothingSettings) -> Result<()> {
         smoothing_settings.validate()?;
-        self.smoothing_settings = smoothing_settings;
+        self.smoother = Arc::new(match smoothing_settings {
+            SmoothingSettings::MovingAverage {
+                iterations,
+                window_size,
+            } => MovingAverage::<f64>::new(iterations, window_size),
+        });
 
         Ok(())
     }
@@ -326,7 +359,12 @@ impl Deconvoluter {
     /// ```
     pub fn set_selection_settings(&mut self, selection_settings: SelectionSettings) -> Result<()> {
         selection_settings.validate()?;
-        self.selection_settings = selection_settings;
+        self.selector = Arc::new(match selection_settings {
+            SelectionSettings::NoiseScoreFilter {
+                scoring_method,
+                threshold,
+            } => NoiseScoreFilter::new(scoring_method, threshold),
+        });
 
         Ok(())
     }
@@ -354,7 +392,9 @@ impl Deconvoluter {
     /// ```
     pub fn set_fitting_settings(&mut self, fitting_settings: FittingSettings) -> Result<()> {
         fitting_settings.validate()?;
-        self.fitting_settings = fitting_settings;
+        self.fitter = Arc::new(match fitting_settings {
+            FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
+        });
 
         Ok(())
     }
@@ -487,13 +527,15 @@ impl Deconvoluter {
     /// # }
     /// ```
     pub fn deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
-        let peaks = self.select_peaks(spectrum)?;
-        let lorentzians = {
-            let fitter = match self.fitting_settings {
-                FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
-            };
-            fitter.fit_lorentzian(spectrum, &peaks)
-        };
+        let mut intensities = spectrum.intensities().to_vec();
+        self.smoother.smooth_values(&mut intensities);
+        let ignore_regions = self.ignore_region_indices(spectrum);
+        let peaks = self.selector.select_peaks(
+            &intensities,
+            spectrum.signal_boundaries_indices(),
+            ignore_regions.as_deref(),
+        )?;
+        let lorentzians = self.fitter.fit_lorentzian(spectrum, &peaks);
         let mse = self.compute_mse(
             spectrum,
             Lorentzian::superposition_vec(spectrum.chemical_shifts(), &lorentzians),
@@ -501,9 +543,9 @@ impl Deconvoluter {
 
         Ok(Deconvolution::new(
             lorentzians,
-            self.smoothing_settings,
-            self.selection_settings,
-            self.fitting_settings,
+            self.smoother.settings(),
+            self.selector.settings(),
+            self.fitter.settings(),
             mse,
         ))
     }
@@ -546,13 +588,15 @@ impl Deconvoluter {
     /// ```
     #[cfg(feature = "parallel")]
     pub fn par_deconvolute_spectrum(&self, spectrum: &Spectrum) -> Result<Deconvolution> {
-        let peaks = self.select_peaks(spectrum)?;
-        let lorentzians = {
-            let fitter = match self.fitting_settings {
-                FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
-            };
-            fitter.par_fit_lorentzian(spectrum, &peaks)
-        };
+        let mut intensities = spectrum.intensities().to_vec();
+        self.smoother.smooth_values(&mut intensities);
+        let ignore_regions = self.ignore_region_indices(spectrum);
+        let peaks = self.selector.select_peaks(
+            &intensities,
+            spectrum.signal_boundaries_indices(),
+            ignore_regions.as_deref(),
+        )?;
+        let lorentzians = self.fitter.par_fit_lorentzian(spectrum, &peaks);
         let mse = self.compute_mse(
             spectrum,
             Lorentzian::par_superposition_vec(spectrum.chemical_shifts(), &lorentzians),
@@ -560,9 +604,9 @@ impl Deconvoluter {
 
         Ok(Deconvolution::new(
             lorentzians,
-            self.smoothing_settings,
-            self.selection_settings,
-            self.fitting_settings,
+            self.smoother.settings(),
+            self.selector.settings(),
+            self.fitter.settings(),
             mse,
         ))
     }
@@ -772,37 +816,11 @@ impl Deconvoluter {
             .min_by(|(mse_1, ..), (mse_2, ..)| f64::partial_cmp(mse_1, mse_2).unwrap())
             .unwrap();
         let (mse, fitting, selection, smoothing) = optimal_settings;
-        self.smoothing_settings = smoothing;
-        self.selection_settings = selection;
-        self.fitting_settings = fitting;
+        self.set_smoothing_settings(smoothing)?;
+        self.set_selection_settings(selection)?;
+        self.set_fitting_settings(fitting)?;
 
         Ok(mse)
-    }
-
-    /// Internal helper function to perform the peak selection step.
-    fn select_peaks(&self, spectrum: &Spectrum) -> Result<Vec<Peak>> {
-        let mut smoother = match self.smoothing_settings {
-            SmoothingSettings::MovingAverage {
-                iterations,
-                window_size,
-            } => MovingAverage::new(iterations, window_size),
-        };
-        let mut intensities = spectrum.intensities().to_vec();
-        smoother.smooth_values(&mut intensities);
-        let selector = match self.selection_settings {
-            SelectionSettings::NoiseScoreFilter {
-                scoring_method,
-                threshold,
-            } => NoiseScoreFilter::new(scoring_method, threshold),
-        };
-        let ignore_regions = self.ignore_region_indices(spectrum);
-        let peaks = selector.select_peaks(
-            &intensities,
-            spectrum.signal_boundaries_indices(),
-            ignore_regions.as_deref(),
-        )?;
-
-        Ok(peaks)
     }
 
     /// Internal helper function to compute the MSE within the signal region.
