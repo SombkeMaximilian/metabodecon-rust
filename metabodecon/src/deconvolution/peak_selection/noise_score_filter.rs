@@ -1,7 +1,7 @@
 use crate::Result;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::{
-    Detector, Peak, Scorer, ScorerMinimumSum, ScoringMethod, Selector,
+    Detector, Peak, Scorer, ScorerMinimumSum, ScoringMethod, SelectionSettings, Selector,
 };
 
 /// Peak selection algorithm based on the score of peaks found in the signal
@@ -61,6 +61,13 @@ impl Selector for NoiseScoreFilter {
             .for_each(|d| *d = d.abs());
 
         self.filter_peaks(peaks, &second_derivative, signal_boundaries)
+    }
+
+    fn settings(&self) -> SelectionSettings {
+        SelectionSettings::NoiseScoreFilter {
+            scoring_method: self.scoring_method,
+            threshold: self.threshold,
+        }
     }
 }
 
@@ -183,7 +190,14 @@ impl NoiseScoreFilter {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{assert_send, assert_sync};
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(NoiseScoreFilter);
+        assert_sync!(NoiseScoreFilter);
+    }
 
     #[test]
     fn second_derivative() {

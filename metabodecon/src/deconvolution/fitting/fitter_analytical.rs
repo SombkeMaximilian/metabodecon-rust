@@ -1,4 +1,4 @@
-use crate::deconvolution::fitting::{Fitter, PeakStencil, ReducedSpectrum};
+use crate::deconvolution::fitting::{Fitter, FittingSettings, PeakStencil, ReducedSpectrum};
 use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::Peak;
 use crate::spectrum::Spectrum;
@@ -128,6 +128,12 @@ impl Fitter for FitterAnalytical {
 
         lorentzians
     }
+
+    fn settings(&self) -> FittingSettings {
+        FittingSettings::Analytical {
+            iterations: self.iterations,
+        }
+    }
 }
 
 impl FitterAnalytical {
@@ -169,7 +175,14 @@ impl FitterAnalytical {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::{assert_send, assert_sync};
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(FitterAnalytical);
+        assert_sync!(FitterAnalytical);
+    }
 
     #[test]
     fn approximations() {

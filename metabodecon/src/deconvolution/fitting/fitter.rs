@@ -8,7 +8,7 @@ use crate::spectrum::Spectrum;
 use serde::{Deserialize, Serialize};
 
 /// Trait interface for fitting algorithms.
-pub(crate) trait Fitter {
+pub(crate) trait Fitter: Send + Sync + std::fmt::Debug {
     /// Fits Lorentzian functions to a spectrum using the given peaks.
     fn fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian>;
 
@@ -16,6 +16,9 @@ pub(crate) trait Fitter {
     /// parallel.
     #[cfg(feature = "parallel")]
     fn par_fit_lorentzian(&self, spectrum: &Spectrum, peaks: &[Peak]) -> Vec<Lorentzian>;
+
+    /// Returns the settings of the trait object.
+    fn settings(&self) -> FittingSettings;
 }
 
 /// Fitting methods.

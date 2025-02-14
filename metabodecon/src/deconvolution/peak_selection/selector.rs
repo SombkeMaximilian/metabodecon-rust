@@ -7,7 +7,7 @@ use crate::deconvolution::peak_selection::{Peak, ScoringMethod};
 use serde::{Deserialize, Serialize};
 
 /// Trait interface for peak selection algorithms.
-pub(crate) trait Selector {
+pub(crate) trait Selector: Send + Sync + std::fmt::Debug {
     /// Detects peaks in a spectrum and returns the ones that pass a filter.
     fn select_peaks(
         &self,
@@ -15,6 +15,9 @@ pub(crate) trait Selector {
         signal_boundaries: (usize, usize),
         ignore_regions: Option<&[(usize, usize)]>,
     ) -> Result<Vec<Peak>>;
+
+    /// Returns the settings of the trait object.
+    fn settings(&self) -> SelectionSettings;
 }
 
 /// Peak selection methods.

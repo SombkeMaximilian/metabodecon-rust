@@ -6,9 +6,12 @@ use crate::error::Result;
 use serde::{Deserialize, Serialize};
 
 /// Trait interface for smoothing algorithms.
-pub(crate) trait Smoother<Type> {
+pub(crate) trait Smoother<Type>: Send + Sync + std::fmt::Debug {
     /// Smooths the given sequence of values in place.
-    fn smooth_values(&mut self, values: &mut [Type]);
+    fn smooth_values(&self, values: &mut [Type]);
+
+    /// Returns the settings of the trait object.
+    fn settings(&self) -> SmoothingSettings;
 }
 
 /// Smoothing methods for the signal intensities.
