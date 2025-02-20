@@ -211,7 +211,7 @@ impl JcampDx {
             "^13C" => Nucleus::Carbon13,
             "^15N" => Nucleus::Nitrogen15,
             "^19F" => Nucleus::Fluorine19,
-            "^29Si" => Nucleus::Silicon29,
+            "^29SI" => Nucleus::Silicon29,
             "^31P" => Nucleus::Phosphorus31,
             name => Nucleus::Other(name.to_string()),
         };
@@ -240,10 +240,8 @@ impl JcampDx {
 
                 if let Some(shift) = shift {
                     Some(ReferenceCompound::new(shift, name, None, None))
-                } else if let Some(name) = name {
-                    Some(ReferenceCompound::new(0.0, Some(name), None, None))
                 } else {
-                    None
+                    name.map(|name| ReferenceCompound::new(0.0, Some(name), None, None))
                 }
             }
         };
@@ -416,10 +414,9 @@ mod tests {
             Nucleus::Carbon13 => (),
             _ => panic!("Expected Carbon13"),
         };
-        match header.reference_compound {
-            Some(_) => panic!("Expected None"),
-            None => (),
-        };
+        if header.reference_compound.is_some() {
+            panic!("Expected None");
+        }
     }
 
     #[test]

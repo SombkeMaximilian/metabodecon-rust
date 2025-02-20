@@ -17,7 +17,7 @@ env:
   RUSTUP_WINDOWS_PATH_ADD_BIN: 1
   rust_stable: stable
   rust_nightly: nightly
-  rust_min: "1.78"
+  rust_min: "1.80"
 
 defaults:
   run:

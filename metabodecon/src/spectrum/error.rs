@@ -149,6 +149,7 @@ pub enum Kind {
     /// - NMR SPECTRUM data type
     /// - XYDATA, XYPOINTS, and NTUPLES data classes
     /// - Internal and external referencing methods
+    ///
     /// If you have a file that you believe should be parsable but is not, open
     /// an [issue] and provide the file.
     ///
