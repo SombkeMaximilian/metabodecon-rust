@@ -123,8 +123,23 @@ pub enum Kind {
     MissingMetadata {
         /// The path to the file where the metadata was expected.
         path: PathBuf,
-        /// The regex pattern that was used to search for the metadata.
-        regex: String,
+        /// The key that was used to search for the metadata.
+        key: String,
+    },
+    /// Metadata is malformed in a file of the various formats.
+    ///
+    /// This indicates that the stored data was corrupted or that the format of
+    /// the file is not as expected. If you have a dataset that you believe
+    /// should be parsable but is not, open an [issue] and provide the dataset.
+    ///
+    /// [issue]: https://github.com/SombkeMaximilian/metabodecon-rust/issues
+    MalformedMetadata {
+        /// The path to the file where the metadata was expected.
+        path: PathBuf,
+        /// The key that was used to search for the metadata.
+        key: String,
+        /// Additional details about the malformed metadata.
+        details: String,
     },
 }
 
@@ -242,11 +257,18 @@ impl core::fmt::Display for Error {
                     _ => unreachable!("valid signal boundaries falsely detected as invalid"),
                 }
             }
-            Kind::MissingMetadata { path, regex } => format!(
+            Kind::MissingMetadata { path, key } => format!(
                 "missing metadata \
                  expected in file at {:?} \
-                 with regex {}",
-                path, regex
+                 with key {}",
+                path, key
+            ),
+            Kind::MalformedMetadata { path, key, details } => format!(
+                "malformed metadata \
+                 expected in file at {:?} \
+                 with key {} \
+                 ({})",
+                path, key, details
             ),
         };
         write!(f, "{description}")

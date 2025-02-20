@@ -5,25 +5,34 @@ use std::path::Path;
 
 #[cfg(any(feature = "bruker", feature = "jdx"))]
 pub(crate) fn extract_capture<T: std::str::FromStr, P: AsRef<Path>>(
-    regex: Regex,
+    regex: &Regex,
     name: &str,
     text: &str,
     path: P,
+    key: &str,
 ) -> Result<T> {
-    let make_error = || {
+    let missing_error = || {
         Error::new(Kind::MissingMetadata {
             path: std::path::PathBuf::from(path.as_ref()),
-            regex: regex.to_string(),
+            key: key.to_string(),
         })
     };
+    let malformed_error = || {
+        Error::new(Kind::MalformedMetadata {
+            path: std::path::PathBuf::from(path.as_ref()),
+            key: key.to_string(),
+            details: format!("Could not parse {}", std::any::type_name::<T>()),
+        })
+    };
+
     let result = regex
         .captures(text)
-        .ok_or_else(make_error)?
+        .ok_or_else(missing_error)?
         .name(name)
-        .ok_or_else(make_error)?
+        .ok_or_else(missing_error)?
         .as_str()
         .parse::<T>()
-        .map_err(|_| make_error())?;
+        .map_err(|_| malformed_error())?;
 
     Ok(result)
 }

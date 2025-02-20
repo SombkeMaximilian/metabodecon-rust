@@ -6,6 +6,7 @@ use regex::Regex;
 use std::fs::{File, read_to_string};
 use std::io::Read;
 use std::path::{Path, PathBuf};
+use std::sync::LazyLock;
 
 /// Interface for reading 1D NMR spectra in the Bruker TopSpin format.
 ///
@@ -37,8 +38,7 @@ use std::path::{Path, PathBuf};
 ///
 /// The `acqus` and `procs` files contain the acquisition and processing
 /// parameters, respectively. They are plain text files with key-value pairs,
-/// where each line starts with `##$key=`. The values are extracted with
-/// regular expressions.
+/// where each line starts with `##$key=`.
 ///
 /// From the `acqus` file, the following keys are required:
 /// * `SW`: The spectral width in ppm as a floating point number.
@@ -150,14 +150,18 @@ enum Type {
 #[derive(Debug)]
 struct AcquisitionParameters {
     /// The spectral width in ppm.
-    spectrum_width: f64,
+    width: f64,
 }
+
+static ACQUS_RE: LazyLock<[Regex; 1]> =
+    LazyLock::new(|| [Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap()]);
+static ACQUS_KEYS: LazyLock<[&str; 1]> = LazyLock::new(|| ["SW"]);
 
 /// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
     /// The maximum chemical shift in ppm.
-    spectrum_maximum: f64,
+    maximum: f64,
     /// The size of the data, expected to be 2^15 or 2^17.
     data_size: usize,
     /// The endianness of the data.
@@ -165,8 +169,20 @@ struct ProcessingParameters {
     /// The data type of the raw signal intensities.
     data_type: Type,
     /// The scaling exponent of the data, if the data is stored as integers.
-    scaling_exponent: i32,
+    exponent: i32,
 }
+
+static PROCS_RE: LazyLock<[Regex; 5]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap(),
+        Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap(),
+        Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap(),
+        Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap(),
+    ]
+});
+static PROCS_KEYS: LazyLock<[&str; 5]> =
+    LazyLock::new(|| ["OFFSET", "NC_proc", "BYTORDP", "DTYPP", "SI"]);
 
 impl Bruker {
     /// Reads the spectrum from a Bruker TopSpin format directory.
@@ -243,8 +259,8 @@ impl Bruker {
         let procs = Self::read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
             .map(|i| {
-                procs.spectrum_maximum - acqus.spectrum_width
-                    + (i as f64) * acqus.spectrum_width / (procs.data_size as f64 - 1.0)
+                procs.maximum - acqus.width
+                    + (i as f64) * acqus.width / (procs.data_size as f64 - 1.0)
             })
             .collect();
         let intensities = Self::read_one_r(one_r_path, procs)?;
@@ -349,11 +365,12 @@ impl Bruker {
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_acquisition_parameters<P: AsRef<Path>>(path: P) -> Result<AcquisitionParameters> {
         let acqus = read_to_string(path.as_ref())?;
-        let width_re = Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap();
+        let re = &*ACQUS_RE;
+        let keys = &*ACQUS_KEYS;
 
-        let spectrum_width = extract_capture(width_re, "width", &acqus, &path)?;
+        let width = extract_capture(&re[0], "width", &acqus, &path, keys[0])?;
 
-        Ok(AcquisitionParameters { spectrum_width })
+        Ok(AcquisitionParameters { width })
     }
 
     /// Internal helper function to read the processing parameters from the
@@ -366,30 +383,27 @@ impl Bruker {
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_processing_parameters<P: AsRef<Path>>(path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
-        let maximum_re = Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap();
-        let data_size_re = Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap();
-        let endian_re = Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap();
-        let data_type_re = Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap();
-        let exponent_re = Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap();
+        let re = &*PROCS_RE;
+        let keys = &*PROCS_KEYS;
 
-        let spectrum_maximum = extract_capture(maximum_re, "maximum", &procs, &path)?;
-        let scaling_exponent = extract_capture(exponent_re, "exponent", &procs, &path)?;
-        let endian = match extract_capture(endian_re, "endian", &procs, &path)? {
+        let spectrum_maximum = extract_capture(&re[0], "maximum", &procs, &path, keys[0])?;
+        let scaling_exponent = extract_capture(&re[1], "exponent", &procs, &path, keys[1])?;
+        let endian = match extract_capture(&re[2], "endian", &procs, &path, keys[2])? {
             0 => Endian::Little,
             _ => Endian::Big,
         };
-        let data_type = match extract_capture(data_type_re, "data_type", &procs, &path)? {
+        let data_type = match extract_capture(&re[3], "data_type", &procs, &path, keys[3])? {
             0 => Type::I32,
             _ => Type::F64,
         };
-        let data_size = extract_capture(data_size_re, "data_size", &procs, &path)?;
+        let data_size = extract_capture(&re[4], "data_size", &procs, &path, keys[4])?;
 
         Ok(ProcessingParameters {
-            spectrum_maximum,
+            maximum: spectrum_maximum,
             data_size,
             endian,
             data_type,
-            scaling_exponent,
+            exponent: scaling_exponent,
         })
     }
 
@@ -429,7 +443,7 @@ impl Bruker {
 
                 Ok(temp
                     .into_iter()
-                    .map(|value| (value as f64) * 2_f64.powi(procs.scaling_exponent))
+                    .map(|value| (value as f64) * 2_f64.powi(procs.exponent))
                     .collect::<Vec<f64>>())
             }
             Type::F64 => {
