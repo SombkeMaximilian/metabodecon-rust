@@ -185,6 +185,8 @@ suggestions and bug reports. I will get back to them after my thesis is done.
   [[JCAMP]](http://www.jcamp-dx.org/protocols/dx5-01-correctedv2.pdf)
 - JCAMP. A Generic JCAMP-DX Standard File Format, JCAMP-DX V.6.00.
   [[JCAMP]](http://www.jcamp-dx.org/drafts/JCAMP6_2b%20Draft.pdf)
+- Lampen, Peter. JCAMP-DX test files for NMR. ISAS.
+  [[JCAMP]](http://www.jcamp-dx.org/)
 
 ## License
 
