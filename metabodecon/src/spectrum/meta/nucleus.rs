@@ -1,5 +1,5 @@
 /// The NMR nucleus.
-#[derive(Copy, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub enum Nucleus {
     /// Proton NMR.
     Hydrogen1,
@@ -13,4 +13,8 @@ pub enum Nucleus {
     Silicon29,
     /// Phosphorus-31 NMR.
     Phosphorus31,
+    /// Other NMR nuclei.
+    ///
+    /// This should most likely just be treated as a malformed field.
+    Other(String),
 }
