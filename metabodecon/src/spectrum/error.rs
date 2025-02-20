@@ -141,6 +141,19 @@ pub enum Kind {
         /// Additional details about the malformed metadata.
         details: String,
     },
+    /// The JCAMP-DX file is not supported.
+    ///
+    /// The JCAMP-DX format has different versions, and not all of them can be
+    /// parsed at this time. Currently supported is:
+    /// - Version 5.xx and 6.xx
+    /// - NMR SPECTRUM data type
+    /// - XYDATA, XYPOINTS, and NTUPLES data classes
+    /// - Internal and external referencing methods
+    /// If you have a file that you believe should be parsable but is not, open
+    /// an [issue] and provide the file.
+    ///
+    /// [issue]: https://github.com/SombkeMaximilian/metabodecon-rust/issues
+    UnsupportedJcampDxFile,
 }
 
 impl std::error::Error for Error {}
@@ -270,6 +283,9 @@ impl core::fmt::Display for Error {
                  ({})",
                 path, key, details
             ),
+            Kind::UnsupportedJcampDxFile => {
+                "unsupported JCAMP-DX file (see documentation for supported file types)".to_string()
+            }
         };
         write!(f, "{description}")
     }
