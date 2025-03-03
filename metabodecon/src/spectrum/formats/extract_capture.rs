@@ -5,24 +5,29 @@ use std::path::Path;
 
 /// Internal helper function to extract a single capture group from a regex
 /// match and parse it into a desired type.
-pub(crate) fn extract_capture<T: std::str::FromStr, P: AsRef<Path>>(
+pub(crate) fn extract_capture<T, P>(
     regex: &Regex,
     name: &str,
     text: &str,
     path: P,
     key: &str,
-) -> Result<T> {
+) -> Result<T>
+where
+    T: std::str::FromStr,
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+    P: AsRef<Path>,
+{
     let missing_error = || {
         Error::new(Kind::MissingMetadata {
-            path: std::path::PathBuf::from(path.as_ref()),
+            path: path.as_ref().to_path_buf(),
             key: key.to_string(),
         })
     };
-    let malformed_error = || {
+    let malformed_error = |error: <T as std::str::FromStr>::Err| {
         Error::new(Kind::MalformedMetadata {
-            path: std::path::PathBuf::from(path.as_ref()),
+            path: path.as_ref().to_path_buf(),
             key: key.to_string(),
-            details: format!("Could not parse {}", std::any::type_name::<T>()),
+            details: error.to_string(),
         })
     };
 
@@ -33,7 +38,7 @@ pub(crate) fn extract_capture<T: std::str::FromStr, P: AsRef<Path>>(
         .ok_or_else(missing_error)?
         .as_str()
         .parse::<T>()
-        .map_err(|_| malformed_error())?;
+        .map_err(malformed_error)?;
 
     Ok(result)
 }
@@ -41,25 +46,34 @@ pub(crate) fn extract_capture<T: std::str::FromStr, P: AsRef<Path>>(
 /// Internal helper function to extract a single capture group from a regex
 /// match, which represents a list of values, and parse it into a Vec of the
 /// desired type.
-pub(crate) fn extract_row<T: std::str::FromStr, P: AsRef<Path>>(
+pub(crate) fn extract_row<T, P>(
     regex: &Regex,
     name: &str,
     text: &str,
     path: P,
     key: &str,
-) -> Result<Vec<T>> {
+) -> Result<Vec<T>>
+where
+    T: std::str::FromStr,
+    <T as std::str::FromStr>::Err: std::fmt::Display,
+    P: AsRef<Path>,
+{
+    let malformed_error = |error: <T as std::str::FromStr>::Err| {
+        Error::new(Kind::MalformedMetadata {
+            path: path.as_ref().to_path_buf(),
+            key: key.to_string(),
+            details: error.to_string(),
+        })
+    };
+
     let raw = extract_capture::<String, _>(regex, name, text, &path, key)?;
     let row = raw
         .split(",")
         .map(|value| {
-            value.trim().parse::<T>().map_err(|_| {
-                Error::new(Kind::MalformedMetadata {
-                    key: key.to_string(),
-                    path: std::path::PathBuf::from(path.as_ref()),
-                    details: format!("Could not parse {}", std::any::type_name::<T>()),
-                })
-                .into()
-            })
+            value
+                .trim()
+                .parse::<T>()
+                .map_err(|error| malformed_error(error).into())
         })
         .collect::<Result<Vec<T>>>()?;
 

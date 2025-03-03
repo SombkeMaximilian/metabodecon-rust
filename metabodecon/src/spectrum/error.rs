@@ -141,6 +141,18 @@ pub enum Kind {
         /// Additional details about the malformed metadata.
         details: String,
     },
+    /// The data block in a JCAMP-DX file is missing.
+    MissingData {
+        /// The path to the file where the data block was expected.
+        path: PathBuf,
+    },
+    /// The data block in a JCAMP-DX file is malformed.
+    MalformedData {
+        /// The path to the file where the data block was expected.
+        path: PathBuf,
+        /// Additional details about the malformed data block.
+        details: String,
+    },
     /// The JCAMP-DX file is not supported.
     ///
     /// The JCAMP-DX format has different versions, and not all of them can be
@@ -279,10 +291,21 @@ impl core::fmt::Display for Error {
             ),
             Kind::MalformedMetadata { path, key, details } => format!(
                 "malformed metadata \
-                 expected in file at {:?} \
+                 in file at {:?} \
                  with key {} \
                  ({})",
                 path, key, details
+            ),
+            Kind::MissingData { path } => format!(
+                "missing data block \"
+                 expected in file at {:?}",
+                path
+            ),
+            Kind::MalformedData { path, details } => format!(
+                "malformed data block \
+                 in file at {:?} \
+                 ({})",
+                path, details
             ),
             Kind::UnsupportedJcampDxFile => {
                 "unsupported JCAMP-DX file (see documentation for supported file types)".to_string()
