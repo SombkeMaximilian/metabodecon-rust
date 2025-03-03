@@ -271,7 +271,7 @@ impl JcampDx {
                 if let Some(shift) = shift {
                     Some(ReferenceCompound::new(shift, name, Some(0), None))
                 } else {
-                    Some(ReferenceCompound::new(0.0, name, None, None))
+                    name.map(|name| ReferenceCompound::new(0.0, Some(name), None, None))
                 }
             }
         };
