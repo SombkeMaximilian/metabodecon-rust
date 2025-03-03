@@ -181,21 +181,28 @@ impl JcampDx {
         let path = path.as_ref();
         let dx = read_to_string(path)?;
         let header = Self::read_header(&dx, path)?;
-        let data_block = match header.format {
+        let block = match header.format {
             Format::XYData => Self::read_xydata(&dx, path)?,
             Format::NTuples => Self::read_ntuples(&dx, path)?,
         };
-        let step = (data_block.first - data_block.last) / (data_block.data_size as f64 - 1.0);
-        let offset = match header.reference_compound {
-            Some(reference) => reference.chemical_shift() * header.frequency,
-            None => data_block.first,
+        let conversion = match block.x_units {
+            XUnits::Hz => 1.0 / header.frequency,
+            XUnits::Ppm => 1.0,
         };
-        let chemical_shifts = (0..data_block.data_size)
-            .map(|i| (offset + (i as f64) * step) / header.frequency)
+        let step = (block.last - block.first) * conversion / (block.data_size as f64 - 1.0);
+        let offset = match header.reference_compound {
+            Some(reference) => match reference.index() {
+                Some(index) => reference.chemical_shift() - index as f64 * step,
+                None => block.first * conversion,
+            },
+            None => block.first * conversion,
+        };
+        let chemical_shifts = (0..block.data_size)
+            .map(|i| offset + (i as f64) * step)
             .collect();
-        let intensities = match ENCODING[0].is_match(data_block.data.as_str()) {
-            true => Self::decode_asdf(&data_block.data, data_block.factor, path)?,
-            false => Self::decode_affn(&data_block.data, data_block.factor, path)?,
+        let intensities = match ENCODING[0].is_match(block.data.as_str()) {
+            true => Self::decode_asdf(&block.data, block.factor, path)?,
+            false => Self::decode_affn(&block.data, block.factor, path)?,
         };
         let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 
@@ -244,7 +251,7 @@ impl JcampDx {
             let index = extract_capture(&re[9], "index", dx, &path, keys[9]).ok();
             let shift = extract_capture(&re[10], "shift", dx, &path, keys[10]).ok();
 
-            if let Some(shift) = shift {
+            if let (Some(shift), Some(index)) = (shift, index) {
                 let referencing_method = match method.as_deref() {
                     Some("INTERNAL") => Some(ReferencingMethod::Internal),
                     Some("EXTERNAL") => Some(ReferencingMethod::External),
@@ -254,7 +261,7 @@ impl JcampDx {
                 Some(ReferenceCompound::new(
                     shift,
                     name,
-                    index,
+                    Some(index),
                     referencing_method,
                 ))
             } else {
@@ -262,9 +269,9 @@ impl JcampDx {
                 let shift = extract_capture(&re[6], "shift", dx, &path, keys[6]).ok();
 
                 if let Some(shift) = shift {
-                    Some(ReferenceCompound::new(shift, name, None, None))
+                    Some(ReferenceCompound::new(shift, name, Some(0), None))
                 } else {
-                    name.map(|name| ReferenceCompound::new(0.0, Some(name), None, None))
+                    Some(ReferenceCompound::new(0.0, name, None, None))
                 }
             }
         };
@@ -348,7 +355,7 @@ impl JcampDx {
             .copied()
             .ok_or_else(|| {
                 Error::new(Kind::MalformedMetadata {
-                    key: keys[2].to_string(),
+                    key: keys[1].to_string(),
                     path: path.as_ref().to_path_buf(),
                     details: "Could not find X column".to_string(),
                 })
