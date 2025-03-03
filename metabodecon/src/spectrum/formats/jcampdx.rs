@@ -186,10 +186,9 @@ impl JcampDx {
             Format::NTuples => Self::read_ntuples(&dx, path)?,
         };
         let step = (data_block.first - data_block.last) / (data_block.data_size as f64 - 1.0);
-        let offset = if let Some(reference) = header.reference_compound {
-            reference.chemical_shift()
-        } else {
-            data_block.first
+        let offset = match header.reference_compound {
+            Some(reference) => reference.chemical_shift() * header.frequency,
+            None => data_block.first,
         };
         let chemical_shifts = (0..data_block.data_size)
             .map(|i| (offset + (i as f64) * step) / header.frequency)
