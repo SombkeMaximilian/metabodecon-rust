@@ -62,7 +62,9 @@ impl From<MetabodeconError> for PyErr {
                     InvalidSignalBoundaries::new_err(inner.to_string())
                 }
                 SpecErrKind::MissingMetadata { .. } => MissingMetadata::new_err(inner.to_string()),
-                SpecErrKind::MalformedMetadata { .. } => MalformedMetadata::new_err(inner.to_string()),
+                SpecErrKind::MalformedMetadata { .. } => {
+                    MalformedMetadata::new_err(inner.to_string())
+                }
                 SpecErrKind::MissingData { .. } => MissingData::new_err(inner.to_string()),
                 SpecErrKind::MalformedData { .. } => MalformedData::new_err(inner.to_string()),
                 _ => Unexpected::new_err(format!("Unknown error: {}", value)),
