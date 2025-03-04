@@ -15,9 +15,9 @@ that are not present in the R version.
 Current planned and implemented features include (additional suggestions are welcome as issues):
 
 - [x] Efficient representation of 1D NMR spectra
-- [ ] Read 1D NMR spectra from various formats
+- [x] Read 1D NMR spectra from various formats
    - [x] Bruker
-   - [ ] JCAMP-DX
+   - [x] JCAMP-DX
 - [x] Serialization of the data structures with Serde
 - [ ] Preprocessing of 1D NMR spectra
 - [x] Peak detection in 1D NMR spectra

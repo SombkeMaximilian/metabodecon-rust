@@ -34,10 +34,9 @@ use std::sync::LazyLock;
 ///
 /// The metadata is stored as key-value pairs, where the lines start with
 /// `##key=`. To successfully parse a 1D NMR spectrum, a minimal set of metadata
-/// is required. This minimal set does not contain any verification of the data
-/// integrity, and likely never will due to how much freedom the format allows.
-/// Some additional information will also be extracted from the metadata if it
-/// is present. The following information must be present in the header:
+/// is required. Some additional information will also be extracted from the
+/// metadata if it is present. The following information must be present in the
+/// header:
 ///
 /// | Key                  | Description                     |
 /// |----------------------|---------------------------------|
@@ -45,44 +44,339 @@ use std::sync::LazyLock;
 /// | `DATA_TYPE`          | Type of data in the file.       |
 /// | `DATA_CLASS`         | Way the data is stored.         |
 /// | `.OBSERVE FREQUENCY` | Frequency of the spectrometer.  |
+/// | `.OBSERVE NUCLEUS`   | Nucleus being observed.         |
 ///
 /// The following additional information will only be extracted if present:
 ///
 /// | Key                  | Description                     |
 /// |----------------------|---------------------------------|
-/// | `.OBSERVE NUCLEUS`   | Nucleus being observed.         |
 /// | `.SOLVENT NAME`      | Solvent used in the experiment. |
 /// | `.SOLVENT REFERENCE` | Reference for the solvent.      |
 /// | `.SHIFT REFERENCE`   | Chemical shift reference.       |
+///
+/// # Format Specific Metadata
+///
+/// Depending on which format is used, the metadata labels to reconstruct the
+/// data are different. While there is more information within a JCAMP-DX file,
+/// only the minimum set of information required to reconstruct the spectrum is
+/// parsed. The following sections define this set.
+///
+/// ## XYData
+///
+/// | Key       | Description                        |
+/// |-----------|------------------------------------|
+/// | `XUNITS`  | Units of the x values (Hz or ppm). |
+/// | `YFACTOR` | Scale factor of the y values.      |
+/// | `FIRSTX`  | First x value.                     |
+/// | `LASTX`   | Last x value.                      |
+/// | `NPOINTS` | Number of x and y values           |
+///
+/// ## NTuples
+///
+/// | Key       | Description                                                 |
+/// |-----------|-------------------------------------------------------------|
+/// | `SYMBOL`  | Column labels of the metadata table (X and Y/R are needed). |
+/// | `VAR_DIM` | Number values (only X).                                     |
+/// | `UNITS`   | Units of the values (Hz or ppm, only X).                    |
+/// | `FIRST`   | First value (only X).                                       |
+/// | `LAST`    | Last value (only X).                                        |
+/// | `FACTOR`  | Scale factor of the values (only Y/R).                      |
+///
+/// # Data Integrity Checks
+///
+/// Officially, the JCAMP-DX format specifies some integrity checks that should
+/// be performed when parsing the files. These will not be performed by this
+/// implementation, as they often aren't adhered to due to how much freedom
+/// JCAMP-DX allows when writing the files.
+///
+/// # Compression
+///
+/// JCAMP-DX uses encoding schemes to compress the data. For XYData and NTuples,
+/// the x values are stored as indices and only the first x value is stored in
+/// each new line. The y values are stored in various forms depending on the
+/// compression schemes that were used. Generally, the following structure is
+/// expected:
+///
+/// ```text
+/// X1 Y1 Y2 Y3 ... Yi
+/// Xi Yi+1 Yi+2 ... Yn
+/// ```
+///
+/// ## AFFN
+///
+/// JCAMP-DX stores uncompressed data in ASCII Free Format Numeric (AFFN), which
+/// is human-readable and easily parsable. It consists of only the usual
+/// characters used for displaying numeric values (digits, '+', '-', decimal
+/// point).
+///
+/// #### Example
+///
+/// ```text
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     21    -68
+/// ```
+///
+/// ### PAC
+///
+/// One simple modification of AFFN is the Packed (PAC) form, which specifies
+/// that adjacent values are separated by their sign rather than whitespace.
+///
+/// #### Example
+///
+/// ```text
+/// 9 +23-73+92-12+77
+/// 4 +81+19+21+21-68
+/// ```
+///
+/// A space is usually inserted between the x value and sequence of y values by
+/// convention.
+///
+/// ## ASDF
+///
+/// JCAMP-DX uses the ASCII Squeezed Difference Form (ASDF) compression scheme,
+/// which is a collection of encoding strategies. This ranges from light
+/// compression, which is still somewhat human-readable, to heavier compression,
+/// which is more difficult to read.
+///
+/// ### SQZ
+///
+/// The first compression strategy that is included in the JCAMP-DX format is
+/// the Squeezed (SQZ) form. This encoding replaces the leading digit of each y
+/// value, including its sign, with an ASCII character and contains no delimiter
+/// between values. This format is still fairly human-readable as it simply uses
+/// the first 9 letters of the alphabet as the corresponding digits, with the
+/// upper case letters representing positive leading digits and the lower case
+/// letters representing negative leading digits.
+///
+/// | Digit    | Encoded (positive) | Encoded (negative) |
+/// |----------|--------------------|--------------------|
+/// | 0        | @                  | @                  |
+/// | 1        | A                  | a                  |
+/// | 2        | B                  | b                  |
+/// | 3        | C                  | c                  |
+/// | 4        | D                  | d                  |
+/// | 5        | E                  | e                  |
+/// | 6        | F                  | f                  |
+/// | 7        | G                  | g                  |
+/// | 8        | H                  | h                  |
+/// | 9        | I                  | i                  |
+///
+/// #### Example
+///
+/// Uncompressed:
+///
+/// ```text
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     21    -68
+/// ```
+///
+/// Compressed:
+///
+/// ```text
+/// 9 B3g3R2a2G7
+/// 4 H1A9B1B1f8
+/// ```
+///
+/// ### DIF
+///
+/// The second compression scheme is the Difference (DIF) form, which uses SQZ
+/// for the first y value in each line and encodes the subsequent y values as
+/// differences to the respective previous y value. Similarly to SQZ, leading
+/// digits of the differences are replaced by ASCII characters, with upper case
+/// representing positive values and lower case representing negative values.
+///
+/// | Digit    | Encoded (positive) | Encoded (negative) |
+/// |----------|--------------------|--------------------|
+/// | 0        | %                  | %                  |
+/// | 1        | J                  | j                  |
+/// | 2        | K                  | k                  |
+/// | 3        | L                  | l                  |
+/// | 4        | M                  | m                  |
+/// | 5        | N                  | n                  |
+/// | 6        | O                  | o                  |
+/// | 7        | P                  | p                  |
+/// | 8        | Q                  | q                  |
+/// | 9        | R                  | r                  |
+///
+/// This scheme also includes a data integrity check. If the last y value in a
+/// line is encoded using DIF, the first y value in the next line will repeat
+/// the last y value of the previous line.
+///
+/// #### Example
+///
+/// Uncompressed:
+/// ```text
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     21    -68
+/// ```
+///
+/// Compressed:
+/// ```text
+/// 9 B3r6J65j04Q9
+/// 5 G7Mo2K%q9
+/// ```
+///
+/// Note the repetition of the last value in the first line (77 encoded as G7 on
+/// line 2) and the x value being incremented to account for it.
+///
+/// ### DUP
+///
+/// The final compression scheme is Duplicate Suppression (DUP). If 2 or more
+/// duplicate values are identical, only the first value is kept and subsequent
+/// values are encoded as the number of repetitions (including the initial
+/// value). The leading digit of this new representation is then replaced by
+/// the respective ASCII character from the table below.
+///
+/// | Repetitions | Encoded |
+/// |-------------|---------|
+/// | 1           | S       |
+/// | 2           | T       |
+/// | 3           | U       |
+/// | 4           | V       |
+/// | 5           | W       |
+/// | 6           | X       |
+/// | 7           | Y       |
+/// | 8           | Z       |
+/// | 9           | s       |
+///
+/// #### Example
+///
+/// Uncompressed:
+///
+/// ```text
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     21    -68
+/// ```
+///
+/// Compressed:
+///
+/// ```text
+/// 
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     T     -68
+/// ```
+///
+/// ### DIFDUP
+///
+/// DIF and DUP are often combined for full compression. The DIF compression
+/// is performed first, and any occurrences of % are replaced by the respective
+/// DUP characters.
+///
+/// #### Example
+///
+/// Uncompressed:
+///
+/// ```text
+/// 9     23    -73     92    -12     77
+/// 4     81     19     21     21    -68
+/// ```
+///
+/// Compressed (DIF):
+///
+/// ```text
+/// 9 B3r6J65j04Q9
+/// 5 G7Mo2K%q9
+/// ```
+///
+/// Compressed (DUP):
+///
+/// ```text
+/// 9 B3r6J65j04Q9
+/// 5 G7Mo2KTq9
+/// ```
+///
+/// # Example
+///
+/// ```
+/// use metabodecon::spectrum::JcampDx;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let path = "path/to/spectrum.dx";
+/// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+///
+/// // Read a single spectrum from a Bruker TopSpin format directory.
+/// let spectrum = JcampDx::read_spectrum(
+///     path,
+///     // Signal boundaries
+///     (20.0, 220.0),
+/// )?;
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Debug)]
 pub enum JcampDx {}
 
+/// Type of data that is stored in the JCAMP-DX file.
+///
+/// This can be either NMR Spectrum or NMR FID. Currently only Spectrum is
+/// supported. Other options will never be supported.
 #[derive(Debug)]
 enum DataType {
+    /// An already fourier transformed FID is a Spectrum.
     Spectrum,
 }
 
+/// Which specific format of JCAMP-DX is used to store the data.
+///
+/// Depending on which format is used, the metadata labels to reconstruct the
+/// data are different. While there is more information within a JCAMP-DX file,
+/// only the minimum set of information required to reconstruct the spectrum is
+/// parsed.
+///
+/// # XYData
+///
+/// | Key       | Description                        |
+/// |-----------|------------------------------------|
+/// | `XUNITS`  | Units of the x values (Hz or ppm). |
+/// | `YFACTOR` | Scale factor of the y values.      |
+/// | `FIRSTX`  | First x value.                     |
+/// | `LASTX`   | Last x value.                      |
+/// | `NPOINTS` | Number of x and y values           |
+///
+/// # NTuples
+///
+/// | Key       | Description                                                 |
+/// |-----------|-------------------------------------------------------------|
+/// | `SYMBOL`  | Column labels of the metadata table (X and Y/R are needed). |
+/// | `VAR_DIM` | Number values (only X).                                     |
+/// | `UNITS`   | Units of the values (Hz or ppm, only X).                    |
+/// | `FIRST`   | First value (only X).                                       |
+/// | `LAST`    | Last value (only X).                                        |
+/// | `FACTOR`  | Scale factor of the values (only Y/R).                      |
 #[derive(Debug)]
 enum Format {
     XYData,
     NTuples,
 }
 
+/// Units of the x values.
+///
+/// Usually spectra are stored using Hz and displayed using ppm, but they can
+/// also be stored using ppm.
 #[derive(Debug)]
 enum XUnits {
+    /// Hertz.
     Hz,
+    /// Parts per million.
     Ppm,
 }
 
+/// Metadata that can be parsed irrespective of the specific JCAMP-DX format.
 #[derive(Debug)]
 struct Header {
+    /// The type of data (processed Spectrum or raw FID).
     data_type: DataType,
+    /// The data format (NTuples or XYData).
     format: Format,
+    /// The spectrometer frequency used to calculate ppm values.
     frequency: f64,
+    /// The observed nucleus (e.g. 1H, 13C)
     nucleus: Nucleus,
+    /// Optional reference compound used to offset the ppm values)
     reference_compound: Option<ReferenceCompound>,
 }
 
+/// Regex patterns to search for the header metadata.
 static HEADER_RE: LazyLock<[Regex; 11]> = LazyLock::new(|| {
     [
         Regex::new(r"(##JCAMPDX=\s*)(?P<version>\d+(\.\d+)?)").unwrap(),
@@ -99,6 +393,8 @@ static HEADER_RE: LazyLock<[Regex; 11]> = LazyLock::new(|| {
             .unwrap(),
     ]
 });
+
+/// Keys used in the header regex patterns, used for error messages.
 static HEADER_KEYS: LazyLock<[&str; 11]> = LazyLock::new(|| {
     [
         "JCAMPDX",
@@ -115,16 +411,26 @@ static HEADER_KEYS: LazyLock<[&str; 11]> = LazyLock::new(|| {
     ]
 });
 
+/// A block of data in a JCAMP-DX file from which spectra can be reconstructed.
+///
+/// This defines the minimum set of metadata required to build a valid spectrum.
 #[derive(Debug)]
 struct DataBlock {
+    /// The units of the x values (Hz or ppm)
     x_units: XUnits,
+    /// Scale factor of the y values.
     factor: f64,
+    /// First x value.
     first: f64,
+    /// Last x value.
     last: f64,
+    /// Number of x and y values.
     data_size: usize,
+    /// The data, encoded as a JCAMP-DX string.
     data: String,
 }
 
+/// Regex patterns to search for the XYData format specific metadata.
 static XY_DATA_RE: LazyLock<[Regex; 6]> = LazyLock::new(|| {
     [
         Regex::new(r"(##XUNITS=\s*)(?P<xunits>\w+)").unwrap(),
@@ -135,9 +441,12 @@ static XY_DATA_RE: LazyLock<[Regex; 6]> = LazyLock::new(|| {
         Regex::new(r"(##XYDATA=\(X\+\+\(Y\.\.Y\)\)(.*)?)(?P<data>[^#$]*)").unwrap(),
     ]
 });
+
+/// Keys used in the XYData regex patterns, used for error messages.
 static XY_DATA_KEYS: LazyLock<[&str; 6]> =
     LazyLock::new(|| ["XUNITS", "YFACTOR", "FIRSTX", "LASTX", "NPOINTS", "XYDATA"]);
 
+/// Regex patterns to search for the NTuples format specific metadata.
 static N_TUPLES_RE: LazyLock<[Regex; 7]> = LazyLock::new(|| {
     [
         Regex::new(r"(##SYMBOL=\s*)(?P<symbols>.*)(\r\n|\n|\r)").unwrap(),
@@ -150,6 +459,8 @@ static N_TUPLES_RE: LazyLock<[Regex; 7]> = LazyLock::new(|| {
             .unwrap(),
     ]
 });
+
+/// Keys used in the NTuples regex patterns, used for error messages.
 static N_TUPLES_KEYS: LazyLock<[&str; 7]> = LazyLock::new(|| {
     [
         "SYMBOL",
@@ -162,6 +473,7 @@ static N_TUPLES_KEYS: LazyLock<[&str; 7]> = LazyLock::new(|| {
     ]
 });
 
+/// Regex patterns used to find values encoded using specific schemes.
 static ENCODING: LazyLock<[Regex; 6]> = LazyLock::new(|| {
     [
         Regex::new(r"(?P<asdf>[@%A-Za-z+-])").unwrap(), // ASDF
@@ -175,6 +487,44 @@ static ENCODING: LazyLock<[Regex; 6]> = LazyLock::new(|| {
 
 impl JcampDx {
     /// Reads the spectrum from a JCAMP-DX file.
+    ///
+    /// # Errors
+    ///
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The Intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match. The data
+    ///   size is read from the metadata files and used to generate the chemical
+    ///   shifts.
+    /// - All intensity values are finite.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
+    /// - All required key-value pairs are extracted from the metadata files.
+    ///
+    /// Additionally, if any [`I/O`] errors occur, an error variant containing
+    /// the original error is returned.
+    ///
+    /// [`I/O`]: std::io
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::JcampDx;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let path = "path/to/spectrum.dx";
+    /// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+    ///
+    /// // Read a single spectrum from a Bruker TopSpin format directory.
+    /// let spectrum = JcampDx::read_spectrum(
+    ///     path,
+    ///     // Signal boundaries
+    ///     (20.0, 220.0),
+    /// )?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn read_spectrum<P: AsRef<Path>>(
         path: P,
         signal_boundaries: (f64, f64),
@@ -210,6 +560,14 @@ impl JcampDx {
         Ok(spectrum)
     }
 
+    /// Internal helper function to read the metadata from the general file
+    /// header.
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible:
+    /// - [`MissingMetadata`](Kind::MissingMetadata)
+    /// - [`MalformedMetadata`](Kind::MalformedMetadata)
     fn read_header<P: AsRef<Path>>(dx: &str, path: P) -> Result<Header> {
         let re = &*HEADER_RE;
         let keys = &*HEADER_KEYS;
@@ -286,6 +644,16 @@ impl JcampDx {
         })
     }
 
+    /// Internal helper function to read the metadata from the XYData specific
+    /// file header and the data table.
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible:
+    /// - [`MissingMetadata`](Kind::MissingMetadata)
+    /// - [`MalformedMetadata`](Kind::MalformedMetadata)
+    /// - [`MissingData`](Kind::MissingData)
+    /// - [`MalformedData`](Kind::MalformedData)
     fn read_xydata<P: AsRef<Path>>(dx: &str, path: P) -> Result<DataBlock> {
         let re = &*XY_DATA_RE;
         let keys = &*XY_DATA_KEYS;
@@ -324,6 +692,16 @@ impl JcampDx {
         })
     }
 
+    /// Internal helper function to read the metadata from the NTuples specific
+    /// file header and the data table.
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible:
+    /// - [`MissingMetadata`](Kind::MissingMetadata)
+    /// - [`MalformedMetadata`](Kind::MalformedMetadata)
+    /// - [`MissingData`](Kind::MissingData)
+    /// - [`MalformedData`](Kind::MalformedData)
     fn read_ntuples<P: AsRef<Path>>(dx: &str, path: P) -> Result<DataBlock> {
         let re = &*N_TUPLES_RE;
         let keys = &*N_TUPLES_KEYS;
@@ -343,7 +721,7 @@ impl JcampDx {
             })?;
         let r_column = symbols
             .iter()
-            .position(|symbol| symbol.to_uppercase() == "R")
+            .position(|symbol| symbol.to_uppercase() == "R" || symbol.to_uppercase() == "Y")
             .ok_or_else(|| {
                 Error::new(Kind::MissingMetadata {
                     key: keys[0].to_string(),
@@ -436,6 +814,12 @@ impl JcampDx {
         })
     }
 
+    /// Internal helper function to convert an AFFN string into a `Vec<f64>`.
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible:
+    /// - [`MalformedData`](Kind::MalformedData)
     fn decode_affn<P: AsRef<Path>>(data: &str, factor: f64, path: P) -> Result<Vec<f64>> {
         let intensities = data
             .lines()
@@ -462,6 +846,13 @@ impl JcampDx {
         Ok(intensities)
     }
 
+    /// Internal helper function to convert a string encoded using any
+    /// combination of ASDF schemes into a `Vec<f64>`.
+    ///
+    /// # Errors
+    ///
+    /// The following errors are possible:
+    /// - [`MalformedData`](Kind::MalformedData)
     fn decode_asdf<P: AsRef<Path>>(data: &str, factor: f64, path: P) -> Result<Vec<f64>> {
         let re = &*ENCODING;
 
@@ -494,6 +885,8 @@ impl JcampDx {
         Self::decode_affn(&data, factor, path)
     }
 
+    /// Maps the SQZ characters onto the respective digit and returns it as a
+    /// string.
     fn undo_sqz(character: &str) -> String {
         match character {
             "@" => "0",
@@ -520,6 +913,8 @@ impl JcampDx {
         .to_string()
     }
 
+    /// Maps the DUP characters onto the respective repetitions and returns
+    /// the value repeated that many times as a string.
     fn undo_dup(value: &str, encoded: &str) -> String {
         let mut decoded = match encoded.chars().next().unwrap() {
             'S' => "1",
@@ -540,6 +935,8 @@ impl JcampDx {
         format!(" {}", value).repeat(duplicates)
     }
 
+    /// Maps the DIF characters onto the respective digit and returns the
+    /// previous value and the decoded value as a string.
     fn undo_dif(value: &str, encoded: &str) -> String {
         let mut decoded = match encoded.chars().next().unwrap() {
             '%' => "0",

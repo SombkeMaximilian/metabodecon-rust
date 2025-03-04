@@ -153,8 +153,12 @@ struct AcquisitionParameters {
     width: f64,
 }
 
+/// Regex patterns to search for the acquisition parameters.
 static ACQUS_RE: LazyLock<[Regex; 1]> =
     LazyLock::new(|| [Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap()]);
+
+/// Keys used in the acquisition parameter regex patterns, used for error
+/// messages
 static ACQUS_KEYS: LazyLock<[&str; 1]> = LazyLock::new(|| ["SW"]);
 
 /// Processing parameters extracted from the `procs` file.
@@ -172,6 +176,7 @@ struct ProcessingParameters {
     exponent: i32,
 }
 
+/// Regex patterns to search for the processing parameters.
 static PROCS_RE: LazyLock<[Regex; 5]> = LazyLock::new(|| {
     [
         Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap(),
@@ -181,6 +186,9 @@ static PROCS_RE: LazyLock<[Regex; 5]> = LazyLock::new(|| {
         Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap(),
     ]
 });
+
+/// Keys used in the processing parameter regex patterns, used for error
+/// messages
 static PROCS_KEYS: LazyLock<[&str; 5]> =
     LazyLock::new(|| ["OFFSET", "NC_proc", "BYTORDP", "DTYPP", "SI"]);
 
@@ -362,6 +370,7 @@ impl Bruker {
     ///
     /// The following errors are possible:
     /// - [`MissingMetaData`](crate::spectrum::error::Kind::MissingMetadata)
+    /// - [`MalformedMetaData`](crate::spectrum::error::Kind::MalformedMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_acquisition_parameters<P: AsRef<Path>>(path: P) -> Result<AcquisitionParameters> {
         let acqus = read_to_string(path.as_ref())?;
@@ -380,6 +389,7 @@ impl Bruker {
     ///
     /// The following errors are possible:
     /// - [`MissingMetaData`](crate::spectrum::error::Kind::MissingMetadata)
+    /// - [`MalformedMetaData`](crate::spectrum::error::Kind::MalformedMetadata)
     /// - [`Error::IoError`](crate::Error::IoError)
     fn read_processing_parameters<P: AsRef<Path>>(path: P) -> Result<ProcessingParameters> {
         let procs = read_to_string(path.as_ref())?;
