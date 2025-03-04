@@ -161,20 +161,20 @@ static N_TUPLES_KEYS: LazyLock<[&str; 7]> = LazyLock::new(|| {
     ]
 });
 
-static ENCODING: LazyLock<[Regex; 5]> = LazyLock::new(|| {
+static ENCODING: LazyLock<[Regex; 6]> = LazyLock::new(|| {
     [
-        Regex::new(r"(?P<asdf>[@%A-Za-z])").unwrap(), // ASDF
-        Regex::new(r"(?P<pac>[+-]\d)").unwrap(),      // PAC
-        Regex::new(r"(?P<sqz>[@A-Ia-i])").unwrap(),   // SQZ
-        Regex::new(r"(?P<val>[%J-Rj-r]\d+)\s*(?P<dup>[S-Zs]\d*)").unwrap(), // DUP
-        Regex::new(r"(?P<dif>[%J-Rj-r]\d+)").unwrap(), // DIF
+        Regex::new(r"(?P<asdf>[@%A-Za-z+-])").unwrap(), // ASDF
+        Regex::new(r"(?P<pac>[+-]\d)").unwrap(),        // PAC
+        Regex::new(r"(?P<sqz>[@A-Ia-i])").unwrap(),     // SQZ
+        Regex::new(r"\s+([%J-Rj-r]\d*\s*(?P<new>\r\n|\n|\r)(?P<next>\d+))").unwrap(), // Checkpoints
+        Regex::new(r"\s+(?P<val>[+-]*\d+)\s+(?P<dif>[%J-Rj-r]\d*)").unwrap(), // DIF
+        Regex::new(r"\s+(?P<val>[+-]*\d+)\s+(?P<dup>[S-Zs]\d*)").unwrap(), // DUP
     ]
 });
 
 impl JcampDx {
     /// Reads the spectrum from a JCAMP-DX file.
     pub fn read_spectrum<P: AsRef<Path>>(
-        &self,
         path: P,
         signal_boundaries: (f64, f64),
     ) -> Result<Spectrum> {
@@ -445,7 +445,7 @@ impl JcampDx {
                         value.parse::<f64>().map_err(|error| {
                             Error::new(Kind::MalformedData {
                                 path: path.as_ref().to_path_buf(),
-                                details: error.to_string(),
+                                details: format!("{} ({})", value, error),
                             })
                             .into()
                         })
@@ -469,12 +469,26 @@ impl JcampDx {
         let data = re[2].replace_all(&data, |captures: &Captures| {
             Self::undo_sqz(captures.name("sqz").unwrap().as_str())
         });
-        let data = re[3].replace_all(&data, |captures: &Captures| {
-            let value = captures.name("val").unwrap().as_str();
-            let character = captures.name("dup").unwrap().as_str();
+        let mut data = re[3].replace_all(&data, "$new$next").to_string();
+        loop {
+            let tmp_data_dif = re[4].replace_all(&data, |captures: &Captures| {
+                let value = captures.name("val").unwrap().as_str();
+                let encoded = captures.name("dif").unwrap().as_str();
 
-            Self::undo_dup(value, character)
-        });
+                Self::undo_dif(value, encoded)
+            });
+            let tmp_data_dup = re[5].replace_all(&tmp_data_dif, |captures: &Captures| {
+                let value = captures.name("val").unwrap().as_str();
+                let encoded = captures.name("dup").unwrap().as_str();
+
+                Self::undo_dup(value, encoded)
+            });
+            data = tmp_data_dup.to_string();
+
+            if !re[4].is_match(&data) && !re[5].is_match(&data) {
+                break;
+            }
+        }
 
         Self::decode_affn(&data, factor, path)
     }
@@ -505,8 +519,8 @@ impl JcampDx {
         .to_string()
     }
 
-    fn undo_dup(value: &str, character: &str) -> String {
-        let mut first = match character.chars().next().unwrap() {
+    fn undo_dup(value: &str, encoded: &str) -> String {
+        let mut decoded = match encoded.chars().next().unwrap() {
             'S' => "1",
             'T' => "2",
             'U' => "3",
@@ -516,13 +530,44 @@ impl JcampDx {
             'Y' => "7",
             'Z' => "8",
             's' => "9",
-            _ => unreachable!("Invalid DUP character: {}", character),
+            _ => unreachable!("Invalid DUP character: {}", encoded),
         }
         .to_string();
-        first.extend(character.chars().skip(1));
-        let duplicates = first.parse::<usize>().unwrap();
+        decoded.extend(encoded.chars().skip(1));
+        let duplicates = decoded.parse::<usize>().unwrap();
 
-        format!(" {}", value).repeat(duplicates - 1)
+        format!(" {}", value).repeat(duplicates)
+    }
+
+    fn undo_dif(value: &str, encoded: &str) -> String {
+        let mut decoded = match encoded.chars().next().unwrap() {
+            '%' => "0",
+            'J' => "1",
+            'K' => "2",
+            'L' => "3",
+            'M' => "4",
+            'N' => "5",
+            'O' => "6",
+            'P' => "7",
+            'Q' => "8",
+            'R' => "9",
+            'j' => "-1",
+            'k' => "-2",
+            'l' => "-3",
+            'm' => "-4",
+            'n' => "-5",
+            'o' => "-6",
+            'p' => "-7",
+            'q' => "-8",
+            'r' => "-9",
+            _ => unreachable!("Invalid DIF character: {}", encoded),
+        }
+        .to_string();
+        decoded.extend(encoded.chars().skip(1));
+        let value = value.parse::<i64>().unwrap();
+        let difference = decoded.parse::<i64>().unwrap();
+
+        format!(" {} {}", value, value + difference)
     }
 }
 
@@ -530,6 +575,36 @@ impl JcampDx {
 mod tests {
     use super::*;
     use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn read_affn_spectrum() {
+        let path = "../data/jcamp-dx/BRUKAFFN.dx";
+        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+    }
+
+    #[test]
+    fn read_pac_spectrum() {
+        let path = "../data/jcamp-dx/BRUKPAC.dx";
+        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+    }
+
+    #[test]
+    fn read_sqz_spectrum() {
+        let path = "../data/jcamp-dx/BRUKSQZ.dx";
+        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+    }
+
+    #[test]
+    fn read_dif_dup_spectrum() {
+        let path = "../data/jcamp-dx/BRUKDIF.dx";
+        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+    }
+
+    #[test]
+    fn read_ntuples_spectrum() {
+        let path = "../data/jcamp-dx/BRUKNTUP.dx";
+        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+    }
 
     #[test]
     fn read_header() {
@@ -586,15 +661,14 @@ mod tests {
     #[test]
     fn decode_affn() {
         let data = "\
-            19       2259260      -5242968      -7176216      -1616072\n\
-            15      10650432       4373926      -3660824       2136488\n\
-            11       8055988       1757248       3559312       1108422\n\
-            7       -5575546       -233168      -1099612      -4657542\n\
-            3       -4545530      -1996712      -5429568      -7119772";
+            19        482       -763        215       -632\n\
+            15       -924        357       -678        841\n\
+            11        512       -194        321       -467\n\
+            7        -689        278        278        732\n\
+            3         835       -619        247       -193";
         let expected = [
-            2259260.0, -5242968.0, -7176216.0, -1616072.0, 10650432.0, 4373926.0, -3660824.0,
-            2136488.0, 8055988.0, 1757248.0, 3559312.0, 1108422.0, -5575546.0, -233168.0,
-            -1099612.0, -4657542.0, -4545530.0, -1996712.0, -5429568.0, -7119772.0,
+            482.0, -763.0, 215.0, -632.0, -924.0, 357.0, -678.0, 841.0, 512.0, -194.0, 321.0,
+            -467.0, -689.0, 278.0, 278.0, 732.0, 835.0, -619.0, 247.0, -193.0,
         ];
         let decoded = JcampDx::decode_affn(data, 1.0, "decode_affn_test").unwrap();
         decoded
@@ -608,17 +682,11 @@ mod tests {
     #[test]
     fn decode_pac() {
         let data = "\
-            35 +2259260-5242968-7176216-1616072+10650432+4373926-3660824+2136488+8055988\n\
-            26 +1757248+3559312+1108422-5575546-233168-1099612-4657542-4545530-1996712\n\
-            17 -5429568-7119772-2065758+2568942+2722266+3842474+1228646+2718706+3928528\n\
-            8  -4824506+1039962+1706220+6436460-7591016-9014930-3689540-409068+813104";
+            19 +482-763+215-632-924+357-678+841+512-194\n\
+            9  +321-467-689+278+278+732+835-619+247-193";
         let expected = [
-            2259260.0, -5242968.0, -7176216.0, -1616072.0, 10650432.0, 4373926.0, -3660824.0,
-            2136488.0, 8055988.0, 1757248.0, 3559312.0, 1108422.0, -5575546.0, -233168.0,
-            -1099612.0, -4657542.0, -4545530.0, -1996712.0, -5429568.0, -7119772.0, -2065758.0,
-            2568942.0, 2722266.0, 3842474.0, 1228646.0, 2718706.0, 3928528.0, -4824506.0,
-            1039962.0, 1706220.0, 6436460.0, -7591016.0, -9014930.0, -3689540.0, -409068.0,
-            813104.0,
+            482.0, -763.0, 215.0, -632.0, -924.0, 357.0, -678.0, 841.0, 512.0, -194.0, 321.0,
+            -467.0, -689.0, 278.0, 278.0, 732.0, 835.0, -619.0, 247.0, -193.0,
         ];
         let decoded = JcampDx::decode_asdf(data, 1.0, "decode_pac_test").unwrap();
         decoded
@@ -632,51 +700,11 @@ mod tests {
     #[test]
     fn decode_sqz() {
         let data = "\
-            39 B259260e242968g176216a616072A0650432D373926c660824B136488H055988A757248
-            29 C559312A108422e575546b33168a099612d657542d545530a996712e429568g119772
-            19 b065758B568942B722266C842474A228646B718706C928528d824506A039962A706220
-            9  F436460g591016i014930c689540d09068H13104e973742a3515250h100824c810958";
+            19 D82g63B15f32i24C57f78H41E12a94\n\
+            9  C21d67f89B78B78G32H35f19B47a93";
         let expected = [
-            2259260.0,
-            -5242968.0,
-            -7176216.0,
-            -1616072.0,
-            10650432.0,
-            4373926.0,
-            -3660824.0,
-            2136488.0,
-            8055988.0,
-            1757248.0,
-            3559312.0,
-            1108422.0,
-            -5575546.0,
-            -233168.0,
-            -1099612.0,
-            -4657542.0,
-            -4545530.0,
-            -1996712.0,
-            -5429568.0,
-            -7119772.0,
-            -2065758.0,
-            2568942.0,
-            2722266.0,
-            3842474.0,
-            1228646.0,
-            2718706.0,
-            3928528.0,
-            -4824506.0,
-            1039962.0,
-            1706220.0,
-            6436460.0,
-            -7591016.0,
-            -9014930.0,
-            -3689540.0,
-            -409068.0,
-            813104.0,
-            -5973742.0,
-            -13515250.0,
-            -8100824.0,
-            -3810958.0,
+            482.0, -763.0, 215.0, -632.0, -924.0, 357.0, -678.0, 841.0, 512.0, -194.0, 321.0,
+            -467.0, -689.0, 278.0, 278.0, 732.0, 835.0, -619.0, 247.0, -193.0,
         ];
         let decoded = JcampDx::decode_asdf(data, 1.0, "decode_sqz_test").unwrap();
         decoded
@@ -688,7 +716,20 @@ mod tests {
     }
 
     #[test]
-    fn decode_dup() {
-        let test = "0 -8812034 N399967 M74723 K284601 n63733 T k818664 J7386707 M420853 j4301013";
+    fn decode_dif_dup() {
+        let data = "\
+            19 D82j245R78q47k92J281j035J519l29p06\n\
+            10 a94N15p88k22R67TM54J03j454Q66m40";
+        let expected = [
+            482.0, -763.0, 215.0, -632.0, -924.0, 357.0, -678.0, 841.0, 512.0, -194.0, 321.0,
+            -467.0, -689.0, 278.0, 278.0, 732.0, 835.0, -619.0, 247.0, -193.0,
+        ];
+        let decoded = JcampDx::decode_asdf(data, 1.0, "decode_sqz_test").unwrap();
+        decoded
+            .into_iter()
+            .zip(expected)
+            .for_each(|(decoded, expected)| {
+                assert_approx_eq!(f64, decoded, expected);
+            });
     }
 }

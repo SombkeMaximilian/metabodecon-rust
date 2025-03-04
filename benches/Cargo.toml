@@ -6,7 +6,7 @@ edition = "2021"
 license = "GPL-3"
 
 [dependencies]
-metabodecon = { path = "../metabodecon", features = ["default"] }
+metabodecon = { path = "../metabodecon", features = ["full"] }
 criterion = "0.5.1"
 
 [lints]
@@ -20,4 +20,9 @@ harness = false
 [[bench]]
 name = "read_bruker"
 path = "read_bruker.rs"
+harness = false
+
+[[bench]]
+name = "read_jcampdx"
+path = "read_jcampdx.rs"
 harness = false
