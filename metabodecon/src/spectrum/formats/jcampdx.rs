@@ -146,7 +146,8 @@ static N_TUPLES_RE: LazyLock<[Regex; 7]> = LazyLock::new(|| {
         Regex::new(r"(##FIRST=\s*)(?P<first>.*)(\r\n|\n|\r)").unwrap(),
         Regex::new(r"(##LAST=\s*)(?P<last>.*)(\r\n|\n|\r)").unwrap(),
         Regex::new(r"(##FACTOR=\s*)(?P<factor>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##DATA(\s|_)TABLE=\(X\+\+\(R\.\.R\)\)(.*)?)(?P<data>[^#$]*)").unwrap(),
+        Regex::new(r"(##DATA(\s|_)TABLE=\s*\(X\+\+\(([RY])\.\.[RY]\)\)(.*)?)(?P<data>[^#$]*)")
+            .unwrap(),
     ]
 });
 static N_TUPLES_KEYS: LazyLock<[&str; 7]> = LazyLock::new(|| {
