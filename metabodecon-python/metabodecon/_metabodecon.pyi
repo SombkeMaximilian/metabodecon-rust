@@ -58,7 +58,7 @@ class Deconvolution:
     def read_json(path: str) -> "Deconvolution":
         ...
 
-    def write_bin(self, path:str) -> None:
+    def write_bin(self, path: str) -> None:
         ...
 
     @staticmethod
@@ -120,6 +120,10 @@ class Spectrum:
         "Spectrum"]:
         ...
 
+    @staticmethod
+    def read_jcampdx(path: str, signal_boundaries: tuple[float, float]) -> "Spectrum":
+        ...
+
     def write_json(self, path: str) -> None:
         ...
 
@@ -127,7 +131,7 @@ class Spectrum:
     def read_json(path: str) -> "Spectrum":
         ...
 
-    def write_bin(self, path:str) -> None:
+    def write_bin(self, path: str) -> None:
         ...
 
     @staticmethod

@@ -66,10 +66,7 @@ impl Spectrum {
     }
 
     #[staticmethod]
-    pub fn read_jcampdx(
-        path: &str,
-        signal_boundaries: (f64, f64),
-    ) -> PyResult<Self> {
+    pub fn read_jcampdx(path: &str, signal_boundaries: (f64, f64)) -> PyResult<Self> {
         match spectrum::JcampDx::read_spectrum(path, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
             Err(e) => Err(MetabodeconError::from(e).into()),

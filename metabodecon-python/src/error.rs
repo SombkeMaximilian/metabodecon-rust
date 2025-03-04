@@ -13,6 +13,9 @@ create_exception!(metabodecon, NonUniformSpacing, SpectrumError);
 create_exception!(metabodecon, InvalidIntensities, SpectrumError);
 create_exception!(metabodecon, InvalidSignalBoundaries, SpectrumError);
 create_exception!(metabodecon, MissingMetadata, SpectrumError);
+create_exception!(metabodecon, MalformedMetadata, SpectrumError);
+create_exception!(metabodecon, MissingData, SpectrumError);
+create_exception!(metabodecon, MalformedData, SpectrumError);
 
 create_exception!(metabodecon, DeconvolutionError, Error);
 create_exception!(metabodecon, InvalidSmoothingSettings, DeconvolutionError);
@@ -59,6 +62,9 @@ impl From<MetabodeconError> for PyErr {
                     InvalidSignalBoundaries::new_err(inner.to_string())
                 }
                 SpecErrKind::MissingMetadata { .. } => MissingMetadata::new_err(inner.to_string()),
+                SpecErrKind::MalformedMetadata { .. } => MalformedMetadata::new_err(inner.to_string()),
+                SpecErrKind::MissingData { .. } => MissingData::new_err(inner.to_string()),
+                SpecErrKind::MalformedData { .. } => MalformedData::new_err(inner.to_string()),
                 _ => Unexpected::new_err(format!("Unknown error: {}", value)),
             },
             metabodecon::Error::Deconvolution(ref inner) => match inner.kind() {
@@ -102,6 +108,9 @@ pub(crate) fn error_module(py: Python) -> PyResult<Bound<PyModule>> {
         py.get_type::<InvalidSignalBoundaries>(),
     )?;
     exceptions.add("MissingMetadata", py.get_type::<MissingMetadata>())?;
+    exceptions.add("MalformedMetadata", py.get_type::<MalformedMetadata>())?;
+    exceptions.add("MissingData", py.get_type::<MissingData>())?;
+    exceptions.add("MalformedData", py.get_type::<MalformedData>())?;
     exceptions.add("DeconvolutionError", py.get_type::<DeconvolutionError>())?;
     exceptions.add(
         "InvalidSmoothingSettings",

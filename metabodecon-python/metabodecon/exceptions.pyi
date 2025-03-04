@@ -48,6 +48,21 @@ class MissingMetadata(SpectrumError):
 
     pass
 
+class MalformedMetadata(SpectrumError):
+    """Metadata in some NMR format-related file is malformed."""
+
+    pass
+
+class MissingData(SpectrumError):
+    """Some NMR format-related file contains no data."""
+
+    pass
+
+class MalformedData(SpectrumError):
+    """Data in some NMR format-related file is malformed."""
+
+    pass
+
 class DeconvolutionError(Error):
     """An exception raised for errors during the deconvolution process."""
 
