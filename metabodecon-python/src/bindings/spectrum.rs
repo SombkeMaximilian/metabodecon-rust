@@ -65,6 +65,17 @@ impl Spectrum {
         }
     }
 
+    #[staticmethod]
+    pub fn read_jcampdx(
+        path: &str,
+        signal_boundaries: (f64, f64),
+    ) -> PyResult<Self> {
+        match spectrum::JcampDx::read_spectrum(path, signal_boundaries) {
+            Ok(spectrum) => Ok(spectrum.into()),
+            Err(e) => Err(MetabodeconError::from(e).into()),
+        }
+    }
+
     #[getter]
     pub fn chemical_shifts<'py>(&self, py: Python<'py>) -> Bound<'py, PyArray1<f64>> {
         PyArray1::from_slice(py, self.inner.chemical_shifts())

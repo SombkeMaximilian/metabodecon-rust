@@ -10,6 +10,12 @@ def main():
     plt.show()
     plt.close()
 
+    jcamp = md.Spectrum.read_jcampdx("../../data/jcamp-dx/BRUKNTUP.dx", (20, 220))
+    plt.figure(figsize = (12, 8), dpi = 200)
+    plt.plot(jcamp.chemical_shifts, jcamp.intensities)
+    plt.show()
+    plt.close()
+
     blood.write_json("blood.json")
     blood_json = md.Spectrum.read_json("blood.json")
     plt.figure(figsize = (12, 8), dpi = 200)
