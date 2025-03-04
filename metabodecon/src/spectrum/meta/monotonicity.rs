@@ -19,10 +19,10 @@ impl Monotonicity {
     ///
     /// Checks for the ordering of two floating point numbers and returns the
     /// corresponding `Some(Monotonicity)` variant. If the two numbers differ by
-    /// less than 100 times the floating point precision, or are not finite
-    /// numbers, or cannot be compared, `None` is returned.
+    /// less than a small multiple of the floating point precision, or are not
+    /// finite numbers, or cannot be compared, `None` is returned.
     pub(crate) fn from_f64s(first: f64, second: f64) -> Option<Self> {
-        if f64::abs(first - second) < 100.0 * f64::EPSILON || !(first - second).is_finite() {
+        if f64::abs(first - second) < crate::CHECK_PRECISION || !(first - second).is_finite() {
             return None;
         }
         match first.partial_cmp(&second) {

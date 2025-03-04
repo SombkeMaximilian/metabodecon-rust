@@ -65,9 +65,9 @@ pub enum Kind {
     },
     /// The provided region to be ignored is invalid.
     ///
-    /// The region must be a tuple of two finite floating point numbers, whose
-    /// absolute difference is greater than 100 times the floating point
-    /// precision.
+    /// The region must be a tuple of two finite floating point numbers, with an
+    /// absolute difference is greater than a small multiple of the floating
+    /// point precision.
     InvalidIgnoreRegion {
         /// The provided ignore region.
         region: (f64, f64),
@@ -140,7 +140,7 @@ impl core::fmt::Display for Error {
             Kind::InvalidIgnoreRegion { region } => {
                 match (
                     region.0.is_finite() && region.1.is_finite(),
-                    f64::abs(region.0 - region.1) > 100.0 * f64::EPSILON,
+                    f64::abs(region.0 - region.1) > crate::CHECK_PRECISION,
                 ) {
                     (false, _) => format!(
                         "ignore region boundaries [{}, {}] contain non-finite values",

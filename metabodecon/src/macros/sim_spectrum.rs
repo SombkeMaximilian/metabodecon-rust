@@ -8,13 +8,13 @@ macro_rules! check_sim_spectrum {
             f64,
             $spectrum.signal_boundaries().0,
             3.339007,
-            epsilon = 1e-6
+            epsilon = $crate::CHECK_PRECISION
         );
         assert_approx_eq!(
             f64,
             $spectrum.signal_boundaries().1,
             3.553942,
-            epsilon = 1e-6
+            epsilon = $crate::CHECK_PRECISION
         );
     };
 }

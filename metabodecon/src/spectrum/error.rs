@@ -199,7 +199,7 @@ impl core::fmt::Display for Error {
             Kind::NonUniformSpacing {
                 step_size,
                 positions,
-            } => match (step_size.is_finite(), *step_size > 100.0 * f64::EPSILON) {
+            } => match (step_size.is_finite(), *step_size > crate::CHECK_PRECISION) {
                 (false, _) => format!(
                     "step size of the chemical shifts could not be computed \
                      due to non-finite values at indices [{}, {}]",
@@ -247,7 +247,7 @@ impl core::fmt::Display for Error {
             } => {
                 let boundary_width = signal_boundaries.0 - signal_boundaries.1;
                 let is_finite = signal_boundaries.0.is_finite() && signal_boundaries.1.is_finite();
-                let is_spaced = f64::abs(boundary_width) > 100.0 * f64::EPSILON;
+                let is_spaced = f64::abs(boundary_width) > crate::CHECK_PRECISION;
                 let is_contained = (signal_boundaries.0 > chemical_shifts_range.0
                     && signal_boundaries.1 < chemical_shifts_range.1)
                     || (signal_boundaries.0 < chemical_shifts_range.0

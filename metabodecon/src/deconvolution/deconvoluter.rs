@@ -437,7 +437,7 @@ impl Deconvoluter {
     pub fn add_ignore_region(&mut self, new: (f64, f64)) -> Result<()> {
         if !new.0.is_finite()
             || !new.1.is_finite()
-            || f64::abs(new.0 - new.1) < 100.0 * f64::EPSILON
+            || f64::abs(new.0 - new.1) < crate::CHECK_PRECISION
         {
             return Err(Error::new(Kind::InvalidIgnoreRegion { region: new }).into());
         }
@@ -447,7 +447,7 @@ impl Deconvoluter {
             ignore_regions.sort_unstable_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
             while let Some(overlap_position) = ignore_regions
                 .windows(2)
-                .position(|w| w[1].0 < w[0].1 || f64::abs(w[0].1 - w[1].0) < 100.0 * f64::EPSILON)
+                .position(|w| w[1].0 < w[0].1 || f64::abs(w[0].1 - w[1].0) < crate::CHECK_PRECISION)
             {
                 let combined = (
                     f64::min(

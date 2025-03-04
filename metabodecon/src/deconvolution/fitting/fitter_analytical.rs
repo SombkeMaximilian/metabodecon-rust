@@ -65,7 +65,7 @@ impl Fitter for FitterAnalytical {
                 });
         }
         lorentzians.retain(|lorentzian| {
-            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+            lorentzian.sfhw() > crate::CHECK_PRECISION && lorentzian.hw2() > crate::CHECK_PRECISION
         });
 
         lorentzians
@@ -123,7 +123,7 @@ impl Fitter for FitterAnalytical {
                 });
         }
         lorentzians.retain(|lorentzian| {
-            lorentzian.sfhw() > 100.0 * f64::EPSILON && lorentzian.hw2() > 100.0 * f64::EPSILON
+            lorentzian.sfhw() > crate::CHECK_PRECISION && lorentzian.hw2() > crate::CHECK_PRECISION
         });
 
         lorentzians
