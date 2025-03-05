@@ -479,8 +479,10 @@ static ENCODING: LazyLock<[Regex; 6]> = LazyLock::new(|| {
         Regex::new(r"(?P<asdf>[@%A-Za-z+-])").unwrap(), // ASDF
         Regex::new(r"(?P<pac>[+-]\d)").unwrap(),        // PAC
         Regex::new(r"(?P<sqz>[@A-Ia-i])").unwrap(),     // SQZ
-        Regex::new(r"\s+(?P<dif>[%J-Rj-r]\d*)\s*(?P<dup>([S-Zs]\d*)?)((\r\n|\n|\r)(?P<next>\d+))")
-            .unwrap(), // DIFDUP Checkpoints
+        Regex::new(
+            r"\s+(?P<dif>[%J-Rj-r]\d*)\s*(?P<dup>([S-Zs]\d*)?)\s*((\r\n|\n|\r)\s*(?P<next>\d+))",
+        )
+        .unwrap(), // DIFDUP Checkpoints
         Regex::new(r"\s+(?P<val>[+-]*\d*)\s+(?P<dif>[%J-Rj-r]\d*)").unwrap(), // DIF
         Regex::new(r"\s+(?P<val>[+-]*\d+)\s+(?P<dup>[S-Zs]\d*)").unwrap(), // DUP
     ]
