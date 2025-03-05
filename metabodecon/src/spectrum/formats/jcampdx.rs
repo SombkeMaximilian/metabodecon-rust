@@ -251,7 +251,7 @@ use std::sync::LazyLock;
 /// Compressed:
 ///
 /// ```text
-/// 
+///
 /// 9     23    -73     92    -12     77
 /// 4     81     19     21     T     -68
 /// ```
@@ -479,8 +479,9 @@ static ENCODING: LazyLock<[Regex; 6]> = LazyLock::new(|| {
         Regex::new(r"(?P<asdf>[@%A-Za-z+-])").unwrap(), // ASDF
         Regex::new(r"(?P<pac>[+-]\d)").unwrap(),        // PAC
         Regex::new(r"(?P<sqz>[@A-Ia-i])").unwrap(),     // SQZ
-        Regex::new(r"\s+([%J-Rj-r]\d*\s*(?P<new>\r\n|\n|\r)(?P<next>\d+))").unwrap(), // Checkpoints
-        Regex::new(r"\s+(?P<val>[+-]*\d+)\s+(?P<dif>[%J-Rj-r]\d*)").unwrap(), // DIF
+        Regex::new(r"\s+(?P<dif>[%J-Rj-r]\d*)\s*(?P<dup>([S-Zs]\d*)?)((\r\n|\n|\r)(?P<next>\d+))")
+            .unwrap(), // DIFDUP Checkpoints
+        Regex::new(r"\s+(?P<val>[+-]*\d*)\s+(?P<dif>[%J-Rj-r]\d*)").unwrap(), // DIF
         Regex::new(r"\s+(?P<val>[+-]*\d+)\s+(?P<dup>[S-Zs]\d*)").unwrap(), // DUP
     ]
 });
@@ -861,7 +862,16 @@ impl JcampDx {
         let data = re[2].replace_all(&data, |captures: &Captures| {
             Self::undo_sqz(captures.name("sqz").unwrap().as_str())
         });
-        let mut data = re[3].replace_all(&data, "$new$next").to_string();
+        let mut data = re[3].replace_all(&data, |captures: &Captures| {
+            let dif = captures.name("dif").unwrap().as_str();
+            let dup = captures.name("dup").unwrap().as_str();
+            let next = captures.name("next").unwrap().as_str();
+
+            match dup {
+                "" | "S" => format!(" \n{}", next),
+                _ => format!(" {} {} \n{}", dif, Self::decrement_dup(dup), next),
+            }
+        }).to_string();
         loop {
             let tmp_data_dif = re[4].replace_all(&data, |captures: &Captures| {
                 let value = captures.name("val").unwrap().as_str();
@@ -966,6 +976,45 @@ impl JcampDx {
         let difference = decoded.parse::<i64>().unwrap();
 
         format!(" {} {}", value, value + difference)
+    }
+
+    /// Internal helper function to decrement a DUP encoded value by one.
+    ///
+    /// This is used to remove the data integrity checkpoints in the encoded
+    /// data if the last value in a line is a DUP of a previous DIF.
+    fn decrement_dup(encoded: &str) -> String {
+        let mut decoded = match encoded.chars().next().unwrap() {
+            'S' => "1",
+            'T' => "2",
+            'U' => "3",
+            'V' => "4",
+            'W' => "5",
+            'X' => "6",
+            'Y' => "7",
+            'Z' => "8",
+            's' => "9",
+            _ => unreachable!("Invalid DUP character: {}", encoded),
+        }
+        .to_string();
+        decoded.extend(encoded.chars().skip(1));
+        let decremented = (decoded.parse::<usize>().unwrap() - 1).to_string();
+        let mut encoded = match decremented.chars().next().unwrap() {
+            '0' => "",
+            '1' => "S",
+            '2' => "T",
+            '3' => "U",
+            '4' => "V",
+            '5' => "W",
+            '6' => "X",
+            '7' => "Y",
+            '8' => "Z",
+            '9' => "s",
+            _ => unreachable!("Non-numeric leading character in parsed usize: {}", decremented),
+        }
+        .to_string();
+        encoded.extend(decremented.chars().skip(1));
+
+        encoded
     }
 }
 
