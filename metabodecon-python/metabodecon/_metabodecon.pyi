@@ -104,6 +104,9 @@ class Spectrum:
     chemical_shifts: np.ndarray
     intensities: np.ndarray
     signal_boundaries: tuple[float, float]
+    nucleus: str
+    frequency: float
+    reference_compound: dict
 
     def __init__(self, chemical_shifts: np.ndarray, intensities: np.ndarray,
                  signal_boundaries: tuple[float, float]) -> None:

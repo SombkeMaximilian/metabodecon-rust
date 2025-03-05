@@ -9,7 +9,6 @@ mod bruker;
 pub use bruker::Bruker;
 
 #[cfg(feature = "jdx")]
-#[allow(dead_code, unused_variables)]
 mod jcampdx;
 #[cfg(feature = "jdx")]
 pub use jcampdx::JcampDx;

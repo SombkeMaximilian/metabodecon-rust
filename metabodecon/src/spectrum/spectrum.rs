@@ -1,6 +1,6 @@
 use crate::Result;
 use crate::spectrum::error::{Error, Kind};
-use crate::spectrum::meta::Monotonicity;
+use crate::spectrum::meta::{Monotonicity, Nucleus, ReferenceCompound};
 use std::sync::Arc;
 
 #[cfg(feature = "serde")]
@@ -10,8 +10,9 @@ use serde::{Deserialize, Serialize};
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
-/// `Spectrum` is a fixed-size, read-only container that holds the chemical
-/// shifts, signal intensities, and metadata of a 1D NMR spectrum.
+/// `Spectrum` is a fixed-size, container that holds the chemical shifts, signal
+/// intensities, and metadata of a 1D NMR spectrum. The data itself is read-only
+/// but may be modified through the metadata (e.g. the reference).
 ///
 /// # Invariants
 ///
@@ -101,6 +102,12 @@ pub struct Spectrum {
     intensities: Arc<[f64]>,
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
+    /// The observed nucleus.
+    nucleus: Nucleus,
+    /// The spectrometer frequency in MHz.
+    frequency: f64,
+    /// The chemical shift reference.
+    reference_compound: ReferenceCompound,
     /// The monotonicity of the data.
     monotonicity: Monotonicity,
 }
@@ -178,11 +185,15 @@ impl Spectrum {
         let monotonicity = Monotonicity::from_f64s(chemical_shifts[0], chemical_shifts[1]).unwrap();
         let signal_boundaries =
             Self::validate_boundaries(monotonicity, &chemical_shifts, signal_boundaries)?;
+        let first = chemical_shifts[0];
 
         Ok(Self {
             chemical_shifts: chemical_shifts.into(),
             intensities: intensities.into(),
             signal_boundaries,
+            nucleus: Nucleus::default(),
+            frequency: 1.0,
+            reference_compound: first.into(),
             monotonicity,
         })
     }
@@ -263,6 +274,90 @@ impl Spectrum {
         self.signal_boundaries
     }
 
+    /// Returns the observed nucleus of the `Spectrum`.
+    ///
+    /// By default, this is set to [`Hydrogen1`].
+    ///
+    /// [`Hydrogen1`]: Nucleus::Hydrogen1
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    /// use metabodecon::spectrum::meta::Nucleus;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    ///
+    /// assert_eq!(spectrum.nucleus(), Nucleus::Hydrogen1);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn nucleus(&self) -> Nucleus {
+        self.nucleus.clone()
+    }
+
+    /// Returns the spectrometer frequency of the `Spectrum` in MHz.
+    ///
+    /// By default, this is set to `1.0`.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    ///
+    /// assert_approx_eq!(f64, spectrum.frequency(), 1.0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn frequency(&self) -> f64 {
+        self.frequency
+    }
+
+    /// Returns the chemical shift reference of the `Spectrum`.
+    ///
+    /// By default, this is set to the first chemical shift, with no name or
+    /// [`ReferencingMethod`].
+    ///
+    /// [`ReferencingMethod`]: crate::spectrum::meta::ReferencingMethod
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::Spectrum;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    /// let reference = spectrum.reference_compound();
+    ///
+    /// assert_approx_eq!(f64, reference.chemical_shift(), 1.0);
+    /// assert_eq!(reference.index(), 0);
+    /// assert_eq!(reference.name(), None);
+    /// assert_eq!(reference.referencing_method(), None);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn reference_compound(&self) -> ReferenceCompound {
+        self.reference_compound.clone()
+    }
+
     /// Returns the monotonicity of the `Spectrum`.
     ///
     /// # Example
@@ -326,6 +421,124 @@ impl Spectrum {
         )?;
 
         Ok(())
+    }
+
+    /// Sets the observed nucleus of the `Spectrum`.
+    ///
+    /// This has no effect on the data itself.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    /// use metabodecon::spectrum::meta::Nucleus;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let mut spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    /// spectrum.set_nucleus(Nucleus::Carbon13);
+    ///
+    /// assert_eq!(spectrum.nucleus(), Nucleus::Carbon13);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn set_nucleus(&mut self, nucleus: Nucleus) {
+        self.nucleus = nucleus;
+    }
+
+    /// Sets the spectrometer frequency of the `Spectrum` in MHz.
+    ///
+    /// This has no effect on the data itself, even though the chemical shifts
+    /// depend on it. The frequency field is only used as metadata.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    /// use metabodecon::spectrum::meta::Nucleus;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// use float_cmp::assert_approx_eq;
+    /// let mut spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    /// spectrum.set_frequency(2.0);
+    ///
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 1.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 2.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 3.0);
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn set_frequency(&mut self, frequency: f64) {
+        self.frequency = frequency;
+    }
+
+    /// Sets the reference compound of the `Spectrum`.
+    ///
+    /// The reference compound is used to set the chemical shift reference of
+    /// the `Spectrum`. The chemical shifts are adjusted such that the reference
+    /// compound is at the specified chemical shift.
+    ///
+    /// [`ReferenceCompound`] implements `From<f64>` and `From<(f64, usize)>` to
+    /// allow for easy conversion from a chemical shift or a chemical shift and
+    /// index pair. In the former case, the index is set to `0`, meaning that
+    /// the leftmost chemical shift is the reference. In the latter case, the
+    /// chemical shift at the index will be equal to the reference.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::Spectrum;
+    /// use metabodecon::spectrum::meta::{Nucleus, ReferenceCompound};
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// use float_cmp::assert_approx_eq;
+    /// let mut spectrum = Spectrum::new(
+    ///     vec![1.0, 2.0, 3.0], // Chemical shifts
+    ///     vec![1.0, 2.0, 3.0], // Intensities
+    ///     (1.0, 3.0),          // Signal boundaries
+    /// )?;
+    ///
+    /// spectrum.set_reference_compound(10.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 10.0); // Reference
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 11.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 12.0);
+    ///
+    /// spectrum.set_reference_compound((20.0, 1));
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 19.0);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 20.0); // Reference
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 21.0);
+    ///
+    /// let name = Some("H2O".to_string());
+    /// let reference = ReferenceCompound::new(4.8, 2, name, None);
+    /// spectrum.set_reference_compound(reference);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 2.8);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 3.8);
+    /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 4.8); // Reference
+    /// //
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn set_reference_compound<T: Into<ReferenceCompound>>(&mut self, reference: T) {
+        let first_before = self.chemical_shifts[0];
+        let step = self.step();
+        let reference = reference.into();
+        let offset = reference.chemical_shift() - reference.index() as f64 * step;
+        self.chemical_shifts = (0..self.len())
+            .map(|i| offset + (i as f64) * step)
+            .collect();
+        let first_after = self.chemical_shifts[0];
+        self.signal_boundaries = (
+            self.signal_boundaries.0 + first_after - first_before,
+            self.signal_boundaries.1 + first_after - first_before,
+        );
+        self.reference_compound = reference;
     }
 
     /// Returns the number of chemical shift-intensity pairs in the `Spectrum`.

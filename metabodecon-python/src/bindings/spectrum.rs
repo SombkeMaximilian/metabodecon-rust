@@ -3,6 +3,7 @@ use crate::error::SerializationError;
 use metabodecon::spectrum;
 use numpy::PyArray1;
 use pyo3::prelude::*;
+use pyo3::types::PyDict;
 
 #[pyclass]
 #[derive(Clone, Debug)]
@@ -88,6 +89,36 @@ impl Spectrum {
         self.inner.signal_boundaries()
     }
 
+    #[getter]
+    pub fn nucleus(&self) -> String {
+        self.inner.nucleus().to_string()
+    }
+
+    #[getter]
+    pub fn frequency(&self) -> f64 {
+        self.inner.frequency()
+    }
+
+    #[getter]
+    pub fn reference_compound<'py>(&self, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let dict = PyDict::new(py);
+        let reference = self.inner.reference_compound();
+        dict.set_item("chemical_shift", reference.chemical_shift())?;
+        dict.set_item("index", reference.index())?;
+        match reference.name() {
+            Some(name) => dict.set_item("name", name)?,
+            None => dict.set_item("name", "unknown")?,
+        };
+        match reference.referencing_method() {
+            Some(referencing_method) => {
+                dict.set_item("referencing_method", referencing_method.to_string())?
+            }
+            None => dict.set_item("referencing_method", "unknown")?,
+        };
+
+        Ok(dict)
+    }
+
     #[setter]
     pub fn set_signal_boundaries(&mut self, signal_boundaries: (f64, f64)) -> PyResult<()> {
         match self
@@ -97,6 +128,41 @@ impl Spectrum {
             Ok(_) => Ok(()),
             Err(e) => Err(MetabodeconError::from(e).into()),
         }
+    }
+
+    #[setter]
+    pub fn set_nucleus(&mut self, nucleus: &str) {
+        self.inner
+            .set_nucleus(std::str::FromStr::from_str(nucleus).unwrap());
+    }
+
+    #[setter]
+    pub fn set_frequency(&mut self, frequency: f64) {
+        self.inner.set_frequency(frequency);
+    }
+
+    #[setter]
+    pub fn set_reference_compound(&mut self, reference: Bound<'_, PyDict>) -> PyResult<()> {
+        let reference = reference.as_any();
+        let chemical_shift = reference
+            .get_item("chemical_shift")?
+            .extract::<f64>()?;
+        let index = reference.get_item("index")?.extract::<usize>()?;
+        let name = match reference.get_item("name") {
+            Ok(name) => name.extract::<String>().ok(),
+            Err(_) => None,
+        };
+        let method = match reference.get_item("referencing_method") {
+            Ok(method) => method
+                .extract::<String>()
+                .ok()
+                .map(|method| std::str::FromStr::from_str(&method).unwrap()),
+            Err(_) => None,
+        };
+        let reference = spectrum::meta::ReferenceCompound::new(chemical_shift, index, name, method);
+        self.inner.set_reference_compound(reference);
+
+        Ok(())
     }
 
     pub fn write_json(&self, path: &str) -> PyResult<()> {

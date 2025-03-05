@@ -1,5 +1,6 @@
 /// Asserts that the given types are `Send`.
 #[macro_export]
+#[cfg(test)]
 macro_rules! assert_send {
     ($($t:ty),+ $(,)?) => {
         $(
@@ -11,6 +12,7 @@ macro_rules! assert_send {
 
 /// Asserts that the given types are `Sync`.
 #[macro_export]
+#[cfg(test)]
 macro_rules! assert_sync {
     ($($t:ty),+ $(,)?) => {
         $(

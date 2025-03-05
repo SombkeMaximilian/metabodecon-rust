@@ -18,8 +18,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "Deconvolution", rename_all = "camelCase")]
 pub(crate) struct SerializedDeconvolution {
-    /// The deconvoluted signals.
-    lorentzians: Vec<Lorentzian>,
     /// The smoothing parameters used.
     smoothing_settings: SmoothingSettings,
     /// The peak selection parameters used.
@@ -28,6 +26,8 @@ pub(crate) struct SerializedDeconvolution {
     fitting_settings: FittingSettings,
     /// The mean squared error of the deconvolution.
     mse: f64,
+    /// The deconvoluted signals.
+    lorentzians: Vec<Lorentzian>,
 }
 
 impl<D: AsRef<Deconvolution>> From<D> for SerializedDeconvolution {
@@ -35,11 +35,11 @@ impl<D: AsRef<Deconvolution>> From<D> for SerializedDeconvolution {
         let deconvolution = value.as_ref();
 
         Self {
-            lorentzians: deconvolution.lorentzians().to_vec(),
             smoothing_settings: deconvolution.smoothing_settings(),
             selection_settings: deconvolution.selection_settings(),
             fitting_settings: deconvolution.fitting_settings(),
             mse: deconvolution.mse(),
+            lorentzians: deconvolution.lorentzians().to_vec(),
         }
     }
 }

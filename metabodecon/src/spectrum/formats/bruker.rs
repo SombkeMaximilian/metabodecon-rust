@@ -1,6 +1,7 @@
 use crate::Result;
 use crate::spectrum::Spectrum;
 use crate::spectrum::formats::extract_capture;
+use crate::spectrum::meta::Nucleus;
 use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{File, read_to_string};
@@ -151,29 +152,36 @@ enum Type {
 struct AcquisitionParameters {
     /// The spectral width in ppm.
     width: f64,
+    frequency: f64,
+    nucleus: Nucleus,
 }
 
 /// Regex patterns to search for the acquisition parameters.
-static ACQUS_RE: LazyLock<[Regex; 1]> =
-    LazyLock::new(|| [Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap()]);
+static ACQUS_RE: LazyLock<[Regex; 3]> = LazyLock::new(|| {
+    [
+        Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(##\$SFO1=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(##\$NUC1=\s*<)(?P<nucleus>\w+)").unwrap(),
+    ]
+});
 
 /// Keys used in the acquisition parameter regex patterns, used for error
 /// messages
-static ACQUS_KEYS: LazyLock<[&str; 1]> = LazyLock::new(|| ["SW"]);
+static ACQUS_KEYS: LazyLock<[&str; 3]> = LazyLock::new(|| ["SW", "SFO1", "NUC1"]);
 
 /// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
     /// The maximum chemical shift in ppm.
     maximum: f64,
-    /// The size of the data, expected to be 2^15 or 2^17.
-    data_size: usize,
+    /// The scaling exponent of the data, if the data is stored as integers.
+    exponent: i32,
     /// The endianness of the data.
     endian: Endian,
     /// The data type of the raw signal intensities.
     data_type: Type,
-    /// The scaling exponent of the data, if the data is stored as integers.
-    exponent: i32,
+    /// The size of the data, expected to be 2^15 or 2^17.
+    data_size: usize,
 }
 
 /// Regex patterns to search for the processing parameters.
@@ -272,7 +280,9 @@ impl Bruker {
             })
             .collect();
         let intensities = Self::read_one_r(one_r_path, procs)?;
-        let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        spectrum.set_nucleus(acqus.nucleus);
+        spectrum.set_frequency(acqus.frequency);
 
         Ok(spectrum)
     }
@@ -378,8 +388,14 @@ impl Bruker {
         let keys = &*ACQUS_KEYS;
 
         let width = extract_capture(&re[0], "width", &acqus, &path, keys[0])?;
+        let frequency = extract_capture(&re[1], "frequency", &acqus, &path, keys[1])?;
+        let nucleus = extract_capture(&re[2], "nucleus", &acqus, &path, keys[2])?;
 
-        Ok(AcquisitionParameters { width })
+        Ok(AcquisitionParameters {
+            width,
+            frequency,
+            nucleus,
+        })
     }
 
     /// Internal helper function to read the processing parameters from the
@@ -410,10 +426,10 @@ impl Bruker {
 
         Ok(ProcessingParameters {
             maximum: spectrum_maximum,
-            data_size,
+            exponent: scaling_exponent,
             endian,
             data_type,
-            exponent: scaling_exponent,
+            data_size,
         })
     }
 
@@ -449,7 +465,6 @@ impl Bruker {
                         .as_slice()
                         .read_i32_into::<BigEndian>(&mut temp)?,
                 }
-                temp.reverse();
 
                 Ok(temp
                     .into_iter()
@@ -466,7 +481,6 @@ impl Bruker {
                         .as_slice()
                         .read_f64_into::<BigEndian>(&mut temp)?,
                 }
-                temp.reverse();
 
                 Ok(temp)
             }
@@ -495,5 +509,31 @@ mod tests {
         spectra.iter().for_each(|spectrum| {
             check_sim_spectrum!(spectrum);
         })
+    }
+
+    #[test]
+    fn read_acquisition_parameters() {
+        let path = "../data/bruker/blood/blood_01/10/acqus";
+        let acqus = Bruker::read_acquisition_parameters(path).unwrap();
+        assert_approx_eq!(f64, acqus.width, 20.0236139622347);
+        assert_approx_eq!(f64, acqus.frequency, 600.252821089118);
+        assert_eq!(acqus.nucleus, Nucleus::Hydrogen1);
+    }
+
+    #[test]
+    fn read_processing_parameters() {
+        let path = "../data/bruker/blood/blood_01/10/pdata/10/procs";
+        let procs = Bruker::read_processing_parameters(path).unwrap();
+        assert_approx_eq!(f64, procs.maximum, 14.81146);
+        assert_eq!(procs.exponent, 0);
+        match procs.endian {
+            Endian::Little => {}
+            _ => panic!("Expected Little, got {:?}", procs.endian),
+        };
+        match procs.data_type {
+            Type::I32 => {}
+            Type::F64 => panic!("Expected I32, got F64"),
+        }
+        assert_eq!(procs.data_size, 2_usize.pow(17));
     }
 }

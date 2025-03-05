@@ -2,7 +2,7 @@ use crate::Result;
 use crate::spectrum::Spectrum;
 use crate::spectrum::error::{Error, Kind};
 use crate::spectrum::formats::{extract_capture, extract_row};
-use crate::spectrum::meta::{Nucleus, ReferenceCompound, ReferencingMethod};
+use crate::spectrum::meta::{Nucleus, ReferenceCompound};
 use regex::{Captures, Regex};
 use std::fs::read_to_string;
 use std::path::Path;
@@ -365,6 +365,9 @@ enum XUnits {
 #[derive(Debug)]
 struct Header {
     /// The type of data (processed Spectrum or raw FID).
+    ///
+    /// Currently unused, as only Spectrum is supported.
+    #[allow(dead_code)]
     data_type: DataType,
     /// The data format (NTuples or XYData).
     format: Format,
@@ -379,7 +382,7 @@ struct Header {
 /// Regex patterns to search for the header metadata.
 static HEADER_RE: LazyLock<[Regex; 11]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##JCAMPDX=\s*)(?P<version>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(##JCAMP(\s*|_|-)DX=\s*)(?P<version>\d+(\.\d+)?)").unwrap(),
         Regex::new(r"(##DATA(\s|_)TYPE=\s*)(?P<type>\w+\s\w+)").unwrap(),
         Regex::new(r"(##DATA(\s|_)CLASS=\s*)(?P<format>\w+(\s\w+)?)").unwrap(),
         Regex::new(r"(##\.OBSERVE(\s|_)FREQUENCY=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
@@ -544,11 +547,8 @@ impl JcampDx {
             XUnits::Ppm => 1.0,
         };
         let step = (block.last - block.first) * conversion / (block.data_size as f64 - 1.0);
-        let offset = match header.reference_compound {
-            Some(reference) => match reference.index() {
-                Some(index) => reference.chemical_shift() - index as f64 * step,
-                None => block.first * conversion,
-            },
+        let offset = match &header.reference_compound {
+            Some(reference) => reference.chemical_shift() - reference.index() as f64 * step,
             None => block.first * conversion,
         };
         let chemical_shifts = (0..block.data_size)
@@ -558,7 +558,12 @@ impl JcampDx {
             true => Self::decode_asdf(&block.data, block.factor, path)?,
             false => Self::decode_affn(&block.data, block.factor, path)?,
         };
-        let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        spectrum.set_nucleus(header.nucleus);
+        spectrum.set_frequency(header.frequency);
+        if let Some(reference) = header.reference_compound {
+            spectrum.set_reference_compound(reference);
+        }
 
         Ok(spectrum)
     }
@@ -594,47 +599,21 @@ impl JcampDx {
             "NTUPLES" => Format::NTuples,
             _ => return Err(Error::new(Kind::UnsupportedJcampDxFile).into()),
         };
-        let frequency = extract_capture::<f64, _>(&re[3], "frequency", dx, &path, keys[3])?;
-        let nucleus = match extract_capture::<String, _>(&re[4], "nucleus", dx, &path, keys[4])?
-            .to_uppercase()
-            .as_str()
-        {
-            "^1H" => Nucleus::Hydrogen1,
-            "^13C" => Nucleus::Carbon13,
-            "^15N" => Nucleus::Nitrogen15,
-            "^19F" => Nucleus::Fluorine19,
-            "^29SI" => Nucleus::Silicon29,
-            "^31P" => Nucleus::Phosphorus31,
-            name => Nucleus::Other(name.to_string()),
-        };
+        let frequency = extract_capture(&re[3], "frequency", dx, &path, keys[3])?;
+        let nucleus = extract_capture(&re[4], "nucleus", dx, &path, keys[4])?;
         let reference_compound = {
-            let method = extract_capture::<String, _>(&re[7], "method", dx, &path, keys[7]).ok();
+            let method = extract_capture(&re[7], "method", dx, &path, keys[7]).ok();
             let name = extract_capture::<String, _>(&re[8], "name", dx, &path, keys[8]).ok();
-            let index = extract_capture(&re[9], "index", dx, &path, keys[9]).ok();
+            let index = extract_capture::<usize, _>(&re[9], "index", dx, &path, keys[9]).ok();
             let shift = extract_capture(&re[10], "shift", dx, &path, keys[10]).ok();
 
             if let (Some(shift), Some(index)) = (shift, index) {
-                let referencing_method = match method.as_deref() {
-                    Some("INTERNAL") => Some(ReferencingMethod::Internal),
-                    Some("EXTERNAL") => Some(ReferencingMethod::External),
-                    _ => None,
-                };
-
-                Some(ReferenceCompound::new(
-                    shift,
-                    name,
-                    Some(index),
-                    referencing_method,
-                ))
+                Some(ReferenceCompound::new(shift, index - 1, name, method))
             } else {
                 let name = extract_capture::<String, _>(&re[5], "name", dx, &path, keys[5]).ok();
                 let shift = extract_capture(&re[6], "shift", dx, &path, keys[6]).ok();
 
-                if let Some(shift) = shift {
-                    Some(ReferenceCompound::new(shift, name, Some(0), None))
-                } else {
-                    name.map(|name| ReferenceCompound::new(0.0, Some(name), None, None))
-                }
+                shift.map(|shift| ReferenceCompound::new(shift, 0, name, None))
             }
         };
 
@@ -864,16 +843,18 @@ impl JcampDx {
         let data = re[2].replace_all(&data, |captures: &Captures| {
             Self::undo_sqz(captures.name("sqz").unwrap().as_str())
         });
-        let mut data = re[3].replace_all(&data, |captures: &Captures| {
-            let dif = captures.name("dif").unwrap().as_str();
-            let dup = captures.name("dup").unwrap().as_str();
-            let next = captures.name("next").unwrap().as_str();
+        let mut data = re[3]
+            .replace_all(&data, |captures: &Captures| {
+                let dif = captures.name("dif").unwrap().as_str();
+                let dup = captures.name("dup").unwrap().as_str();
+                let next = captures.name("next").unwrap().as_str();
 
-            match dup {
-                "" | "S" => format!(" \n{}", next),
-                _ => format!(" {} {} \n{}", dif, Self::decrement_dup(dup), next),
-            }
-        }).to_string();
+                match dup {
+                    "" | "S" => format!(" \n{}", next),
+                    _ => format!(" {} {} \n{}", dif, Self::decrement_dup(dup), next),
+                }
+            })
+            .to_string();
         loop {
             let tmp_data_dif = re[4].replace_all(&data, |captures: &Captures| {
                 let value = captures.name("val").unwrap().as_str();
@@ -1011,7 +992,10 @@ impl JcampDx {
             '7' => "Y",
             '8' => "Z",
             '9' => "s",
-            _ => unreachable!("Non-numeric leading character in parsed usize: {}", decremented),
+            _ => unreachable!(
+                "Non-numeric leading character in parsed usize: {}",
+                decremented
+            ),
         }
         .to_string();
         encoded.extend(decremented.chars().skip(1));
@@ -1028,31 +1012,31 @@ mod tests {
     #[test]
     fn read_affn_spectrum() {
         let path = "../data/jcamp-dx/BRUKAFFN.dx";
-        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
     }
 
     #[test]
     fn read_pac_spectrum() {
         let path = "../data/jcamp-dx/BRUKPAC.dx";
-        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
     }
 
     #[test]
     fn read_sqz_spectrum() {
         let path = "../data/jcamp-dx/BRUKSQZ.dx";
-        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
     }
 
     #[test]
     fn read_dif_dup_spectrum() {
         let path = "../data/jcamp-dx/BRUKDIF.dx";
-        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
     }
 
     #[test]
     fn read_ntuples_spectrum() {
         let path = "../data/jcamp-dx/BRUKNTUP.dx";
-        let spectrum = JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
     }
 
     #[test]
@@ -1068,10 +1052,7 @@ mod tests {
             Format::NTuples => (),
         };
         assert_approx_eq!(f64, header.frequency, 100.4);
-        match header.nucleus {
-            Nucleus::Carbon13 => (),
-            _ => panic!("Expected Carbon13"),
-        };
+        assert_eq!(header.nucleus, Nucleus::Carbon13);
         if header.reference_compound.is_some() {
             panic!("Expected None");
         }

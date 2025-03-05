@@ -1,4 +1,5 @@
 use crate::spectrum::Spectrum;
+use crate::spectrum::meta::{Nucleus, ReferenceCompound};
 use crate::{Error, Result};
 use serde::{Deserialize, Serialize};
 
@@ -14,29 +15,34 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "Spectrum", rename_all = "camelCase")]
 pub(crate) struct SerializedSpectrum {
-    /// The intensities in arbitrary units.
-    intensities: Vec<f64>,
-    /// The number of data points in the spectrum.
-    size: usize,
     /// The spectrum boundaries in ppm.
     spectrum_boundaries: (f64, f64),
     /// The boundaries of the signal region.
     signal_boundaries: (f64, f64),
+    /// The number of data points in the spectrum.
+    size: usize,
+    /// The observed nucleus.
+    nucleus: Nucleus,
+    /// The spectrometer frequency in MHz.
+    frequency: f64,
+    /// The chemical shift reference.
+    reference_compound: ReferenceCompound,
+    /// The intensities in arbitrary units.
+    intensities: Vec<f64>,
 }
 
 impl<S: AsRef<Spectrum>> From<S> for SerializedSpectrum {
     fn from(value: S) -> Self {
         let spectrum = value.as_ref();
-        let intensities = spectrum.intensities().to_vec();
-        let size = spectrum.len();
-        let spectrum_boundaries = spectrum.range();
-        let signal_boundaries = spectrum.signal_boundaries();
 
         Self {
-            intensities,
-            size,
-            spectrum_boundaries,
-            signal_boundaries,
+            intensities: spectrum.intensities().to_vec(),
+            size: spectrum.len(),
+            spectrum_boundaries: spectrum.range(),
+            signal_boundaries: spectrum.signal_boundaries(),
+            nucleus: spectrum.nucleus(),
+            frequency: spectrum.frequency(),
+            reference_compound: spectrum.reference_compound().clone(),
         }
     }
 }
@@ -53,7 +59,10 @@ impl TryFrom<SerializedSpectrum> for Spectrum {
         let chemical_shifts = (0..size)
             .map(|index| start + index as f64 * step)
             .collect();
-        let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+        spectrum.set_nucleus(value.nucleus);
+        spectrum.set_frequency(value.frequency);
+        spectrum.set_reference_compound(value.reference_compound);
 
         Ok(spectrum)
     }
@@ -80,7 +89,6 @@ impl PartialEq for SerializedSpectrum {
 impl SerializedSpectrum {
     /// Creates a valid `SerializedSpectrum` with 2^n resolution for testing.
     fn valid(resolution: u32) -> Self {
-        let spectrum_boundaries = (0.0, 10.0);
         let intensities = (0..2_u32.pow(resolution))
             .map(|i| i as f64 * 10.0 / (2_f64.powi(resolution as i32) - 1.0))
             .map(|x| {
@@ -88,13 +96,15 @@ impl SerializedSpectrum {
                     + 1.0 * 0.25 / (0.25_f64.powi(2) + (x - 7.0).powi(2))
             })
             .collect();
-        let signal_boundaries = (1.0, 9.0);
 
         Self {
             intensities,
             size: 2_usize.pow(resolution),
-            spectrum_boundaries,
-            signal_boundaries,
+            spectrum_boundaries: (0.0, 10.0),
+            signal_boundaries: (1.0, 9.0),
+            nucleus: Nucleus::Hydrogen1,
+            frequency: 400.0,
+            reference_compound: ReferenceCompound::default(),
         }
     }
 }
