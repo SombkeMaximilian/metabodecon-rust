@@ -19,7 +19,6 @@ Current planned and implemented features include (additional suggestions are wel
    - [x] Bruker
    - [x] JCAMP-DX
 - [x] Serialization of the data structures with Serde
-- [ ] Preprocessing of 1D NMR spectra
 - [x] Peak detection in 1D NMR spectra
    - [x] Curvature analysis
 - [x] Fitting of peaks to deconvolute 1D NMR spectra
@@ -32,8 +31,8 @@ Current planned and implemented features include (additional suggestions are wel
 - [ ] R bindings
    - [ ] Basic bindings
    - [ ] Complete R package
-- [ ] Command line interface for the core crate
-- [ ] Graphical user interface for the core crate
+- [ ] CLI
+- [ ] GUI
 
 ## Getting Started
 
