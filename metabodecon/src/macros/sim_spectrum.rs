@@ -25,7 +25,7 @@ macro_rules! check_sim_spectrum {
             $spectrum.nucleus(),
             $crate::spectrum::meta::Nucleus::Hydrogen1
         );
-        assert_approx_eq!(f64, $spectrum.frequency(), 600.252806949999695);
+        assert_approx_eq!(f64, $spectrum.frequency(), 600.2528069499997);
         assert_approx_eq!(
             f64,
             $spectrum.reference_compound().chemical_shift(),
