@@ -10,7 +10,6 @@ use serde::{Deserialize, Serialize};
 )]
 pub enum ReferencingMethod {
     /// An internal reference was used.
-    ///
     Internal,
     /// An external reference was used.
     External,
