@@ -294,7 +294,7 @@ use std::sync::LazyLock;
 /// let path = "path/to/spectrum.dx";
 /// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
 ///
-/// // Read a single spectrum from a Bruker TopSpin format directory.
+/// // Read a spectrum from a JCAMP-DX file.
 /// let spectrum = JcampDx::read_spectrum(
 ///     path,
 ///     // Signal boundaries
@@ -522,7 +522,7 @@ impl JcampDx {
     /// let path = "path/to/spectrum.dx";
     /// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
     ///
-    /// // Read a single spectrum from a Bruker TopSpin format directory.
+    /// // Read a spectrum from a JCAMP-DX file.
     /// let spectrum = JcampDx::read_spectrum(
     ///     path,
     ///     // Signal boundaries

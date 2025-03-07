@@ -132,8 +132,7 @@ impl Spectrum {
 
     #[setter]
     pub fn set_nucleus(&mut self, nucleus: &str) {
-        self.inner
-            .set_nucleus(std::str::FromStr::from_str(nucleus).unwrap());
+        self.inner.set_nucleus(nucleus);
     }
 
     #[setter]

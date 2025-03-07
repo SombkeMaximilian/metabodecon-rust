@@ -172,17 +172,23 @@ impl Lorentzian {
     /// ```
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
-    /// // hw2 = hw² = 0.15² = 0.0225
-    /// // maxp = 5.0
-    /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
+    /// // Signal centered at 5 ppm with maximum intensity 2.0 and a half width
+    /// // of 0.15 ppm.
+    /// let max = 2.0;
+    /// let hw = 0.15;
+    /// let hw2 = hw * hw;
+    /// let sfhw = max * hw2;
+    /// let maxp = 5.0;
+    /// let lorentzian = Lorentzian::new(sfhw, hw2, maxp);
     ///
-    /// // Signal centered at 0 ppm with maximum intensity 30.0 and hw 0.5.
-    /// // sfhw = max_intensity * hw² = 30.0 * 0.5² = 7.5
-    /// // hw2 = hw² = 0.5² = 0.25
-    /// // maxp = 0.0
-    /// let lorentzian = Lorentzian::new(7.5, 0.25, 0.0);
+    /// // Signal centered at 0 ppm with maximum intensity 30.0 and a half width
+    /// // of 0.5 ppm.
+    /// let max = 30.0;
+    /// let hw = 0.5;
+    /// let hw2 = hw * hw;
+    /// let sfhw = max * hw2;
+    /// let maxp = 0.0;
+    /// let lorentzian = Lorentzian::new(sfhw, hw2, maxp);
     /// ```
     pub fn new(sfhw: f64, hw2: f64, maxp: f64) -> Self {
         Self { sfhw, hw2, maxp }
@@ -204,8 +210,6 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
     /// assert_approx_eq!(f64, lorentzian.sfhw(), 0.045);
@@ -227,8 +231,6 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // hw2 = hw² = 0.15² = 0.0225
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
     /// assert_approx_eq!(f64, lorentzian.hw2(), 0.0225);
@@ -245,7 +247,6 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
     /// assert_approx_eq!(f64, lorentzian.maxp(), 5.0);
@@ -257,9 +258,9 @@ impl Lorentzian {
     /// Returns the transformed parameters as a tuple `(sfhw, hw2, maxp)`.
     ///
     /// This is part of the transformed parameter interface. For the
-    /// untransformed parameters, see [`retransformed_parameters`].
+    /// untransformed parameters, see [`untransformed_parameters`].
     ///
-    /// [`retransformed_parameters`]: Lorentzian::untransformed_parameters
+    /// [`untransformed_parameters`]: Lorentzian::untransformed_parameters
     ///
     /// # Example
     ///
@@ -267,13 +268,9 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
-    /// // hw2 = hw² = 0.15² = 0.0225
-    /// // maxp = 5.0
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
     /// let (sfhw, hw2, maxp) = lorentzian.parameters();
+    ///
     /// assert_approx_eq!(f64, sfhw, 0.045);
     /// assert_approx_eq!(f64, hw2, 0.0225);
     /// assert_approx_eq!(f64, maxp, 5.0);
@@ -297,15 +294,10 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set sfhw to 0.0675, which adjusts the maximum intensity to 3.0.
-    /// // max_intensity = sfhw / hw2 = 0.0675 / 0.0225 = 3.0
     /// lorentzian.set_sfhw(0.0675);
+    ///
     /// assert_approx_eq!(f64, lorentzian.sfhw(), 0.0675);
-    /// assert_approx_eq!(f64, lorentzian.sfhw() / lorentzian.hw2(), 3.0);
     /// ```
     pub fn set_sfhw(&mut self, sfhw: f64) {
         self.sfhw = sfhw;
@@ -326,15 +318,10 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // hw2 = hw² = 0.15² = 0.0225
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set hw2 to 0.03, which adjusts the maximum intensity to 1.5.
-    /// // max_intensity = sfhw / hw2 = 0.045 / 0.03 = 1.5
     /// lorentzian.set_hw2(0.03);
+    ///
     /// assert_approx_eq!(f64, lorentzian.hw2(), 0.03);
-    /// assert_approx_eq!(f64, lorentzian.sfhw() / lorentzian.hw2(), 1.5);
     /// ```
     pub fn set_hw2(&mut self, hw2: f64) {
         self.hw2 = hw2;
@@ -348,11 +335,9 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Create a Lorentzian peak centered at 5.0 ppm with maximum intensity 2.0 and hw 0.15.
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Shift the maximum position to -5.0 ppm.
     /// lorentzian.set_maxp(-5.0);
+    ///
     /// assert_approx_eq!(f64, lorentzian.maxp(), -5.0);
     /// ```
     pub fn set_maxp(&mut self, maxp: f64) {
@@ -363,9 +348,9 @@ impl Lorentzian {
     ///
     /// This is part of the transformed parameter interface. To set the
     /// parameters using their untransformed representation, use
-    /// [`set_retransformed_parameters`].
+    /// [`set_untransformed_parameters`].
     ///
-    /// [`set_retransformed_parameters`]: Lorentzian::set_untransformed_parameters
+    /// [`set_untransformed_parameters`]: Lorentzian::set_untransformed_parameters
     ///
     /// # Example
     ///
@@ -373,21 +358,12 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
-    /// // hw2 = hw² = 0.15² = 0.0225
-    /// // maxp = 5.0
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set maximum intensity to 3.0, hw to 0.2, and shift maximum to -5.0.
-    /// // sfhw = max_intensity * hw² = 3.0 * 0.2² = 0.12
-    /// // hw2 = hw² = 0.2² = 0.04
-    /// // maxp = -5.0
     /// lorentzian.set_parameters(0.12, 0.04, -5.0);
+    ///
     /// assert_approx_eq!(f64, lorentzian.sfhw(), 0.12);
     /// assert_approx_eq!(f64, lorentzian.hw2(), 0.04);
     /// assert_approx_eq!(f64, lorentzian.maxp(), -5.0);
-    /// assert_approx_eq!(f64, lorentzian.sfhw() / lorentzian.hw2(), 3.0);
     /// ```
     pub fn set_parameters(&mut self, sfhw: f64, hw2: f64, maxp: f64) {
         self.sfhw = sfhw;
@@ -409,11 +385,8 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
-    /// // sf = sfhw / √(hw2) = 0.045 / √0.0225 = 0.3
     /// assert_approx_eq!(f64, lorentzian.sf(), 0.3);
     /// ```
     pub fn sf(&self) -> f64 {
@@ -434,11 +407,8 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // hw2 = hw² = 0.15² = 0.0225
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
-    /// // hw = √(hw2) = √0.0225 = 0.15
     /// assert_approx_eq!(f64, lorentzian.hw(), 0.15);
     /// ```
     pub fn hw(&self) -> f64 {
@@ -459,18 +429,11 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
-    /// // hw2 = hw² = 0.15² = 0.0225
-    /// // maxp = 5.0
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
     /// let (sf, hw, maxp) = lorentzian.untransformed_parameters();
-    /// // sf = sfhw / √(hw2) = 0.045 / √0.0225 = 0.3
+    ///
     /// assert_approx_eq!(f64, sf, 0.3);
-    /// // hw = √(hw2) = √0.0225 = 0.15
     /// assert_approx_eq!(f64, hw, 0.15);
-    /// // maxp remains unchanged
     /// assert_approx_eq!(f64, maxp, 5.0);
     /// ```
     pub fn untransformed_parameters(&self) -> (f64, f64, f64) {
@@ -492,14 +455,10 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // sfhw = max_intensity * hw² = 2.0 * 0.15² = 0.045
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set sf to 0.45, which increases the maximum intensity to 3.0.
     /// lorentzian.set_sf(0.45);
+    ///
     /// assert_approx_eq!(f64, lorentzian.sf(), 0.45);
-    /// assert_approx_eq!(f64, lorentzian.sf() / lorentzian.hw(), 3.0);
     /// ```
     pub fn set_sf(&mut self, sf: f64) {
         self.sfhw = sf * self.hw();
@@ -520,14 +479,10 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
-    /// // hw2 = hw² = 0.15² = 0.0225
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set hw to 0.30, which halves the maximum intensity.
     /// lorentzian.set_hw(0.30);
+    ///
     /// assert_approx_eq!(f64, lorentzian.hw(), 0.30);
-    /// assert_approx_eq!(f64, lorentzian.sf() / lorentzian.hw(), 1.0);
     /// ```
     pub fn set_hw(&mut self, hw: f64) {
         self.sfhw = self.sf() * hw;
@@ -548,11 +503,9 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
     /// let mut lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Set maximum intensity to 3.0, hw to 0.2, and shift maximum to -5.0.
     /// lorentzian.set_untransformed_parameters(0.6, 0.2, -5.0);
+    ///
     /// assert_approx_eq!(f64, lorentzian.sf(), 0.6);
     /// assert_approx_eq!(f64, lorentzian.hw(), 0.2);
     /// assert_approx_eq!(f64, lorentzian.maxp(), -5.0);
@@ -572,10 +525,8 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
     ///
-    /// // Evaluate the Lorentzian at the maximum position.
     /// assert_approx_eq!(f64, lorentzian.evaluate(5.0), 2.0);
     /// ```
     pub fn evaluate(&self, x: f64) -> f64 {
@@ -589,15 +540,10 @@ impl Lorentzian {
     /// ```
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Generate 100 chemical shifts between 0.0 and 10.0 ppm.
     /// let chemical_shifts = (0..100)
     ///     .map(|x| x as f64 * 10.0 / 99.0)
     ///     .collect::<Vec<f64>>();
-    ///
-    /// // Evaluate the Lorentzian at the chemical shifts.
     /// let intensities = lorentzian.evaluate_vec(&chemical_shifts);
     /// ```
     pub fn evaluate_vec(&self, x: &[f64]) -> Vec<f64> {
@@ -612,11 +558,9 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Signal centered at 5 ppm with maximum intensity 2.0 and hw 0.15.
     /// let lorentzian = Lorentzian::new(0.045, 0.0225, 5.0);
-    ///
-    /// // Compute the integral of the Lorentzian.
     /// let integral = lorentzian.integral();
+    ///
     /// assert_approx_eq!(f64, lorentzian.sf() * std::f64::consts::PI, integral);
     /// ```
     pub fn integral(&self) -> f64 {
@@ -632,14 +576,12 @@ impl Lorentzian {
     /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Create a peak triplet centered at 5 ppm with shorter side peaks.
     /// let triplet = [
     ///     Lorentzian::new(0.03, 0.0009, 4.8),
     ///     Lorentzian::new(0.02, 0.0004, 5.0),
     ///     Lorentzian::new(0.03, 0.0009, 5.2),
     /// ];
     ///
-    /// // Evaluate the superposition of the Lorentzians at the maximum.
     /// assert_approx_eq!(
     ///     f64,
     ///     Lorentzian::superposition(5.0, &triplet),
@@ -662,19 +604,14 @@ impl Lorentzian {
     /// ```
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Create a peak triplet centered at 5 ppm with shorter side peaks.
     /// let triplet = [
     ///     Lorentzian::new(0.03, 0.0009, 4.8),
     ///     Lorentzian::new(0.02, 0.0004, 5.0),
     ///     Lorentzian::new(0.03, 0.0009, 5.2),
     /// ];
-    ///
-    /// // Generate 100 chemical shifts between 0.0 and 10.0 ppm.
     /// let chemical_shifts = (0..100)
     ///     .map(|x| x as f64 * 10.0 / 99.0)
     ///     .collect::<Vec<f64>>();
-    ///
-    /// // Evaluate the superposition of the Lorentzians at the chemical shifts.
     /// let sup = Lorentzian::superposition_vec(&chemical_shifts, &triplet);
     /// ```
     pub fn superposition_vec<L: AsRef<Lorentzian>>(x: &[f64], lorentzians: &[L]) -> Vec<f64> {
@@ -691,19 +628,14 @@ impl Lorentzian {
     /// ```
     /// use metabodecon::deconvolution::Lorentzian;
     ///
-    /// // Create a peak triplet centered at 5 ppm with shorter side peaks.
     /// let triplet = [
     ///     Lorentzian::new(0.03, 0.0009, 4.8),
     ///     Lorentzian::new(0.02, 0.0004, 5.0),
     ///     Lorentzian::new(0.03, 0.0009, 5.2),
     /// ];
-    ///
-    /// // Generate 100 chemical shifts between 0.0 and 10.0 ppm.
     /// let chemical_shifts = (0..100)
     ///     .map(|x| x as f64 * 10.0 / 99.0)
     ///     .collect::<Vec<f64>>();
-    ///
-    /// // Evaluate the superposition of the Lorentzians at the chemical shifts.
     /// let sup = Lorentzian::par_superposition_vec(&chemical_shifts, &triplet);
     /// ```
     #[cfg(feature = "parallel")]

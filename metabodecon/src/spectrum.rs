@@ -5,7 +5,8 @@
 //!
 //! - [`Spectrum`]: A container for spectral 1D NMR data and metadata.
 //! - [`Bruker`]: An interface for parsing Bruker TopSpin NMR data.
-//! - [`JcampDx`]: An interface for parsing spectra from JCAMP-DX files. (WIP)
+//! - [`JcampDx`]: An interface for parsing spectra from JCAMP-DX files.
+//! - [`meta`]: A module containing metadata structures for NMR spectra.
 //!
 //! # Example: Reading multiple spectra from Bruker TopSpin format
 //!
@@ -35,8 +36,24 @@
 //!
 //! # Example: Reading multiple spectra from JCAMP-DX files
 //!
-//! JCAMP-DX is a common open format for NMR data. Support for this format is
-//! currently a work in progress. [Read more](JcampDx)
+//! JCAMP-DX is a common open format for NMR data. [Read more](JcampDx)
+//!
+//! ```
+//! use metabodecon::spectrum::JcampDx;
+//!
+//! # fn main() -> metabodecon::Result<()> {
+//! let path = "path/to/spectrum.dx";
+//! # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+//!
+//! // Read a spectrum from a JCAMP-DX file.
+//! let spectrum = JcampDx::read_spectrum(
+//!     path,
+//!     // Signal boundaries
+//!     (20.0, 220.0),
+//! )?;
+//! # Ok(())
+//! # }
+//! ```
 //!
 //! # Example: Constructing a `Spectrum` manually
 //!
@@ -47,6 +64,7 @@
 //!
 //! ```
 //! use metabodecon::spectrum::Spectrum;
+//! use metabodecon::spectrum::meta::Nucleus;
 //!
 //! # fn main() -> metabodecon::Result<()> {
 //! // Generate 2^15 chemical shifts between 0 and 10 ppm.
@@ -69,8 +87,13 @@
 //! let signal_boundaries = (1.0, 9.0);
 //!
 //! // Create a Spectrum object.
-//! let spectrum =
+//! let mut spectrum =
 //!     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+//!
+//! // Add metadata
+//! spectrum.set_nucleus(Nucleus::Carbon13);
+//! spectrum.set_frequency(400.0);
+//! spectrum.set_reference_compound((4.8, 2_usize.pow(14) - 1));
 //! # Ok(())
 //! # }
 //! ```

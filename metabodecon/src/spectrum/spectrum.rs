@@ -37,15 +37,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Serialization with `serde`
 ///
-/// When the `serde` feature is enabled, `Spectrum` can be serialized and
-/// deserialized using `serde`. However, storing `Spectrum` instances as text
-/// files (e.g., JSON) is not advised because NMR spectra are typically large.
+/// When the `serde` feature is enabled, `Spectrum` implements the [`Serialize`]
+/// and [`Deserialize`] traits. Note that storing `Spectrum` instances as text
+/// files (e.g., JSON) is not advised because NMR spectra can be very large.
 /// While the chemical shifts are encoded efficiently as a range and a size
 /// (rather than storing all values individually), the resulting files can still
-/// be quite large. For better performance, consider using binary formats like
-/// [bincode].
+/// take up a lot of storage. For better performance, consider using binary
+/// formats like [MessagePack].
 ///
-/// [bincode]: https://docs.rs/bincode/latest/
+/// [`Serialize`]: serde::Serialize
+/// [`Deserialize`]: serde::Deserialize
+/// [MessagePack]: https://docs.rs/rmp-serde/latest/
 ///
 /// # Parsing from Common NMR Formats
 ///
@@ -439,14 +441,20 @@ impl Spectrum {
     ///     vec![1.0, 2.0, 3.0], // Intensities
     ///     (1.0, 3.0),          // Signal boundaries
     /// )?;
-    /// spectrum.set_nucleus(Nucleus::Carbon13);
     ///
+    /// spectrum.set_nucleus(Nucleus::Carbon13);
     /// assert_eq!(spectrum.nucleus(), Nucleus::Carbon13);
+    ///
+    /// spectrum.set_nucleus("fluorine19");
+    /// assert_eq!(spectrum.nucleus(), Nucleus::Fluorine19);
+    ///
+    /// spectrum.set_nucleus("31P");
+    /// assert_eq!(spectrum.nucleus(), Nucleus::Phosphorus31);
     /// # Ok(())
     /// # }
     /// ```
-    pub fn set_nucleus(&mut self, nucleus: Nucleus) {
-        self.nucleus = nucleus;
+    pub fn set_nucleus<T: Into<Nucleus>>(&mut self, nucleus: T) {
+        self.nucleus = nucleus.into();
     }
 
     /// Sets the spectrometer frequency of the `Spectrum` in MHz.
@@ -483,7 +491,8 @@ impl Spectrum {
     ///
     /// The reference compound is used to set the chemical shift reference of
     /// the `Spectrum`. The chemical shifts are adjusted such that the reference
-    /// compound is at the specified chemical shift.
+    /// compound is at the specified chemical shift. Signal boundaries are
+    /// shifted accordingly.
     ///
     /// [`ReferenceCompound`] implements `From<f64>` and `From<(f64, usize)>` to
     /// allow for easy conversion from a chemical shift or a chemical shift and
@@ -509,11 +518,15 @@ impl Spectrum {
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 10.0); // Reference
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 11.0);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 12.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 10.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().1, 12.0);
     ///
     /// spectrum.set_reference_compound((20.0, 1));
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 19.0);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 20.0); // Reference
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 21.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 19.0);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().1, 21.0);
     ///
     /// let name = Some("H2O".to_string());
     /// let reference = ReferenceCompound::new(4.8, 2, name, None);
@@ -521,7 +534,8 @@ impl Spectrum {
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 2.8);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 3.8);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[2], 4.8); // Reference
-    /// //
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 2.8);
+    /// assert_approx_eq!(f64, spectrum.signal_boundaries().1, 4.8);
     /// # Ok(())
     /// # }
     /// ```

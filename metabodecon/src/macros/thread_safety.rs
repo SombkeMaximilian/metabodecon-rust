@@ -3,8 +3,8 @@
 #[cfg(test)]
 macro_rules! assert_send {
     ($($t:ty),+ $(,)?) => {
+        fn assert_send<T: Send>() {}
         $(
-            fn assert_send<T: Send>() {}
             assert_send::<$t>();
         )+
     };
@@ -15,8 +15,8 @@ macro_rules! assert_send {
 #[cfg(test)]
 macro_rules! assert_sync {
     ($($t:ty),+ $(,)?) => {
+        fn assert_sync<T: Sync>() {}
         $(
-            fn assert_sync<T: Sync>() {}
             assert_sync::<$t>();
         )+
     };

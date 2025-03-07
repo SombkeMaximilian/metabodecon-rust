@@ -32,3 +32,45 @@ impl Monotonicity {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{assert_send, assert_sync};
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(Monotonicity);
+        assert_sync!(Monotonicity);
+    }
+
+    #[test]
+    fn increasing() {
+        let first = 3.0;
+        let second = 4.0;
+        assert_eq!(
+            Monotonicity::from_f64s(first, second),
+            Some(Monotonicity::Increasing)
+        );
+    }
+
+    #[test]
+    fn decreasing() {
+        let first = 4.0;
+        let second = 3.0;
+        assert_eq!(
+            Monotonicity::from_f64s(first, second),
+            Some(Monotonicity::Decreasing)
+        );
+    }
+
+    #[test]
+    fn indeterminate() {
+        let firsts = [3.0, f64::NAN, f64::INFINITY, f64::NEG_INFINITY];
+        let seconds = [3.0 + f64::EPSILON, 0.0, 0.0, 0.0];
+        firsts
+            .into_iter()
+            .zip(seconds)
+            .for_each(|(first, second)| assert_eq!(Monotonicity::from_f64s(first, second), None));
+    }
+}

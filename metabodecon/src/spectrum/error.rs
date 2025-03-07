@@ -159,8 +159,7 @@ pub enum Kind {
     /// parsed at this time. Currently supported is:
     /// - Version 5.xx and 6.xx
     /// - NMR SPECTRUM data type
-    /// - XYDATA, XYPOINTS, and NTUPLES data classes
-    /// - Internal and external referencing methods
+    /// - XYDATA and NTUPLES data classes
     ///
     /// If you have a file that you believe should be parsable but is not, open
     /// an [issue] and provide the file.

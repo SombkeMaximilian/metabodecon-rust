@@ -3,9 +3,14 @@ use serde::{Deserialize, Serialize};
 
 /// The referencing method used in the NMR experiment.
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
+#[cfg_attr(
+    feature = "serde",
+    derive(Serialize, Deserialize),
+    serde(rename_all = "camelCase")
+)]
 pub enum ReferencingMethod {
     /// An internal reference was used.
+    ///
     Internal,
     /// An external reference was used.
     External,
@@ -127,5 +132,48 @@ impl ReferenceCompound {
     /// Sets the referencing method used in the NMR experiment.
     pub fn set_referencing_method(&mut self, referencing_method: Option<ReferencingMethod>) {
         self.referencing_method = referencing_method;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{assert_send, assert_sync};
+    use float_cmp::assert_approx_eq;
+
+    #[test]
+    fn thread_safety() {
+        assert_send!(ReferencingMethod, ReferenceCompound);
+        assert_sync!(ReferencingMethod, ReferenceCompound);
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn serialization_round_trip() {
+        let references = [
+            14_f64.into(),
+            (4.8, 2_usize.pow(14)).into(),
+            ReferenceCompound::new(
+                0.0,
+                12000,
+                Some("TMS".into()),
+                Some(ReferencingMethod::Internal),
+            ),
+        ];
+        let serialized = references
+            .clone()
+            .map(|reference| serde_json::to_string(&reference).unwrap());
+        let deserialized = serialized
+            .clone()
+            .map(|serialized| serde_json::from_str::<ReferenceCompound>(&serialized).unwrap());
+        references
+            .into_iter()
+            .zip(deserialized)
+            .for_each(|(init, rec)| {
+                assert_approx_eq!(f64, init.chemical_shift(), rec.chemical_shift());
+                assert_eq!(init.index(), rec.index());
+                assert_eq!(init.name(), rec.name());
+                assert_eq!(init.referencing_method(), rec.referencing_method());
+            })
     }
 }
