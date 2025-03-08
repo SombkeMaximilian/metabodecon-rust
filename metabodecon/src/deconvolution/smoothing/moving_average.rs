@@ -24,40 +24,38 @@ use std::ops::{AddAssign, Div, Mul, SubAssign};
 /// | Step 6 |     |     |     | -   | -   | x   | -   |
 /// | Step 7 |     |     |     |     | -   | -   | x   |
 #[derive(Debug)]
-pub(crate) struct MovingAverage<Type> {
-    /// The number of iterations to apply the filter.
+pub(crate) struct MovingAverage<T> {
+    /// Number of iterations to apply the filter.
     iterations: usize,
-    /// The size of the sliding window.
+    /// Size of the sliding window.
     window_size: usize,
-    /// The number of values to the right of the current value in the window.
+    /// Number of values to the right of the current value in the window.
     right: usize,
     /// Marker for the type of the values.
-    _marker: PhantomData<Type>,
+    _marker: PhantomData<T>,
 }
 
-impl<Type> Smoother<Type> for MovingAverage<Type>
+impl<T> Smoother<T> for MovingAverage<T>
 where
-    Type: Copy
+    T: Copy
         + FromPrimitive
         + One
         + Zero
         + AddAssign
         + SubAssign
-        + Mul<Output = Type>
-        + Div<Output = Type>
+        + Mul<Output = T>
+        + Div<Output = T>
         + Send
         + Sync
         + std::fmt::Debug
         + 'static,
 {
-    /// Smooths the given sequence of values in place using the moving average
-    /// filter.
-    fn smooth_values(&self, values: &mut [Type]) {
-        let mut cache = CircularBuffer::<Type>::new(self.window_size);
+    fn smooth_values(&self, values: &mut [T]) {
+        let mut cache = CircularBuffer::<T>::new(self.window_size);
         let values_len = values.len();
         for _ in 0..self.iterations {
-            let mut div = Type::one();
-            let mut sum = Type::zero();
+            let mut div = T::one();
+            let mut sum = T::zero();
             values.iter().take(self.right).for_each(|value| {
                 cache.push(*value);
                 sum += *value;
@@ -67,7 +65,7 @@ where
                 if let Some(popped) = cache.push(values[i + self.right]) {
                     sum -= popped;
                 } else {
-                    div = Type::one() / Type::from_usize(cache.len()).unwrap();
+                    div = T::one() / T::from_usize(cache.len()).unwrap();
                 };
                 values[i] = sum * div;
             }
@@ -76,7 +74,7 @@ where
                 .for_each(|value| {
                     if let Some(popped) = cache.pop() {
                         sum -= popped;
-                        div = Type::one() / Type::from_usize(cache.len()).unwrap();
+                        div = T::one() / T::from_usize(cache.len()).unwrap();
                         *value = sum * div;
                     }
                 });
@@ -92,16 +90,16 @@ where
     }
 }
 
-impl<Type> MovingAverage<Type>
+impl<T> MovingAverage<T>
 where
-    Type: Copy
+    T: Copy
         + FromPrimitive
         + One
         + Zero
         + AddAssign
         + SubAssign
-        + Mul<Output = Type>
-        + Div<Output = Type>
+        + Mul<Output = T>
+        + Div<Output = T>
         + Send
         + Sync
         + std::fmt::Debug
@@ -109,10 +107,6 @@ where
 {
     /// Creates a new `MovingAverage` filter with the given number of iterations
     /// and window size.
-    ///
-    /// # Panics
-    ///
-    /// Panics if the window size is zero.
     pub(crate) fn new(iterations: usize, window_size: usize) -> Self {
         Self {
             iterations,

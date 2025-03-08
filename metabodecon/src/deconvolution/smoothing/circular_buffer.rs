@@ -4,9 +4,9 @@ use std::collections::VecDeque;
 /// FIFO buffer with a fixed capacity that wraps around and overwrites old
 /// elements when full.
 #[derive(Debug)]
-pub(crate) struct CircularBuffer<Type> {
+pub(crate) struct CircularBuffer<T> {
     /// The underlying storage for the buffer.
-    buffer: VecDeque<Type>,
+    buffer: VecDeque<T>,
     /// The maximum number of elements the buffer can hold.
     ///
     /// This has to be stored separately because [`VecDeque`] only guarantees
@@ -14,7 +14,7 @@ pub(crate) struct CircularBuffer<Type> {
     capacity: usize,
 }
 
-impl<Type: Copy + Zero> CircularBuffer<Type> {
+impl<T: Copy + Zero> CircularBuffer<T> {
     /// Creates a new `CircularBuffer` with the given capacity.
     ///
     /// # Panics
@@ -31,7 +31,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 
     /// Inserts a new element into the buffer and returns the oldest element if
     /// the buffer was already full or `None` otherwise.
-    pub(crate) fn push(&mut self, value: Type) -> Option<Type> {
+    pub(crate) fn push(&mut self, value: T) -> Option<T> {
         let popped_value = if self.buffer.len() == self.capacity {
             self.pop()
         } else {
@@ -44,7 +44,7 @@ impl<Type: Copy + Zero> CircularBuffer<Type> {
 
     /// Removes and returns the oldest element from the buffer or `None` if the
     /// buffer was already empty.
-    pub(crate) fn pop(&mut self) -> Option<Type> {
+    pub(crate) fn pop(&mut self) -> Option<T> {
         self.buffer.pop_front()
     }
 
