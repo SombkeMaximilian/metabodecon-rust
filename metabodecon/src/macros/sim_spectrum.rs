@@ -33,11 +33,6 @@ macro_rules! check_sim_spectrum {
         );
         assert_eq!($spectrum.reference_compound().index(), 0);
         assert_eq!($spectrum.reference_compound().name(), None);
-        assert_eq!(
-            $spectrum
-                .reference_compound()
-                .referencing_method(),
-            None
-        );
+        assert_eq!($spectrum.reference_compound().method(), None);
     };
 }

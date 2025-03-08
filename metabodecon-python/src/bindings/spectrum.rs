@@ -109,7 +109,7 @@ impl Spectrum {
             Some(name) => dict.set_item("name", name)?,
             None => dict.set_item("name", "unknown")?,
         };
-        match reference.referencing_method() {
+        match reference.method() {
             Some(referencing_method) => {
                 dict.set_item("referencing_method", referencing_method.to_string())?
             }

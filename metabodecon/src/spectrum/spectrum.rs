@@ -352,7 +352,7 @@ impl Spectrum {
     /// assert_approx_eq!(f64, reference.chemical_shift(), 1.0);
     /// assert_eq!(reference.index(), 0);
     /// assert_eq!(reference.name(), None);
-    /// assert_eq!(reference.referencing_method(), None);
+    /// assert_eq!(reference.method(), None);
     /// # Ok(())
     /// # }
     /// ```

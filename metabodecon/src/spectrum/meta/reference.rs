@@ -55,7 +55,7 @@ pub struct ReferenceCompound {
     /// The name of the reference compound.
     name: Option<String>,
     /// The referencing method used in the NMR experiment.
-    referencing_method: Option<ReferencingMethod>,
+    method: Option<ReferencingMethod>,
 }
 
 impl From<f64> for ReferenceCompound {
@@ -82,14 +82,14 @@ impl ReferenceCompound {
     pub fn new(
         chemical_shift: f64,
         index: usize,
-        name: Option<String>,
-        referencing_method: Option<ReferencingMethod>,
+        name: Option<T>,
+        method: Option<ReferencingMethod>,
     ) -> Self {
         Self {
             chemical_shift,
             index,
-            name,
-            referencing_method,
+            name: name.and_then(|name| Some(name.into())),
+            method,
         }
     }
 
@@ -109,8 +109,8 @@ impl ReferenceCompound {
     }
 
     /// Returns the referencing method used in the NMR experiment.
-    pub fn referencing_method(&self) -> Option<ReferencingMethod> {
-        self.referencing_method
+    pub fn method(&self) -> Option<ReferencingMethod> {
+        self.method
     }
 
     /// Sets the chemical shift of the reference compound.
@@ -129,8 +129,8 @@ impl ReferenceCompound {
     }
 
     /// Sets the referencing method used in the NMR experiment.
-    pub fn set_referencing_method(&mut self, referencing_method: Option<ReferencingMethod>) {
-        self.referencing_method = referencing_method;
+    pub fn set_method(&mut self, method: Option<ReferencingMethod>) {
+        self.method = method;
     }
 }
 
@@ -172,7 +172,7 @@ mod tests {
                 assert_approx_eq!(f64, init.chemical_shift(), rec.chemical_shift());
                 assert_eq!(init.index(), rec.index());
                 assert_eq!(init.name(), rec.name());
-                assert_eq!(init.referencing_method(), rec.referencing_method());
+                assert_eq!(init.method(), rec.method());
             })
     }
 }
