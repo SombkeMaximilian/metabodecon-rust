@@ -100,14 +100,14 @@ impl<T: AsRef<str>> From<T> for Nucleus {
             .to_uppercase();
 
         match nucleus.as_str() {
-            "1H" | "PROTON" | "HYDROGEN1" => Nucleus::Hydrogen1,
-            "11B" | "BORON11" => Nucleus::Boron11,
-            "13C" | "CARBON13" => Nucleus::Carbon13,
-            "15N" | "NITROGEN15" => Nucleus::Nitrogen15,
-            "19F" | "FLUORINE19" => Nucleus::Fluorine19,
-            "29SI" | "SILICON29" => Nucleus::Silicon29,
-            "31P" | "PHOSPHORUS31" => Nucleus::Phosphorus31,
-            _ => Nucleus::Other(value.as_ref().to_string()),
+            "1H" | "PROTON" | "HYDROGEN1" => Self::Hydrogen1,
+            "11B" | "BORON11" => Self::Boron11,
+            "13C" | "CARBON13" => Self::Carbon13,
+            "15N" | "NITROGEN15" => Self::Nitrogen15,
+            "19F" | "FLUORINE19" => Self::Fluorine19,
+            "29SI" | "SILICON29" => Self::Silicon29,
+            "31P" | "PHOSPHORUS31" => Self::Phosphorus31,
+            _ => Self::Other(value.as_ref().to_string()),
         }
     }
 }
@@ -123,14 +123,14 @@ impl std::str::FromStr for Nucleus {
 impl std::fmt::Display for Nucleus {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let nucleus = match self {
-            Nucleus::Hydrogen1 => "1H",
-            Nucleus::Boron11 => "11B",
-            Nucleus::Carbon13 => "13C",
-            Nucleus::Nitrogen15 => "15N",
-            Nucleus::Fluorine19 => "19F",
-            Nucleus::Silicon29 => "29Si",
-            Nucleus::Phosphorus31 => "31P",
-            Nucleus::Other(value) => value.as_str(),
+            Self::Hydrogen1 => "1H",
+            Self::Boron11 => "11B",
+            Self::Carbon13 => "13C",
+            Self::Nitrogen15 => "15N",
+            Self::Fluorine19 => "19F",
+            Self::Silicon29 => "29Si",
+            Self::Phosphorus31 => "31P",
+            Self::Other(value) => value.as_str(),
         };
         write!(f, "{}", nucleus)
     }
