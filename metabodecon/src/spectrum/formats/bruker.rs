@@ -6,7 +6,7 @@ use byteorder::{BigEndian, LittleEndian, ReadBytesExt};
 use regex::Regex;
 use std::fs::{File, read_to_string};
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::LazyLock;
 
 /// Interface for reading 1D NMR spectra in the Bruker TopSpin format.
@@ -358,16 +358,19 @@ impl Bruker {
         processing: u32,
         signal_boundaries: (f64, f64),
     ) -> Result<Vec<Spectrum>> {
-        let spectra_roots = path
+        let spectra = path
             .as_ref()
             .read_dir()?
-            .filter(|entry| entry.is_ok())
-            .filter(|entry| entry.as_ref().unwrap().path().is_dir())
-            .map(|entry| entry.unwrap().path())
-            .collect::<Vec<PathBuf>>();
-        let spectra = spectra_roots
-            .into_iter()
-            .map(|root| Self::read_spectrum(root, experiment, processing, signal_boundaries))
+            .filter_map(|entry| {
+                entry.ok().and_then(|entry| {
+                    if entry.path().is_dir() {
+                        Some(entry.path())
+                    } else {
+                        None
+                    }
+                })
+            })
+            .map(|entry| Self::read_spectrum(entry, experiment, processing, signal_boundaries))
             .collect::<Result<Vec<Spectrum>>>()?;
 
         Ok(spectra)
@@ -442,8 +445,8 @@ impl Bruker {
     ///
     /// The following errors are possible:
     /// - [`Error::IoError`](crate::Error::IoError)
-    fn read_one_r(path: PathBuf, procs: ProcessingParameters) -> Result<Vec<f64>> {
-        let mut one_r = File::open(path)?;
+    fn read_one_r<P: AsRef<Path>>(path: P, procs: ProcessingParameters) -> Result<Vec<f64>> {
+        let mut one_r = File::open(path.as_ref())?;
         let mut buffer = vec![
             0;
             procs.data_size
