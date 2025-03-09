@@ -535,9 +535,14 @@ impl Spectrum {
     /// # }
     /// ```
     pub fn set_reference_compound<T: Into<ReferenceCompound>>(&mut self, reference: T) {
+        let reference = reference.into();
+        let difference = self.chemical_shifts[reference.index()] - reference.chemical_shift();
+        if f64::abs(difference) < crate::CHECK_PRECISION {
+            self.reference_compound = reference;
+            return;
+        }
         let first_before = self.chemical_shifts[0];
         let step = self.step();
-        let reference = reference.into();
         let offset = reference.chemical_shift() - reference.index() as f64 * step;
         self.chemical_shifts = (0..self.len())
             .map(|i| offset + (i as f64) * step)
