@@ -1074,41 +1074,80 @@ impl JcampDx {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::check_blood_spectrum;
     use float_cmp::assert_approx_eq;
 
     #[test]
     fn read_affn_spectrum() {
-        let path = "../data/jcamp-dx/BRUKAFFN.dx";
-        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        let affn_paths = [
+            "../data/jcamp-dx/test/v5/xydata_affn.dx",
+            "../data/jcamp-dx/test/v6/xydata_affn.dx",
+            "../data/jcamp-dx/test/v5/ntuples_affn.dx",
+            "../data/jcamp-dx/test/v6/ntuples_affn.dx",
+        ];
+        affn_paths
+            .map(|path| JcampDx::read_spectrum(path, (1.0, 1.1)).unwrap())
+            .into_iter()
+            .for_each(|mut spectrum| {
+                spectrum.set_reference_compound(spectrum.range().0);
+                check_blood_spectrum!(spectrum);
+            });
     }
 
     #[test]
     fn read_pac_spectrum() {
-        let path = "../data/jcamp-dx/BRUKPAC.dx";
-        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        let pac_paths = [
+            "../data/jcamp-dx/test/v5/xydata_pac.dx",
+            "../data/jcamp-dx/test/v6/xydata_pac.dx",
+            "../data/jcamp-dx/test/v5/ntuples_pac.dx",
+            "../data/jcamp-dx/test/v6/ntuples_pac.dx",
+        ];
+        pac_paths
+            .map(|path| JcampDx::read_spectrum(path, (1.0, 1.1)).unwrap())
+            .into_iter()
+            .for_each(|mut spectrum| {
+                spectrum.set_reference_compound(spectrum.range().0);
+                check_blood_spectrum!(spectrum);
+            });
     }
 
     #[test]
     fn read_sqz_spectrum() {
-        let path = "../data/jcamp-dx/BRUKSQZ.dx";
-        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        let sqz_paths = [
+            "../data/jcamp-dx/test/v5/xydata_sqz.dx",
+            "../data/jcamp-dx/test/v6/xydata_sqz.dx",
+            "../data/jcamp-dx/test/v5/ntuples_sqz.dx",
+            "../data/jcamp-dx/test/v6/ntuples_sqz.dx",
+        ];
+        sqz_paths
+            .map(|path| JcampDx::read_spectrum(path, (1.0, 1.1)).unwrap())
+            .into_iter()
+            .for_each(|mut spectrum| {
+                spectrum.set_reference_compound(spectrum.range().0);
+                check_blood_spectrum!(spectrum);
+            });
     }
 
     #[test]
     fn read_dif_dup_spectrum() {
-        let path = "../data/jcamp-dx/BRUKDIF.dx";
-        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
-    }
-
-    #[test]
-    fn read_ntuples_spectrum() {
-        let path = "../data/jcamp-dx/BRUKNTUP.dx";
-        JcampDx::read_spectrum(path, (20.0, 220.0)).unwrap();
+        let difdup_paths = [
+            "../data/jcamp-dx/test/v5/xydata_difdup.dx",
+            "../data/jcamp-dx/test/v6/xydata_difdup.dx",
+            "../data/jcamp-dx/test/v5/ntuples_difdup.dx",
+            "../data/jcamp-dx/test/v6/ntuples_difdup.dx",
+        ];
+        difdup_paths
+            .map(|path| JcampDx::read_spectrum(path, (1.0, 1.1)).unwrap())
+            .into_iter()
+            .for_each(|mut spectrum| {
+                spectrum.set_reference_compound(spectrum.range().0);
+                check_blood_spectrum!(spectrum);
+            });
     }
 
     #[test]
     fn read_header() {
-        let path = "../data/jcamp-dx/BRUKNTUP.dx";
+        let path = "../data/jcamp-dx/test/v6/ntuples_difdup.dx";
         let dx = read_to_string(path).unwrap();
         let header = JcampDx::read_header(&dx, path).unwrap();
         match header.data_type {
@@ -1118,16 +1157,24 @@ mod tests {
             Format::XYData => panic!("Expected NTuples"),
             Format::NTuples => (),
         };
-        assert_approx_eq!(f64, header.frequency, 100.4);
-        assert_eq!(header.nucleus, Nucleus::Carbon13);
-        if header.reference_compound.is_some() {
-            panic!("Expected None");
+        assert_approx_eq!(f64, header.frequency, 600.252821089118);
+        assert_eq!(header.nucleus, Nucleus::Hydrogen1);
+        if let Some(reference) = header.reference_compound {
+            assert_approx_eq!(f64, reference.chemical_shift(), 14.81146);
+            assert_eq!(reference.index(), 0);
+            assert_eq!(reference.name().unwrap(), "Plasma");
+            assert_eq!(
+                reference.method().unwrap(),
+                crate::spectrum::meta::ReferencingMethod::Internal
+            );
+        } else {
+            panic!("Expected Some");
         }
     }
 
     #[test]
     fn read_xydata() {
-        let path = "../data/jcamp-dx/BRUKDIF.dx";
+        let path = "../data/jcamp-dx/test/v6/xydata_difdup.dx";
         let dx = read_to_string(path).unwrap();
         let xy_data = JcampDx::read_xydata(&dx, path).unwrap();
         match xy_data.x_units {
@@ -1135,14 +1182,14 @@ mod tests {
             XUnits::Ppm => panic!("Expected Hz"),
         }
         assert_approx_eq!(f64, xy_data.factor, 1.0);
-        assert_approx_eq!(f64, xy_data.first, 24038.5);
+        assert_approx_eq!(f64, xy_data.first, 12019.1390697773);
         assert_approx_eq!(f64, xy_data.last, 0.0);
-        assert_eq!(xy_data.data_size, 16384);
+        assert_eq!(xy_data.data_size, 2_usize.pow(17));
     }
 
     #[test]
     fn read_ntuples() {
-        let path = "../data/jcamp-dx/BRUKNTUP.dx";
+        let path = "../data/jcamp-dx/test/v6/ntuples_difdup.dx";
         let dx = read_to_string(path).unwrap();
         let n_tuples = JcampDx::read_ntuples(&dx, path).unwrap();
         match n_tuples.x_units {
@@ -1150,9 +1197,9 @@ mod tests {
             XUnits::Ppm => panic!("Expected Hz"),
         }
         assert_approx_eq!(f64, n_tuples.factor, 1.0);
-        assert_approx_eq!(f64, n_tuples.first, 24038.5);
+        assert_approx_eq!(f64, n_tuples.first, 12019.1390697773);
         assert_approx_eq!(f64, n_tuples.last, 0.0);
-        assert_eq!(n_tuples.data_size, 16384);
+        assert_eq!(n_tuples.data_size, 2_usize.pow(17));
     }
 
     #[test]

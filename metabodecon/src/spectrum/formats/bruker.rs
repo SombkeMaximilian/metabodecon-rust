@@ -494,24 +494,33 @@ impl Bruker {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::check_sim_spectrum;
+    use crate::{check_blood_spectrum, check_sim_spectrum};
     use float_cmp::assert_approx_eq;
 
     #[test]
     fn read_spectrum() {
-        let path = "../data/bruker/sim/sim_01";
-        let spectrum = Bruker::read_spectrum(path, 10, 10, (3.339007, 3.553942)).unwrap();
-        check_sim_spectrum!(spectrum);
+        let sim_path = "../data/bruker/sim/sim_01";
+        let blood_path = "../data/bruker/blood/blood_01";
+        let sim = Bruker::read_spectrum(sim_path, 10, 10, (3.34, 3.56)).unwrap();
+        let blood = Bruker::read_spectrum(blood_path, 10, 10, (-2.2, 11.8)).unwrap();
+        check_sim_spectrum!(sim);
+        check_blood_spectrum!(blood);
     }
 
     #[test]
     fn read_spectra() {
-        let path = "../data/bruker/sim";
-        let spectra = Bruker::read_spectra(path, 10, 10, (3.339007, 3.553942)).unwrap();
-        assert_eq!(spectra.len(), 16);
-        spectra.iter().for_each(|spectrum| {
+        let sim_path = "../data/bruker/sim";
+        let blood_path = "../data/bruker/blood";
+        let sim = Bruker::read_spectra(sim_path, 10, 10, (3.34, 3.56)).unwrap();
+        let blood = Bruker::read_spectra(blood_path, 10, 10, (-2.2, 11.8)).unwrap();
+        assert_eq!(sim.len(), 16);
+        assert_eq!(blood.len(), 16);
+        sim.iter().for_each(|spectrum| {
             check_sim_spectrum!(spectrum);
-        })
+        });
+        blood.iter().for_each(|spectrum| {
+            check_blood_spectrum!(spectrum);
+        });
     }
 
     #[test]

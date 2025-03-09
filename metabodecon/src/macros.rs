@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod sim_spectrum;
+mod check_spectrum;
 
 #[cfg(test)]
 mod thread_safety;
