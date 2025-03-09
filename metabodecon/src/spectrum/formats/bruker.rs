@@ -274,10 +274,7 @@ impl Bruker {
         let acqus = Self::read_acquisition_parameters(acqus_path)?;
         let procs = Self::read_processing_parameters(procs_path)?;
         let chemical_shifts = (0..procs.data_size)
-            .map(|i| {
-                procs.maximum - acqus.width
-                    + (i as f64) * acqus.width / (procs.data_size as f64 - 1.0)
-            })
+            .map(|i| procs.maximum - (i as f64) * acqus.width / (procs.data_size as f64 - 1.0))
             .collect();
         let intensities = Self::read_one_r(one_r_path, procs)?;
         let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
