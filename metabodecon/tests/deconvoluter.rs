@@ -18,7 +18,7 @@ fn store_deconvolution(deconvolution: Deconvolution, filename: &str) {
 #[test]
 fn sim() {
     let path = "../data/bruker/sim/sim_01";
-    let spectrum = Bruker::read_spectrum(path, 10, 10, (3.339007, 3.553942)).unwrap();
+    let spectrum = Bruker::read_spectrum(path, 10, 10, (3.35, 3.55)).unwrap();
     let deconvoluter = Deconvoluter::default();
     let deconvolution = deconvoluter
         .deconvolute_spectrum(&spectrum)
@@ -43,7 +43,7 @@ fn blood() {
 #[test]
 fn par_sim() {
     let path = "../data/bruker/sim/sim_01";
-    let spectrum = Bruker::read_spectrum(path, 10, 10, (3.339007, 3.553942)).unwrap();
+    let spectrum = Bruker::read_spectrum(path, 10, 10, (3.35, 3.55)).unwrap();
     let deconvoluter = Deconvoluter::default();
     let deconvolution = deconvoluter
         .par_deconvolute_spectrum(&spectrum)

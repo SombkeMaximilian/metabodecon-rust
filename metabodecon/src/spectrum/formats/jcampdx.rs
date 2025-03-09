@@ -252,7 +252,7 @@ use std::sync::LazyLock;
 /// Compressed:
 ///
 /// ```text
-/// 
+///
 /// 9     23    -73     92    -12     77
 /// 4     81     19     21     T     -68
 /// ```
@@ -286,20 +286,39 @@ use std::sync::LazyLock;
 /// 5 G7Mo2KTq9
 /// ```
 ///
-/// # Example
+/// # Example: Reading a Spectrum
 ///
 /// ```
 /// use metabodecon::spectrum::JcampDx;
 ///
 /// # fn main() -> metabodecon::Result<()> {
 /// let path = "path/to/spectrum.dx";
-/// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+/// # let path = "../data/jcamp-dx/blood/blood_01.dx";
 ///
 /// // Read a spectrum from a JCAMP-DX file.
 /// let spectrum = JcampDx::read_spectrum(
 ///     path,
 ///     // Signal boundaries
-///     (20.0, 220.0),
+///     (-2.2, 11.8),
+/// )?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// # Example: Reading Multiple Spectra
+///
+/// ```
+/// use metabodecon::spectrum::JcampDx;
+///
+/// # fn main() -> metabodecon::Result<()> {
+/// let path = "path/to/root";
+/// # let path = "../data/jcamp-dx/blood";
+///
+/// // Read all spectra from a directory of JCAMP-DX files.
+/// let spectra = JcampDx::read_spectra(
+///     path,
+///     // Signal boundaries
+///     (-2.2, 11.8),
 /// )?;
 /// # Ok(())
 /// # }
@@ -521,13 +540,13 @@ impl JcampDx {
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let path = "path/to/spectrum.dx";
-    /// # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+    /// # let path = "../data/jcamp-dx/blood/blood_01.dx";
     ///
     /// // Read a spectrum from a JCAMP-DX file.
     /// let spectrum = JcampDx::read_spectrum(
     ///     path,
     ///     // Signal boundaries
-    ///     (20.0, 220.0),
+    ///     (-2.2, 11.8),
     /// )?;
     /// # Ok(())
     /// # }
@@ -599,13 +618,13 @@ impl JcampDx {
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let path = "path/to/root";
-    /// # let path = "../data/jcamp-dx";
+    /// # let path = "../data/jcamp-dx/blood";
     ///
     /// // Read all spectra from a directory of JCAMP-DX files.
     /// let spectra = JcampDx::read_spectra(
     ///     path,
     ///     // Signal boundaries
-    ///     (20.0, 220.0),
+    ///     (-2.2, 11.8),
     /// )?;
     /// # Ok(())
     /// # }

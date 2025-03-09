@@ -71,14 +71,14 @@ fn main() -> metabodecon::Result<()> {
         // Processing Number
         10,
         // Signal Region
-        (-2.208611, 11.807918),
+        (-2.2, 11.8),
     )?;
   
     // Deconvoluter with default settings
     let mut deconvoluter = Deconvoluter::default();
   
     // Ignore the water artifact
-    deconvoluter.add_ignore_region((4.699535, 4.899771))?;
+    deconvoluter.add_ignore_region((4.7, 4.9))?;
   
     // Deconvolute the spectrum
     let deconvoluted_spectrum = deconvoluter.deconvolute_spectrum(&spectrum)?;
@@ -101,14 +101,14 @@ spectrum = md.Spectrum.read_bruker(
     # Processing Number
     10,
     # Signal Region
-    (-2.208611, 11.807918)
+    (-2.2, 11.8)
 )
 
 # Deconvoluter with default options
 deconvoluter = md.Deconvoluter()
 
 # Ignore the water artifact
-deconvoluter.add_ignore_region((4.699535, 4.899771))
+deconvoluter.add_ignore_region((4.7, 4.9))
 
 # Deconvolute the spectrum
 deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
@@ -117,7 +117,7 @@ deconvolution = deconvoluter.deconvolute_spectrum(spectrum)
 x = spectrum.chemical_shifts
 y1 = spectrum.intensities
 s = spectrum.signal_boundaries
-w = (4.699535, 4.899771)
+w = (4.7, 4.9)
 
 # Compute the superposition of the deconvoluted peaks
 y2 = deconvolution.par_superposition_vec(spectrum.chemical_shifts)

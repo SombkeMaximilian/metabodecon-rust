@@ -25,9 +25,9 @@ def plot_deconvolution(spectrum, deconvolution, water_boundaries):
 
 
 def main():
-    signal = (-2.208611, 11.807917)
+    signal = (-2.2, 11.8)
     blood = md.Spectrum.read_bruker("../../data/bruker/blood/blood_01", 10, 10, signal)
-    water_boundaries = (4.699535, 4.899771)
+    water_boundaries = (4.7, 4.9)
 
     deconvoluter = md.Deconvoluter()
     deconvoluter.add_ignore_region(water_boundaries)

@@ -91,8 +91,7 @@ use rayon::prelude::*;
 ///
 /// ```
 /// use metabodecon::deconvolution::{
-///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings,
-///     SmoothingSettings,
+///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings, SmoothingSettings,
 /// };
 ///
 /// # fn main() -> metabodecon::Result<()> {
@@ -154,8 +153,7 @@ impl Deconvoluter {
     ///
     /// ```
     /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings,
-    ///     SmoothingSettings,
+    ///     Deconvoluter, FittingSettings, ScoringMethod, SelectionSettings, SmoothingSettings,
     /// };
     ///
     /// let deconvoluter = Deconvoluter::new(
@@ -232,9 +230,7 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringMethod, SelectionSettings,
-    /// };
+    /// use metabodecon::deconvolution::{Deconvoluter, ScoringMethod, SelectionSettings};
     ///
     /// let deconvoluter = Deconvoluter::default();
     ///
@@ -341,19 +337,15 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
-    /// use metabodecon::deconvolution::{
-    ///     Deconvoluter, ScoringMethod, SelectionSettings,
-    /// };
+    /// use metabodecon::deconvolution::{Deconvoluter, ScoringMethod, SelectionSettings};
     ///
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
     ///
-    /// deconvoluter.set_selection_settings(
-    ///     SelectionSettings::NoiseScoreFilter {
-    ///         scoring_method: ScoringMethod::MinimumSum,
-    ///         threshold: 5.0,
-    ///     },
-    /// )?;
+    /// deconvoluter.set_selection_settings(SelectionSettings::NoiseScoreFilter {
+    ///     scoring_method: ScoringMethod::MinimumSum,
+    ///     threshold: 5.0,
+    /// })?;
     /// # Ok(())
     /// # }
     /// ```
@@ -385,8 +377,7 @@ impl Deconvoluter {
     /// # fn main() -> metabodecon::Result<()> {
     /// let mut deconvoluter = Deconvoluter::default();
     ///
-    /// deconvoluter
-    ///     .set_fitting_settings(FittingSettings::Analytical { iterations: 20 })?;
+    /// deconvoluter.set_fitting_settings(FittingSettings::Analytical { iterations: 20 })?;
     /// # Ok(())
     /// # }
     /// ```

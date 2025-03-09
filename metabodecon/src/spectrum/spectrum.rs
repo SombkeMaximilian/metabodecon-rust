@@ -86,8 +86,7 @@ use serde::{Deserialize, Serialize};
 /// let signal_boundaries = (1.0, 9.0);
 ///
 /// // Create a Spectrum object.
-/// let spectrum =
-///     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+/// let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 /// # Ok(())
 /// # }
 /// ```
@@ -171,8 +170,7 @@ impl Spectrum {
     /// let signal_boundaries = (1.0, 9.0);
     ///
     /// // Create a `Spectrum`.
-    /// let spectrum =
-    ///     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+    /// let spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
     /// # Ok(())
     /// # }
     /// ```
@@ -369,10 +367,8 @@ impl Spectrum {
     /// use metabodecon::spectrum::meta::Monotonicity;
     ///
     /// # fn main() -> metabodecon::Result<()> {
-    /// let increasing =
-    ///     Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
-    /// let decreasing =
-    ///     Spectrum::new(vec![3.0, 2.0, 1.0], vec![3.0, 2.0, 1.0], (3.0, 1.0))?;
+    /// let increasing = Spectrum::new(vec![1.0, 2.0, 3.0], vec![1.0, 2.0, 3.0], (1.0, 3.0))?;
+    /// let decreasing = Spectrum::new(vec![3.0, 2.0, 1.0], vec![3.0, 2.0, 1.0], (3.0, 1.0))?;
     ///
     /// assert_eq!(increasing.monotonicity(), Monotonicity::Increasing);
     /// assert_eq!(decreasing.monotonicity(), Monotonicity::Decreasing);
@@ -528,8 +524,7 @@ impl Spectrum {
     /// assert_approx_eq!(f64, spectrum.signal_boundaries().0, 19.0);
     /// assert_approx_eq!(f64, spectrum.signal_boundaries().1, 21.0);
     ///
-    /// let name = Some("H2O".to_string());
-    /// let reference = ReferenceCompound::new(4.8, 2, name, None);
+    /// let reference = ReferenceCompound::new(4.8, 2, Some("H2O"), None);
     /// spectrum.set_reference_compound(reference);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[0], 2.8);
     /// assert_approx_eq!(f64, spectrum.chemical_shifts()[1], 3.8);

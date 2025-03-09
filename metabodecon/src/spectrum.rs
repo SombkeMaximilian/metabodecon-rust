@@ -42,14 +42,14 @@
 //! use metabodecon::spectrum::JcampDx;
 //!
 //! # fn main() -> metabodecon::Result<()> {
-//! let path = "path/to/spectrum.dx";
-//! # let path = "../data/jcamp-dx/BRUKNTUP.dx";
+//! let path = "path/to/root";
+//! # let path = "../data/jcamp-dx/blood";
 //!
-//! // Read a spectrum from a JCAMP-DX file.
-//! let spectrum = JcampDx::read_spectrum(
+//! // Read all spectra from a directory of JCAMP-DX files.
+//! let spectra = JcampDx::read_spectra(
 //!     path,
 //!     // Signal boundaries
-//!     (20.0, 220.0),
+//!     (-2.2, 11.8),
 //! )?;
 //! # Ok(())
 //! # }
@@ -87,12 +87,13 @@
 //! let signal_boundaries = (1.0, 9.0);
 //!
 //! // Create a Spectrum object.
-//! let mut spectrum =
-//!     Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
+//! let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 //!
 //! // Add metadata
 //! spectrum.set_nucleus(Nucleus::Carbon13);
 //! spectrum.set_frequency(400.0);
+//!
+//! // Set the central point as the reference and shift it to 4.8.
 //! spectrum.set_reference_compound((4.8, 2_usize.pow(14) - 1));
 //! # Ok(())
 //! # }

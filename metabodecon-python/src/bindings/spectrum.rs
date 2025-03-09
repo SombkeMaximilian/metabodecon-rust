@@ -33,7 +33,7 @@ impl Spectrum {
     ) -> PyResult<Self> {
         match spectrum::Spectrum::new(chemical_shifts, intensities, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(MetabodeconError::from(e).into()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
         }
     }
 
@@ -46,7 +46,7 @@ impl Spectrum {
     ) -> PyResult<Self> {
         match spectrum::Bruker::read_spectrum(path, experiment, processing, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(MetabodeconError::from(e).into()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
         }
     }
 
@@ -62,7 +62,7 @@ impl Spectrum {
                 .into_iter()
                 .map(|spectrum| spectrum.into())
                 .collect()),
-            Err(e) => Err(MetabodeconError::from(e).into()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
         }
     }
 
@@ -70,7 +70,18 @@ impl Spectrum {
     pub fn read_jcampdx(path: &str, signal_boundaries: (f64, f64)) -> PyResult<Self> {
         match spectrum::JcampDx::read_spectrum(path, signal_boundaries) {
             Ok(spectrum) => Ok(spectrum.into()),
-            Err(e) => Err(MetabodeconError::from(e).into()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
+        }
+    }
+
+    #[staticmethod]
+    pub fn read_jcampdx_set(path: &str, signal_boundaries: (f64, f64)) -> PyResult<Vec<Self>> {
+        match spectrum::JcampDx::read_spectra(path, signal_boundaries) {
+            Ok(spectra) => Ok(spectra
+                .into_iter()
+                .map(|spectrum| spectrum.into())
+                .collect()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
         }
     }
 

@@ -89,9 +89,9 @@ use serde::{Deserialize, Serialize};
 ///
 /// // Retrieve the untransformed parameters.
 /// let (sf, hw, maxp) = lorentzian.untransformed_parameters();
-/// assert_approx_eq!(f64, sf, 0.3);      // sf = sfhw / hw = 0.045 / 0.15
-/// assert_approx_eq!(f64, hw, 0.15);     // hw = √(hw2) = √(0.0225)
-/// assert_approx_eq!(f64, maxp, 5.0);    // maxp remains unchanged
+/// assert_approx_eq!(f64, sf, 0.3); // sf = sfhw / hw = 0.045 / 0.15
+/// assert_approx_eq!(f64, hw, 0.15); // hw = √(hw2) = √(0.0225)
+/// assert_approx_eq!(f64, maxp, 5.0); // maxp remains unchanged
 ///
 /// // Generate 100 chemical shifts between 0.0 and 10.0 ppm.
 /// let chemical_shifts = (0..100)
