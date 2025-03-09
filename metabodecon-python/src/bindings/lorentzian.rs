@@ -51,11 +51,6 @@ impl Lorentzian {
         self.inner.maxp()
     }
 
-    #[getter]
-    pub fn parameters(&self) -> (f64, f64, f64) {
-        self.inner.untransformed_parameters()
-    }
-
     #[setter]
     pub fn set_sf(&mut self, sf: f64) {
         self.inner.set_sf(sf);
@@ -69,12 +64,6 @@ impl Lorentzian {
     #[setter]
     pub fn set_maxp(&mut self, maxp: f64) {
         self.inner.set_maxp(maxp);
-    }
-
-    #[setter]
-    pub fn set_parameters(&mut self, parameters: (f64, f64, f64)) {
-        self.inner
-            .set_untransformed_parameters(parameters.0, parameters.1, parameters.2);
     }
 
     pub fn evaluate(&self, x: f64) -> f64 {
