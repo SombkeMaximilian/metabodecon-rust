@@ -127,6 +127,10 @@ class Spectrum:
     def read_jcampdx(path: str, signal_boundaries: tuple[float, float]) -> "Spectrum":
         ...
 
+    @staticmethod
+    def read_jcampdx_set(path: str, signal_boundaries: tuple[float, float]) -> list["Spectrum"]:
+        ...
+
     def write_json(self, path: str) -> None:
         ...
 
