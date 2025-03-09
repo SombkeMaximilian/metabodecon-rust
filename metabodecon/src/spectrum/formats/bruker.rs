@@ -159,9 +159,9 @@ struct AcquisitionParameters {
 /// Regex patterns to search for the acquisition parameters.
 static ACQUS_RE: LazyLock<[Regex; 3]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##\$SFO1=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##\$NUC1=\s*<)(?P<nucleus>\w+)").unwrap(),
+        Regex::new(r"(?m)^(##\$SW=\s*)(?P<width>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##\$SFO1=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##\$NUC1=\s*<)(?P<nucleus>\w+)").unwrap(),
     ]
 });
 
@@ -187,11 +187,11 @@ struct ProcessingParameters {
 /// Regex patterns to search for the processing parameters.
 static PROCS_RE: LazyLock<[Regex; 5]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap(),
-        Regex::new(r"(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap(),
-        Regex::new(r"(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap(),
-        Regex::new(r"(##\$SI=\s*)(?P<data_size>\d+)").unwrap(),
+        Regex::new(r"(?m)^(##\$OFFSET=\s*)(?P<maximum>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##\$NC_proc=\s*)(?P<exponent>-?\d+)").unwrap(),
+        Regex::new(r"(?m)^(##\$BYTORDP=\s*)(?P<endian>\d)").unwrap(),
+        Regex::new(r"(?m)^(##\$DTYPP=\s*)(?P<data_type>\d)").unwrap(),
+        Regex::new(r"(?m)^(##\$SI=\s*)(?P<data_size>\d+)").unwrap(),
     ]
 });
 

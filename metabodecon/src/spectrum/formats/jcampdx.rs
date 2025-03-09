@@ -382,17 +382,17 @@ struct Header {
 /// Regex patterns to search for the header metadata.
 static HEADER_RE: LazyLock<[Regex; 11]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##JCAMP(\s*|_|-)DX=\s*)(?P<version>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##DATA(\s|_)TYPE=\s*)(?P<type>\w+\s\w+)").unwrap(),
-        Regex::new(r"(##DATA(\s|_)CLASS=\s*)(?P<format>\w+(\s\w+)?)").unwrap(),
-        Regex::new(r"(##\.OBSERVE(\s|_)FREQUENCY=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##\.OBSERVE(\s|_)NUCLEUS=\s*)(?P<nucleus>\^\w+)").unwrap(),
-        Regex::new(r"(##\.SOLVENT(\s|_)NAME=\s*)(?P<name>.*)").unwrap(),
-        Regex::new(r"(##\.SOLVENT(\s|_)REFERENCE=\s*)(?P<shift>\d+(\.\d+))?").unwrap(),
-        Regex::new(r"(##\.SHIFT(\s|_)REFERENCE=\s*)(?P<method>[^,]*)").unwrap(),
-        Regex::new(r"(##\.SHIFT(\s|_)REFERENCE=[^,]*,\s*)(?P<name>[^,]*)").unwrap(),
-        Regex::new(r"(##\.SHIFT(\s|_)REFERENCE=[^,]*,[^,]*,\s*)(?P<index>\d+)").unwrap(),
-        Regex::new(r"(##\.SHIFT(\s|_)REFERENCE=[^,]*,[^,]*,[^,]*,\s*)(?P<shift>\d+(\.\d+)?)")
+        Regex::new(r"(?m)^(##JCAMP(\s*|_|-)DX=\s*)(?P<version>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##DATA(\s|_)TYPE=\s*)(?P<type>\w+\s\w+)").unwrap(),
+        Regex::new(r"(?m)^(##DATA(\s|_)CLASS=\s*)(?P<format>\w+(\s\w+)?)").unwrap(),
+        Regex::new(r"(?m)^(##\.OBSERVE(\s|_)FREQUENCY=\s*)(?P<frequency>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##\.OBSERVE(\s|_)NUCLEUS=\s*)(?P<nucleus>\^\w+)").unwrap(),
+        Regex::new(r"(?m)^(##\.SOLVENT(\s|_)NAME=\s*)(?P<name>.*)").unwrap(),
+        Regex::new(r"(?m)^(##\.SOLVENT(\s|_)REFERENCE=\s*)(?P<shift>\d+(\.\d+))?").unwrap(),
+        Regex::new(r"(?m)^(##\.SHIFT(\s|_)REFERENCE=\s*)(?P<method>[^,]*)").unwrap(),
+        Regex::new(r"(?m)^(##\.SHIFT(\s|_)REFERENCE=[^,]*,\s*)(?P<name>[^,]*)").unwrap(),
+        Regex::new(r"(?m)^(##\.SHIFT(\s|_)REFERENCE=[^,]*,[^,]*,\s*)(?P<index>\d+)").unwrap(),
+        Regex::new(r"(?m)^(##\.SHIFT(\s|_)REFERENCE=[^,]*,[^,]*,[^,]*,\s*)(?P<shift>\d+(\.\d+)?)")
             .unwrap(),
     ]
 });
@@ -436,12 +436,12 @@ struct DataBlock {
 /// Regex patterns to search for the XYData format specific metadata.
 static XY_DATA_RE: LazyLock<[Regex; 6]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##XUNITS=\s*)(?P<xunits>\w+)").unwrap(),
-        Regex::new(r"(##YFACTOR=\s*)(?P<factor>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##FIRSTX=\s*)(?P<first>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##LASTX=\s*)(?P<last>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##NPOINTS=\s*)(?P<data_size>\d+(\.\d+)?)").unwrap(),
-        Regex::new(r"(##XYDATA=\(X\+\+\(Y\.\.Y\)\)(.*)?)(?P<data>[^#$]*)").unwrap(),
+        Regex::new(r"(?m)^(##XUNITS=\s*)(?P<xunits>\w+)").unwrap(),
+        Regex::new(r"(?m)^(##YFACTOR=\s*)(?P<factor>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##FIRSTX=\s*)(?P<first>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##LASTX=\s*)(?P<last>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##NPOINTS=\s*)(?P<data_size>\d+(\.\d+)?)").unwrap(),
+        Regex::new(r"(?m)^(##XYDATA=\s*\(X\+\+\([RY]\.\.[RY]\)\)(.*)?)(?P<data>[^#$]*)").unwrap(),
     ]
 });
 
@@ -452,13 +452,13 @@ static XY_DATA_KEYS: LazyLock<[&str; 6]> =
 /// Regex patterns to search for the NTuples format specific metadata.
 static N_TUPLES_RE: LazyLock<[Regex; 7]> = LazyLock::new(|| {
     [
-        Regex::new(r"(##SYMBOL=\s*)(?P<symbols>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##VAR(\s*|_)DIM=\s*)(?P<data_sizes>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##UNITS=\s*)(?P<units>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##FIRST=\s*)(?P<first>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##LAST=\s*)(?P<last>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##FACTOR=\s*)(?P<factor>.*)(\r\n|\n|\r)").unwrap(),
-        Regex::new(r"(##DATA(\s|_)TABLE=\s*\(X\+\+\(([RY])\.\.[RY]\)\)(.*)?)(?P<data>[^#$]*)")
+        Regex::new(r"(?m)^(##SYMBOL=\s*)(?P<symbols>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##VAR(\s*|_)DIM=\s*)(?P<data_sizes>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##UNITS=\s*)(?P<units>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##FIRST=\s*)(?P<first>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##LAST=\s*)(?P<last>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##FACTOR=\s*)(?P<factor>.*)(\r\n|\n|\r)").unwrap(),
+        Regex::new(r"(?m)^(##DATA(\s|_)TABLE=\s*\(X\+\+\(([RY])\.\.[RY]\)\)(.*)?)(?P<data>[^#$]*)")
             .unwrap(),
     ]
 });
