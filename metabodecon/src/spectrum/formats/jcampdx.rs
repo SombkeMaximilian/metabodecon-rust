@@ -4,6 +4,7 @@ use crate::spectrum::error::{Error, Kind};
 use crate::spectrum::formats::{extract_capture, extract_row};
 use crate::spectrum::meta::{Nucleus, ReferenceCompound};
 use regex::{Captures, Regex};
+use std::ffi::OsStr;
 use std::fs::read_to_string;
 use std::path::Path;
 use std::sync::LazyLock;
@@ -566,6 +567,72 @@ impl JcampDx {
         }
 
         Ok(spectrum)
+    }
+
+    /// Reads all spectra from a directory of JCAMP-DX files.
+    ///
+    /// Skips any files that do not have the `.dx` extension.
+    ///
+    /// # Errors
+    ///
+    /// The read data is checked for validity to ensure that the `Spectrum` is
+    /// well-formed and in a consistent state. The following conditions are
+    /// checked:
+    /// - The Intensities are not empty.
+    /// - The lengths of the chemical shifts and intensities match. The data
+    ///   size is read from the metadata and used to generate the chemical
+    ///   shifts.
+    /// - All intensity values are finite.
+    /// - The signal region boundaries are within the range of the chemical
+    ///   shifts.
+    /// - All required key-value pairs are extracted from the metadata files.
+    ///
+    /// Additionally, if any [`I/O`] errors occur, an error variant containing
+    /// the original error is returned.
+    ///
+    /// [`I/O`]: std::io
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::JcampDx;
+    ///
+    /// # fn main() -> metabodecon::Result<()> {
+    /// let path = "path/to/root";
+    /// # let path = "../data/jcamp-dx";
+    ///
+    /// // Read all spectra from a directory of JCAMP-DX files.
+    /// let spectra = JcampDx::read_spectra(
+    ///     path,
+    ///     // Signal boundaries
+    ///     (20.0, 220.0),
+    /// )?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn read_spectra<P: AsRef<Path>>(
+        path: P,
+        signal_boundaries: (f64, f64),
+    ) -> Result<Vec<Spectrum>> {
+        let spectra = path
+            .as_ref()
+            .read_dir()?
+            .filter_map(|entry| {
+                entry.ok().and_then(|entry| {
+                    entry
+                        .path()
+                        .extension()
+                        .and_then(OsStr::to_str)
+                        .and_then(|extension| match extension.to_lowercase().as_str() {
+                            "dx" => Some(entry.path()),
+                            _ => None,
+                        })
+                })
+            })
+            .map(|entry| Self::read_spectrum(entry, signal_boundaries))
+            .collect::<Result<Vec<Spectrum>>>()?;
+
+        Ok(spectra)
     }
 
     /// Internal helper function to read the metadata from the general file
