@@ -60,7 +60,7 @@ use serde::{Deserialize, Serialize};
 /// The `Lorentzian` type is both [`Send`] and [`Sync`], allowing safe sharing
 /// and access across threads.
 ///
-/// # Serialization with `serde`
+/// # Serialization with Serde
 ///
 /// When the `serde` feature is enabled, `Lorentzian` can be serialized and
 /// deserialized using `serde`. During serialization, the transformation is

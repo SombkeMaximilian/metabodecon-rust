@@ -15,7 +15,7 @@ use std::path::PathBuf;
 /// See the [`Kind`] enum for the different kinds of errors that can occur.
 #[derive(Clone, Debug)]
 pub struct Error {
-    /// The `Kind` of error that occurred.
+    /// `Kind` of the error that occurred.
     kind: Kind,
 }
 
@@ -48,9 +48,9 @@ pub enum Kind {
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     EmptyData {
-        /// The number of elements in the chemical shifts vector.
+        /// Number of elements in the chemical shifts vector.
         chemical_shifts: usize,
-        /// The number of elements in the intensities vector.
+        /// Number of elements in the intensities vector.
         intensities: usize,
     },
     /// The input data lengths are mismatched.
@@ -61,9 +61,9 @@ pub enum Kind {
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     DataLengthMismatch {
-        /// The number of elements in the chemical shifts vector.
+        /// Number of elements in the chemical shifts vector.
         chemical_shifts: usize,
-        /// The number of elements in the intensities vector.
+        /// Number of elements in the intensities vector.
         intensities: usize,
     },
     /// The chemical shifts are not uniformly spaced.
@@ -71,9 +71,9 @@ pub enum Kind {
     /// The step size between two consecutive chemical shift values needs to be
     /// consistent throughout the entire [`Spectrum`]. A situation where this is
     /// not the case can arise due to
-    /// * an inconsistent step size between two values
-    /// * the difference between two values being very close to zero
-    /// * non-finite values in the chemical shifts
+    /// - an inconsistent step size between two values
+    /// - the difference between two values being very close to zero
+    /// - non-finite values in the chemical shifts
     ///
     /// Note that this error will short-circuit the construction of the
     /// [`Spectrum`] at the first occurrence of non-uniform spacing, meaning
@@ -81,9 +81,9 @@ pub enum Kind {
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     NonUniformSpacing {
-        /// The step size computed from the first two chemical shifts.
+        /// Step size computed from the first two chemical shifts.
         step_size: f64,
-        /// The positions of the chemical shifts that are not uniformly spaced.
+        /// Positions of the chemical shifts that are not uniformly spaced.
         positions: (usize, usize),
     },
     /// The intensities contain invalid values.
@@ -92,7 +92,7 @@ pub enum Kind {
     /// steps. Therefore, this state is considered inconsistent and results in
     /// an error.
     InvalidIntensities {
-        /// The positions of the invalid intensities.
+        /// Positions of the invalid intensities.
         positions: Vec<usize>,
     },
     /// The signal boundaries are invalid.
@@ -101,15 +101,15 @@ pub enum Kind {
     /// to the regions of interest. The region where signals are expected to be
     /// found is in the center of the [`Spectrum`], with signal free regions on
     /// either side. The following conditions are checked:
-    /// * The signal boundaries are finite values
-    /// * The signal boundaries are within the range of the chemical shifts
-    /// * The signal region width is not close to zero
+    /// - Signal boundaries are finite values
+    /// - Signal boundaries are within the range of the chemical shifts
+    /// - Signal region width is not close to zero
     ///
     /// [`Spectrum`]: crate::spectrum::Spectrum
     InvalidSignalBoundaries {
-        /// The signal boundaries of the spectrum.
+        /// Signal boundaries of the spectrum.
         signal_boundaries: (f64, f64),
-        /// The range of the chemical shifts.
+        /// Range of the chemical shifts.
         chemical_shifts_range: (f64, f64),
     },
 
@@ -121,9 +121,9 @@ pub enum Kind {
     ///
     /// [issue]: https://github.com/SombkeMaximilian/metabodecon-rust/issues
     MissingMetadata {
-        /// The path to the file where the metadata was expected.
+        /// Path to the file where the metadata was expected.
         path: PathBuf,
-        /// The key that was used to search for the metadata.
+        /// Key that was used to search for the metadata.
         key: String,
     },
     /// Metadata is malformed in a file of the various formats.
@@ -134,21 +134,21 @@ pub enum Kind {
     ///
     /// [issue]: https://github.com/SombkeMaximilian/metabodecon-rust/issues
     MalformedMetadata {
-        /// The path to the file where the metadata was expected.
+        /// Path to the file where the metadata was expected.
         path: PathBuf,
-        /// The key that was used to search for the metadata.
+        /// Key that was used to search for the metadata.
         key: String,
         /// Additional details about the malformed metadata.
         details: String,
     },
     /// The data block in a JCAMP-DX file is missing.
     MissingData {
-        /// The path to the file where the data block was expected.
+        /// Path to the file where the data block was expected.
         path: PathBuf,
     },
     /// The data block in a JCAMP-DX file is malformed.
     MalformedData {
-        /// The path to the file where the data block was expected.
+        /// Path to the file where the data block was expected.
         path: PathBuf,
         /// Additional details about the malformed data block.
         details: String,

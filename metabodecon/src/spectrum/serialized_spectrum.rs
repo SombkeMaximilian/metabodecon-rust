@@ -15,19 +15,19 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename = "Spectrum", rename_all = "camelCase")]
 pub(crate) struct SerializedSpectrum {
-    /// The spectrum boundaries in ppm.
+    /// Spectrum boundaries in ppm.
     spectrum_boundaries: (f64, f64),
-    /// The boundaries of the signal region.
+    /// Boundaries of the signal region in ppm.
     signal_boundaries: (f64, f64),
-    /// The number of data points in the spectrum.
+    /// Number of data points in the spectrum.
     size: usize,
-    /// The observed nucleus.
+    /// Nucleus observed in the NMR experiment.
     nucleus: Nucleus,
-    /// The spectrometer frequency in MHz.
+    /// Spectrometer frequency in MHz.
     frequency: f64,
-    /// The chemical shift reference.
+    /// Chemical shift reference.
     reference_compound: ReferenceCompound,
-    /// The intensities in arbitrary units.
+    /// Intensities in arbitrary units.
     intensities: Vec<f64>,
 }
 

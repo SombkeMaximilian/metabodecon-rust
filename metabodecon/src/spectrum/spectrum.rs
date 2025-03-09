@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 /// Data structure that represents a 1D NMR spectrum.
 ///
-/// `Spectrum` is a fixed-size, container that holds the chemical shifts, signal
+/// `Spectrum` is a fixed-size container that holds the chemical shifts, signal
 /// intensities, and metadata of a 1D NMR spectrum. The data itself is read-only
 /// but may be modified through the metadata (e.g. the reference).
 ///
@@ -26,16 +26,11 @@ use serde::{Deserialize, Serialize};
 ///
 /// # Thread Safety
 ///
-/// The `Spectrum` type is both [`Send`] and [`Sync`], meaning it can be safely
-/// shared and accessed across threads. This is possible because:
-/// - The data is stored using [`Arc`], which is thread-safe for shared
-///   ownership.
-/// - The structure is read-only, so no mutable access is required.
+/// The `Spectrum` type is both [`Send`] and [`Sync`], meaning it can safely be
+/// shared and accessed across threads. This makes `Spectrum` suitable for use
+/// in concurrent or parallel applications.
 ///
-/// This makes `Spectrum` suitable for use in concurrent or parallel
-/// applications.
-///
-/// # Serialization with `serde`
+/// # Serialization with Serde
 ///
 /// When the `serde` feature is enabled, `Spectrum` implements the [`Serialize`]
 /// and [`Deserialize`] traits. Note that storing `Spectrum` instances as text
@@ -54,13 +49,18 @@ use serde::{Deserialize, Serialize};
 /// `Spectrum` can be parsed from common NMR file formats, such as:
 /// - **Bruker**: Use the [`Bruker`] interface to parse Bruker-formatted data.
 ///   Requires the `bruker` feature.
-/// - **JCAMP-DX**: Use the [`JcampDx`] interface to parse JCAMP-DX files
+/// - **JCAMP-DX**: Use the [`JcampDx`] interface to parse JCAMP-DX files.
 ///   Requires the `jdx` feature.
 ///
 /// [`Bruker`]: crate::spectrum::Bruker
 /// [`JcampDx`]: crate::spectrum::JcampDx
 ///
 /// # Example: Constructing a `Spectrum` manually
+///
+/// The following example demonstrates how to create a `Spectrum` object from
+/// scratch. This is typically not how spectra are created, as they are usually
+/// parsed from files. However, it can be useful for generating synthetic data
+/// or handling custom formats.
 ///
 /// ```
 /// use metabodecon::spectrum::Spectrum;
@@ -97,19 +97,19 @@ use serde::{Deserialize, Serialize};
     serde(into = "SerializedSpectrum", try_from = "SerializedSpectrum")
 )]
 pub struct Spectrum {
-    /// The chemical shifts in ppm.
+    /// Chemical shifts in ppm.
     chemical_shifts: Arc<[f64]>,
-    /// The intensities in arbitrary units.
+    /// Intensities in arbitrary units.
     intensities: Arc<[f64]>,
-    /// The boundaries of the signal region.
+    /// Boundaries of the signal region in ppm.
     signal_boundaries: (f64, f64),
-    /// The observed nucleus.
+    /// Nucleus observed in the NMR experiment.
     nucleus: Nucleus,
-    /// The spectrometer frequency in MHz.
+    /// Spectrometer frequency in MHz.
     frequency: f64,
-    /// The chemical shift reference.
+    /// Chemical shift reference.
     reference_compound: ReferenceCompound,
-    /// The monotonicity of the data.
+    /// Monotonicity of the data.
     monotonicity: Monotonicity,
 }
 
@@ -487,14 +487,20 @@ impl Spectrum {
     ///
     /// The reference compound is used to set the chemical shift reference of
     /// the `Spectrum`. The chemical shifts are adjusted such that the reference
-    /// compound is at the specified chemical shift. Signal boundaries are
-    /// shifted accordingly.
+    /// compound is at the correct index. Signal boundaries are shifted
+    /// accordingly. Note that there is no bounds checking for the index, and
+    /// using an index outside the valid range will result in the reference
+    /// compound being outside the chemical shift range.
     ///
-    /// [`ReferenceCompound`] implements `From<f64>` and `From<(f64, usize)>` to
-    /// allow for easy conversion from a chemical shift or a chemical shift and
-    /// index pair. In the former case, the index is set to `0`, meaning that
-    /// the leftmost chemical shift is the reference. In the latter case, the
-    /// chemical shift at the index will be equal to the reference.
+    /// [`ReferenceCompound`] implements [`From<f64>`] and [`From<(f64,
+    /// usize)>`] to allow for easy conversion from a chemical shift or a
+    /// chemical shift and index pair. In the former case, the index is set
+    /// to 0, meaning that the leftmost chemical shift is the reference. In
+    /// the latter case, the chemical shift at the index will be equal to
+    /// the reference.
+    ///
+    /// [`From<f64>`]: From
+    /// [`From<(f64, usize)>`]: From
     ///
     /// # Example
     ///

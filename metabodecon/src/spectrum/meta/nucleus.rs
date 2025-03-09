@@ -1,7 +1,7 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// Type representing the nucleus observed in an NMR experiment.
+/// Representing the nucleus observed in an NMR experiment.
 ///
 /// # Conversion
 ///
@@ -23,19 +23,19 @@ use serde::{Deserialize, Serialize};
 /// use metabodecon::spectrum::meta::Nucleus;
 ///
 /// let proton = Nucleus::from("proton");
-/// let carbon13 = "Carbon-13".parse::<Nucleus>().unwrap();
+/// let carbon13 = "Carbon-13".parse::<Nucleus>();
 /// let nitrogen15 = Nucleus::from("   15n  ");
 ///
 /// assert_eq!(proton, Nucleus::Hydrogen1);
-/// assert_eq!(carbon13, Nucleus::Carbon13);
+/// assert_eq!(carbon13, Ok(Nucleus::Carbon13));
 /// assert_eq!(nitrogen15, Nucleus::Nitrogen15);
 /// ```
 ///
 /// # Display
 ///
 /// The `Display` implementation formats standard nuclei using IUPAC notation
-/// (e.g., `1H`, `13C`). Other nuclei are displayed as-is. As such it may be
-/// desirable to use IUPAC notation when creating `Nucleus::Other` variants,
+/// (e.g., `1H`, `13C`). Other nuclei are displayed as-is. Therefore, it may be
+/// desirable to use IUPAC notation when creating `Nucleus::Other` variants
 /// in order to ensure consistent formatting.
 ///
 /// ## Example
@@ -52,7 +52,8 @@ use serde::{Deserialize, Serialize};
 /// assert_eq!(lead207.to_string(), "207Pb");
 /// ```
 ///
-/// # Serialization
+///
+/// # Serialization with Serde
 ///
 /// If the `serde` feature is enabled, `Nucleus` implements [`Serialize`] and
 /// [`Deserialize`]. Serialization always uses the IUPAC atomic element (AE)

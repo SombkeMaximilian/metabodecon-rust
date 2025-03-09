@@ -1,7 +1,62 @@
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
 
-/// The referencing method used in the NMR experiment.
+/// Represents the referencing method used in NMR experiments.
+///
+/// While the referencing method is not critical for correctly interpreting the
+/// data, it can be useful, additional information. There are two variants:
+/// - Internal: Reference is within the same sample.
+/// - External: Reference is supplied from an external source.
+///
+/// # Conversion
+///
+/// `ReferencingMethod` implements [`FromStr`] to allow for easy conversion
+/// from string representations of the variants. This conversion is
+/// case-insensitive, meaning that any variation in capitalization (e.g.,
+/// "internal", "Internal", or "INTERNAL") will correctly parse to the
+/// respective variant.
+///
+/// [`FromStr`]: std::str::FromStr
+///
+/// ## Example
+///
+/// ```
+/// use metabodecon::spectrum::meta::ReferencingMethod;
+/// use std::str::FromStr;
+///
+/// let internal = "internal".parse::<ReferencingMethod>();
+/// let external = ReferencingMethod::from_str("external");
+/// let invalid = "extraterrestrial".parse::<ReferencingMethod>();
+///
+/// assert_eq!(internal, Ok(ReferencingMethod::Internal));
+/// assert_eq!(external, Ok(ReferencingMethod::External));
+/// assert!(invalid.is_err());
+/// ```
+///
+/// # Display
+///
+/// The `Display` implementation for `ReferencingMethod` returns the lowercase
+/// string representation of the variant.
+///
+/// ## Example
+///
+/// ```
+/// use metabodecon::spectrum::meta::ReferencingMethod;
+///
+/// let internal = ReferencingMethod::Internal.to_string();
+/// let external = ReferencingMethod::External.to_string();
+///
+/// assert_eq!(internal, "internal");
+/// assert_eq!(external, "external");
+/// ```
+///
+/// # Serialization with Serde
+///
+/// If the `serde` feature is enabled, `ReferencingMethod` implements
+/// [`Serialize`] and [`Deserialize`].
+///
+/// [`Serialize`]: serde::Serialize
+/// [`Deserialize`]: serde::Deserialize
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 #[cfg_attr(
     feature = "serde",
@@ -9,24 +64,31 @@ use serde::{Deserialize, Serialize};
     serde(rename_all = "camelCase")
 )]
 pub enum ReferencingMethod {
-    /// An internal reference was used.
+    /// Reference was added to the sample.
     Internal,
-    /// An external reference was used.
+    /// Reference was supplied from an external source.
     External,
+}
+
+impl TryFrom<&str> for ReferencingMethod {
+    type Error = String;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        let method = value.trim().to_uppercase();
+
+        match method.as_str() {
+            "INTERNAL" => Ok(Self::Internal),
+            "EXTERNAL" => Ok(Self::External),
+            _ => Err(format!("invalid referencing method: {}", value)),
+        }
+    }
 }
 
 impl std::str::FromStr for ReferencingMethod {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let value = s.trim().to_uppercase();
-        let method = match value.as_str() {
-            "INTERNAL" => Self::Internal,
-            "EXTERNAL" => Self::External,
-            _ => return Err(format!("invalid referencing method: {}", s)),
-        };
-
-        Ok(method)
+        s.try_into()
     }
 }
 
@@ -40,7 +102,48 @@ impl std::fmt::Display for ReferencingMethod {
     }
 }
 
-/// The reference compound used in the NMR experiment.
+/// Represents a reference compound used for calibrating chemical shifts in an
+/// NMR spectrum.
+///
+/// # Conversion
+///
+/// `ReferenceCompound` implements [`From<f64>`] and [`From<(f64, usize)>`] to
+/// allow for easy conversion from a chemical shift or chemical shift and index
+/// pair. In the former case, the index is set to 0, meaning that the leftmost
+/// chemical shift in the [`Spectrum`] is the reference.
+///
+/// [`From<f64>`]: From
+/// [`From<(f64, usize)>`]: From
+/// [`Spectrum`]: crate::spectrum::Spectrum
+///
+/// ## Example
+///
+/// ```
+/// use float_cmp::assert_approx_eq;
+/// use metabodecon::spectrum::meta::ReferenceCompound;
+///
+/// let left = ReferenceCompound::from(10.0);
+///
+/// assert_approx_eq!(f64, left.chemical_shift(), 10.0);
+/// assert_eq!(left.index(), 0);
+/// assert!(left.name().is_none());
+/// assert!(left.method().is_none());
+///
+/// let water = ReferenceCompound::from((4.8, 2_usize.pow(14) - 1));
+///
+/// assert_approx_eq!(f64, water.chemical_shift(), 4.8);
+/// assert_eq!(water.index(), 2_usize.pow(14) - 1);
+/// assert!(water.name().is_none());
+/// assert!(water.method().is_none());
+/// ```
+///
+/// # Serialization with Serde
+///
+/// If the `serde` feature is enabled, `ReferenceCompound` implements
+/// [`Serialize`] and [`Deserialize`].
+///
+/// [`Serialize`]: serde::Serialize
+/// [`Deserialize`]: serde::Deserialize
 #[derive(Clone, Debug, Default)]
 #[cfg_attr(
     feature = "serde",
@@ -48,13 +151,13 @@ impl std::fmt::Display for ReferencingMethod {
     serde(rename_all = "camelCase")
 )]
 pub struct ReferenceCompound {
-    /// The chemical shift of the reference compound in ppm.
+    /// Chemical shift of the reference compound in parts per million (ppm).
     chemical_shift: f64,
-    /// The index of the reference compound in the NMR experiment.
+    /// Index within the Spectrum that corresponds to the reference position.
     index: usize,
-    /// The name of the reference compound.
+    /// Optional name for the reference compound.
     name: Option<String>,
-    /// The referencing method used in the NMR experiment.
+    /// Optional information about the method used for referencing.
     method: Option<ReferencingMethod>,
 }
 
@@ -78,8 +181,27 @@ impl From<(f64, usize)> for ReferenceCompound {
 }
 
 impl ReferenceCompound {
-    /// Creates a new `ReferenceCompound`.
-    pub fn new(
+    /// Constructs a new `ReferenceCompound` with all available metadata.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::meta::{ReferenceCompound, ReferencingMethod};
+    ///
+    /// let reference = ReferenceCompound::new(
+    ///     4.8,
+    ///     2_usize.pow(14) - 1,
+    ///     Some("H2O"),
+    ///     Some(ReferencingMethod::Internal),
+    /// );
+    ///
+    /// assert_approx_eq!(f64, reference.chemical_shift(), 4.8);
+    /// assert_eq!(reference.index(), 2_usize.pow(14) - 1);
+    /// assert_eq!(reference.name(), Some("H2O"));
+    /// assert_eq!(reference.method(), Some(ReferencingMethod::Internal));
+    /// ```
+    pub fn new<T: Into<String>>(
         chemical_shift: f64,
         index: usize,
         name: Option<T>,
@@ -88,47 +210,137 @@ impl ReferenceCompound {
         Self {
             chemical_shift,
             index,
-            name: name.and_then(|name| Some(name.into())),
+            name: name.map(|name| name.into()),
             method,
         }
     }
 
     /// Returns the chemical shift of the reference compound.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let reference = ReferenceCompound::from(10.0);
+    ///
+    /// assert_approx_eq!(f64, reference.chemical_shift(), 10.0);
+    /// ```
     pub fn chemical_shift(&self) -> f64 {
         self.chemical_shift
     }
 
-    /// Returns the index of the reference compound.
+    /// Returns the position of the reference compound in the [`Spectrum`].
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let reference = ReferenceCompound::from(10.0);
+    ///
+    /// assert_eq!(reference.index(), 0);
+    /// ```
     pub fn index(&self) -> usize {
         self.index
     }
 
-    /// Returns the name of the reference compound.
+    /// Returns the name of the reference compound, if available.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let reference = ReferenceCompound::from(10.0);
+    ///
+    /// assert!(reference.name().is_none());
+    /// ```
     pub fn name(&self) -> Option<&str> {
         self.name.as_deref()
     }
 
-    /// Returns the referencing method used in the NMR experiment.
+    /// Returns the referencing method, if available.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let compound = ReferenceCompound::from(10.0);
+    ///
+    /// assert!(compound.method().is_none());
+    /// ```
     pub fn method(&self) -> Option<ReferencingMethod> {
         self.method
     }
 
-    /// Sets the chemical shift of the reference compound.
+    /// Sets a new chemical shift for the reference compound.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use float_cmp::assert_approx_eq;
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let mut compound = ReferenceCompound::from(10.0);
+    /// compound.set_chemical_shift(9.5);
+    ///
+    /// assert_approx_eq!(f64, compound.chemical_shift(), 9.5);
+    /// ```
     pub fn set_chemical_shift(&mut self, chemical_shift: f64) {
         self.chemical_shift = chemical_shift;
     }
 
-    /// Sets the index of the reference compound.
+    /// Sets a new position of the reference compound in the [`Spectrum`].
+    ///
+    /// [`Spectrum`]: crate::spectrum::Spectrum
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let mut compound = ReferenceCompound::from(10.0);
+    /// compound.set_index(5);
+    ///
+    /// assert_eq!(compound.index(), 5);
+    /// ```
     pub fn set_index(&mut self, index: usize) {
         self.index = index;
     }
 
     /// Sets the name of the reference compound.
-    pub fn set_name(&mut self, name: Option<String>) {
-        self.name = name;
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::ReferenceCompound;
+    ///
+    /// let mut reference = ReferenceCompound::from(10.0);
+    /// reference.set_name(Some("TMS"));
+    ///
+    /// assert_eq!(reference.name(), Some("TMS"));
+    /// ```
+    pub fn set_name<T: Into<String>>(&mut self, name: Option<T>) {
+        self.name = name.map(|name| name.into());
     }
 
     /// Sets the referencing method used in the NMR experiment.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use metabodecon::spectrum::meta::{ReferenceCompound, ReferencingMethod};
+    ///
+    /// let mut reference = ReferenceCompound::from(10.0);
+    /// reference.set_method(Some(ReferencingMethod::Internal));
+    ///
+    /// assert_eq!(reference.method(), Some(ReferencingMethod::Internal));
+    /// ```
     pub fn set_method(&mut self, method: Option<ReferencingMethod>) {
         self.method = method;
     }
@@ -152,12 +364,7 @@ mod tests {
         let references = [
             14_f64.into(),
             (4.8, 2_usize.pow(14)).into(),
-            ReferenceCompound::new(
-                0.0,
-                12000,
-                Some("TMS".into()),
-                Some(ReferencingMethod::Internal),
-            ),
+            ReferenceCompound::new(0.0, 12000, Some("TMS"), Some(ReferencingMethod::Internal)),
         ];
         let serialized = references
             .clone()

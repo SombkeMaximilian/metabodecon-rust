@@ -365,7 +365,9 @@ enum DataType {
 /// | `FACTOR`  | Scale factor of the values (only Y/R).                      |
 #[derive(Debug)]
 enum Format {
+    /// File contains only one data block (one real part).
     XYData,
+    /// File contains multiple data blocks (real and imaginary parts).
     NTuples,
 }
 
@@ -393,9 +395,9 @@ struct Header {
     format: Format,
     /// The spectrometer frequency used to calculate ppm values.
     frequency: f64,
-    /// The observed nucleus (e.g. 1H, 13C)
+    /// The observed nucleus (e.g. 1H, 13C).
     nucleus: Nucleus,
-    /// Optional reference compound used to offset the ppm values)
+    /// Optional reference compound used to offset the ppm values
     reference_compound: Option<ReferenceCompound>,
 }
 
@@ -439,7 +441,7 @@ static HEADER_KEYS: LazyLock<[&str; 11]> = LazyLock::new(|| {
 /// This defines the minimum set of metadata required to build a valid spectrum.
 #[derive(Debug)]
 struct DataBlock {
-    /// The units of the x values (Hz or ppm)
+    /// Units of the x values (Hz or ppm).
     x_units: XUnits,
     /// Scale factor of the y values.
     factor: f64,
@@ -521,7 +523,7 @@ impl JcampDx {
     /// checked:
     /// - The Intensities are not empty.
     /// - The lengths of the chemical shifts and intensities match. The data
-    ///   size is read from the metadata files and used to generate the chemical
+    ///   size is read from the metadata and used to generate the chemical
     ///   shifts.
     /// - All intensity values are finite.
     /// - The signal region boundaries are within the range of the chemical

@@ -4,12 +4,17 @@
 /// but this is not always the case. Additionally, it is often simpler to work
 /// with the data if it is ordered in `Increasing` order, and only reorder it
 /// for display purposes.
+///
+/// `Monotonicity` is not intended to be instantiated directly. Instead, it is
+/// a marker used to indicate the ordering of data in a [`Spectrum`].
+///
+/// [`Spectrum`]: crate::spectrum::Spectrum
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Default)]
 pub enum Monotonicity {
-    /// The data is ordered in increasing order of chemical shifts.
+    /// Data is ordered in increasing order of chemical shifts.
     #[default]
     Increasing,
-    /// The data is ordered in decreasing order of chemical shifts.
+    /// Data is ordered in decreasing order of chemical shifts.
     Decreasing,
 }
 

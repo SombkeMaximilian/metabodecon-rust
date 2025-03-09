@@ -150,9 +150,11 @@ enum Type {
 /// Acquisition parameters extracted from the `acqus` file.
 #[derive(Debug)]
 struct AcquisitionParameters {
-    /// The spectral width in ppm.
+    /// Spectral width in ppm.
     width: f64,
+    /// Frequency of the spectrometer in MHz.
     frequency: f64,
+    /// Nucleus observed in the NMR experiment.
     nucleus: Nucleus,
 }
 
@@ -172,15 +174,15 @@ static ACQUS_KEYS: LazyLock<[&str; 3]> = LazyLock::new(|| ["SW", "SFO1", "NUC1"]
 /// Processing parameters extracted from the `procs` file.
 #[derive(Debug)]
 struct ProcessingParameters {
-    /// The maximum chemical shift in ppm.
+    /// Maximum chemical shift in ppm.
     maximum: f64,
-    /// The scaling exponent of the data, if the data is stored as integers.
+    /// Scaling exponent of the data, if it is stored as integers.
     exponent: i32,
-    /// The endianness of the data.
+    /// Endianness of the data.
     endian: Endian,
-    /// The data type of the raw signal intensities.
+    /// Data type of the raw signal intensities.
     data_type: Type,
-    /// The size of the data, expected to be 2^15 or 2^17.
+    /// Size of the data, expected to be 2^15 or 2^17.
     data_size: usize,
 }
 

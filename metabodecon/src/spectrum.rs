@@ -36,7 +36,8 @@
 //!
 //! # Example: Reading multiple spectra from JCAMP-DX files
 //!
-//! JCAMP-DX is a common open format for NMR data. [Read more](JcampDx)
+//! JCAMP-DX is a common open format for NMR data, and it is also supported by
+//! this library. [Read more](JcampDx)
 //!
 //! ```
 //! use metabodecon::spectrum::JcampDx;
@@ -60,7 +61,7 @@
 //! The following example demonstrates how to create a `Spectrum` object from
 //! scratch. This is typically not how spectra are created, as they are usually
 //! parsed from files. However, it can be useful for generating synthetic data
-//! or handling custom formats. [Read more](Spectrum)
+//! or handling custom file parsing. [Read more](Spectrum)
 //!
 //! ```
 //! use metabodecon::spectrum::Spectrum;
