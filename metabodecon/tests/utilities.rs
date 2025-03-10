@@ -6,13 +6,13 @@ use std::path::PathBuf;
 pub const PRECISION: f64 = 1.0e-3;
 
 pub fn workspace_dir() -> PathBuf {
-    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    let manifest_dir = env!("CARGO_MANIFEST_DIR");
 
     PathBuf::from(manifest_dir).join("..")
 }
 
 pub fn store_deconvolution(deconvolution: Deconvolution, filename: &str) {
-    let tmp_path = std::env::var("CARGO_TARGET_TMPDIR").unwrap();
+    let tmp_path = env!("CARGO_TARGET_TMPDIR");
     let deconvolutions_dir = format!("{}/test-deconvolutions", tmp_path);
     let filename = format!("{}/test-deconvolutions/{}", tmp_path, filename);
     let serialized = serde_json::to_string_pretty(deconvolution.as_ref()).unwrap();
