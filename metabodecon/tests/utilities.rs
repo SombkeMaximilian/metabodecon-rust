@@ -6,9 +6,7 @@ use std::path::PathBuf;
 pub const PRECISION: f64 = 1.0e-3;
 
 pub fn workspace_dir() -> PathBuf {
-    let manifest_dir = env!("CARGO_MANIFEST_DIR");
-
-    PathBuf::from(manifest_dir).join("..")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..")
 }
 
 pub fn store_deconvolution(deconvolution: Deconvolution, filename: &str) {
