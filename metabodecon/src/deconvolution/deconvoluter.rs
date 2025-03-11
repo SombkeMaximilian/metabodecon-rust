@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::deconvolution::Deconvolution;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings};
 use crate::deconvolution::lorentzian::Lorentzian;
@@ -6,8 +6,8 @@ use crate::deconvolution::peak_selection::{
     NoiseScoreFilter, ScoringMethod, SelectionSettings, Selector,
 };
 use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
-use crate::deconvolution::{Deconvolution, Settings};
 use crate::spectrum::Spectrum;
+use crate::{Result, Settings};
 use std::sync::Arc;
 
 #[cfg(feature = "parallel")]

@@ -1,9 +1,9 @@
+use crate::deconvolution::Deconvolution;
 use crate::deconvolution::fitting::FittingSettings;
 use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::SelectionSettings;
 use crate::deconvolution::smoothing::SmoothingSettings;
-use crate::deconvolution::{Deconvolution, Settings};
-use crate::{Error, Result};
+use crate::{Error, Result, Settings};
 use serde::{Deserialize, Serialize};
 
 /// Form of [`Deconvolution`] used for serialization/deserialization.

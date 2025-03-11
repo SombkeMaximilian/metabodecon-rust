@@ -1,4 +1,4 @@
-use crate::deconvolution::Settings;
+use crate::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::error::Result;
 

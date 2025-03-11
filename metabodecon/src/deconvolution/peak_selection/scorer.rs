@@ -1,5 +1,5 @@
 use crate::Result;
-use crate::deconvolution::Settings;
+use crate::Settings;
 use crate::deconvolution::peak_selection::Peak;
 
 #[cfg(feature = "serde")]

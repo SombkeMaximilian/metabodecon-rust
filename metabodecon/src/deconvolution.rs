@@ -24,6 +24,3 @@ mod smoothing;
 pub use smoothing::SmoothingSettings;
 
 pub mod error;
-
-mod settings;
-pub(crate) use settings::Settings;

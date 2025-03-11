@@ -1,6 +1,6 @@
 use crate::Result;
 
-/// Trait interface for deconvolution settings enums.
+/// Trait interface for settings enums.
 pub(crate) trait Settings: Default + Clone {
     /// Validates the settings.
     fn validate(&self) -> Result<()>;
