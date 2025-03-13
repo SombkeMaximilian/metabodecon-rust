@@ -2,6 +2,7 @@ use crate::MetabodeconError;
 use crate::error::SerializationError;
 use metabodecon::spectrum;
 use numpy::PyArray1;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 
@@ -118,13 +119,11 @@ impl Spectrum {
         dict.set_item("index", reference.index())?;
         match reference.name() {
             Some(name) => dict.set_item("name", name)?,
-            None => dict.set_item("name", "unknown")?,
+            None => dict.set_item("name", py.None())?,
         };
         match reference.method() {
-            Some(referencing_method) => {
-                dict.set_item("referencing_method", referencing_method.to_string())?
-            }
-            None => dict.set_item("referencing_method", "unknown")?,
+            Some(referencing_method) => dict.set_item("method", referencing_method.to_string())?,
+            None => dict.set_item("method", py.None())?,
         };
 
         Ok(dict)
@@ -159,14 +158,29 @@ impl Spectrum {
             .extract::<f64>()?;
         let index = reference.get_item("index")?.extract::<usize>()?;
         let name = match reference.get_item("name") {
-            Ok(name) => name.extract::<String>().ok(),
+            Ok(name) => match name.is_none() {
+                false => Some(name.extract::<String>().map_err(|_| {
+                    PyTypeError::new_err("Reference compound name must be a string")
+                })?),
+                true => None,
+            },
             Err(_) => None,
         };
-        let method = match reference.get_item("referencing_method") {
-            Ok(method) => method
-                .extract::<String>()
-                .ok()
-                .map(|method| std::str::FromStr::from_str(&method).unwrap()),
+        let method = match reference.get_item("method") {
+            Ok(method) => match method.is_none() {
+                false => Some(
+                    method
+                        .extract::<String>()
+                        .map_err(|_| PyTypeError::new_err("Referencing method must be a string"))?
+                        .parse()
+                        .map_err(|_| {
+                            PyValueError::new_err(
+                                "Referencing method must be either 'external' or 'internal'",
+                            )
+                        })?,
+                ),
+                true => None,
+            },
             Err(_) => None,
         };
         let reference = spectrum::meta::ReferenceCompound::new(chemical_shift, index, name, method);
