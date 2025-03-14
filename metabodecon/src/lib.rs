@@ -30,5 +30,8 @@ pub mod spectrum;
 
 pub mod deconvolution;
 
+#[allow(missing_docs)]
+pub mod alignment;
+
 mod error;
 pub use error::{Error, Result};
