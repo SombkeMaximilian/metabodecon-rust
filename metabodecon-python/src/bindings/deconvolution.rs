@@ -19,7 +19,7 @@ impl AsRef<deconvolution::Deconvolution> for Deconvolution {
 
 impl From<deconvolution::Deconvolution> for Deconvolution {
     fn from(value: deconvolution::Deconvolution) -> Self {
-        Deconvolution { inner: value }
+        Self { inner: value }
     }
 }
 
