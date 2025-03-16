@@ -3,6 +3,18 @@ import numpy as np
 __version__: str
 
 
+class Aligner:
+    def __init__(self, max_distance: float, min_similarity: float) -> None:
+        ...
+
+    def align_deconvolutions(self, deconvolutions: list["Deconvolution"]) -> "Alignment":
+        ...
+
+
+class Alignment:
+    deconvolutions: list["Deconvolution"]
+
+
 class Deconvoluter:
     def __init__(self) -> None:
         ...
