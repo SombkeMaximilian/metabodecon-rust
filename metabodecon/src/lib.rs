@@ -30,6 +30,7 @@ pub mod spectrum;
 
 pub mod deconvolution;
 
+#[cfg(feature = "alignment")]
 #[allow(missing_docs)]
 pub mod alignment;
 

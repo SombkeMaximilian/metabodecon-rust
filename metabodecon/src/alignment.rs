@@ -4,4 +4,6 @@
 mod alignment;
 pub use alignment::Alignment;
 
+mod solving;
+
 mod feature;
