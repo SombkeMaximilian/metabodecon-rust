@@ -1,5 +1,5 @@
-use crate::alignment::solving::{AlignmentProblem, Solver};
 use crate::alignment::feature::FeatureMap;
+use crate::alignment::solving::{AlignmentProblem, Solver};
 
 #[derive(Debug)]
 pub(crate) struct LinearProgramming;

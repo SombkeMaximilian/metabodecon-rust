@@ -1,5 +1,5 @@
-use crate::alignment::solving::{FeatureVariable, VariableMap};
 use crate::alignment::feature::{Assignment, FeatureMap};
+use crate::alignment::solving::{FeatureVariable, VariableMap};
 use good_lp::{
     Constraint, Expression, ProblemVariables, Solution, SolverModel, constraint, default_solver,
     variable,
