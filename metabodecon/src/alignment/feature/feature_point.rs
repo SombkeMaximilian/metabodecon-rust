@@ -59,10 +59,10 @@ impl FeaturePoint {
     }
 
     pub(crate) fn similarity(&self, other: &Self) -> f64 {
-        1.0 - (f64::abs(self.sf / self.hw - other.sf / other.hw)
-            / f64::max(self.sf / self.hw, other.sf / other.hw))
-        .powi(2)
-            * f64::abs(self.hw - other.hw)
-            / f64::max(self.hw, other.hw)
+        let height_term = f64::min(self.sf / self.hw, other.sf / other.hw)
+            / f64::max(self.sf / self.hw, other.sf / other.hw);
+        let hw_term = f64::min(self.hw, other.hw) / f64::max(self.hw, other.hw);
+
+        height_term * hw_term
     }
 }
