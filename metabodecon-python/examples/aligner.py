@@ -63,7 +63,7 @@ def main():
     deconvoluter.set_moving_average_smoother(5, 3)
     deconvoluter.set_noise_score_selector(7.0)
     deconvolutions = deconvoluter.par_deconvolute_spectra(spectra)
-    aligner = md.Aligner(0.02, 0.3)
+    aligner = md.Aligner(0.2, 0.1)
     alignment = aligner.align_deconvolutions(deconvolutions)
 
     plot_alignment(spectra, alignment, (-0.01, 0.01))
