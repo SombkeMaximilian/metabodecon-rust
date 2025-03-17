@@ -5,7 +5,7 @@ import metabodecon as md
 import numpy as np
 
 
-def plot_alignment(spectra, alignment, focus):
+def plot_deconvolutions(spectra, deconvolutions, focus):
     fig = plt.figure(figsize=(12, 10), dpi=200)
     gs = gridspec.GridSpec(2, 1, figure=fig)
 
@@ -20,9 +20,20 @@ def plot_alignment(spectra, alignment, focus):
     ax2.set_xlabel("Chemical Shift")
     ax2.set_ylabel("Intensity")
 
-    offset_factor = 0.5e6
+    max_intensities = []
+    for s, d in zip(spectra, deconvolutions):
+        focus_idx = (
+            (np.abs(s.chemical_shifts - focus[0])).argmin(),
+            (np.abs(s.chemical_shifts - focus[1])).argmin()
+        )
+        x = s.chemical_shifts[focus_idx[0]:focus_idx[1]]
+        lorentzians = d.lorentzians
+        y = md.Lorentzian.par_superposition_vec(x, lorentzians)
+        max_intensities.append(np.max(y))
 
-    for i, (s, d) in enumerate(zip(spectra, alignment.deconvolutions)):
+    offset_factor = np.mean(max_intensities) * 0.7
+
+    for i, (s, d) in enumerate(zip(spectra, deconvolutions)):
         offset = (len(spectra) - i + 1) * offset_factor
         focus_idx = (
             (np.abs(s.chemical_shifts - focus[0])).argmin(),
@@ -66,12 +77,13 @@ def main():
     aligner = md.Aligner(0.2, 0.1)
     alignment = aligner.align_deconvolutions(deconvolutions)
 
-    plot_alignment(spectra, alignment, (-0.01, 0.01))
+    plot_deconvolutions(spectra, deconvolutions, (-0.01, 0.01))
+    plot_deconvolutions(spectra, alignment.deconvolutions, (-0.01, 0.01))
     for i in range(0, 5):
         step = 0.25
         focus = (2.0 + i * step, 2.0 + (i + 1) * step)
-        plot_alignment(spectra, alignment, focus)
-
+        plot_deconvolutions(spectra, deconvolutions, focus)
+        plot_deconvolutions(spectra, alignment.deconvolutions, focus)
 
 if __name__ == "__main__":
     main()
