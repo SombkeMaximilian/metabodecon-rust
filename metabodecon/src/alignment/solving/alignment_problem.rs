@@ -14,31 +14,25 @@ pub(crate) struct AlignmentProblem {
 }
 
 impl AlignmentProblem {
-    pub(crate) fn add_assignments(&mut self, feature_maps: &[FeatureMap]) {
-        self.variables = feature_maps
+    pub(crate) fn add_assignments(&mut self, feature_map: FeatureMap) {
+        let feature_variables = feature_map
+            .assignments()
             .iter()
-            .map(|feature_map| {
-                let feature_variables = feature_map
-                    .assignments()
-                    .iter()
-                    .map(|assignment| {
-                        FeatureVariable::new(
-                            assignment.feature_a(),
-                            assignment.feature_b(),
-                            assignment.similarity(),
-                            self.problem.add(variable().binary()),
-                        )
-                    })
-                    .collect::<Vec<_>>();
-
-                VariableMap::new(
-                    feature_map.layer_i(),
-                    feature_map.layer_j(),
-                    feature_variables,
+            .map(|assignment| {
+                FeatureVariable::new(
+                    assignment.feature_a(),
+                    assignment.feature_b(),
+                    assignment.similarity(),
+                    self.problem.add(variable().binary()),
                 )
             })
             .collect::<Vec<_>>();
-
+        let variable_map = VariableMap::new(
+            feature_map.layer_i(),
+            feature_map.layer_j(),
+            feature_variables,
+        );
+        self.variables.push(variable_map);
         self.objective = self
             .variables
             .iter()
