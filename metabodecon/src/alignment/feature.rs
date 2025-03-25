@@ -1,9 +1,3 @@
-mod assignment;
-pub(crate) use assignment::Assignment;
-
-mod assignment_chain;
-pub(crate) use assignment_chain::AssignmentChain;
-
 mod feature_map;
 pub(crate) use feature_map::FeatureMap;
 
