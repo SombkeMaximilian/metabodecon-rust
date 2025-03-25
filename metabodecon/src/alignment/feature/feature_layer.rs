@@ -1,4 +1,5 @@
-use crate::alignment::feature::{Assignment, FeaturePoint};
+use crate::alignment::assignment::Assignment;
+use crate::alignment::feature::FeaturePoint;
 use crate::deconvolution::Deconvolution;
 
 #[derive(Debug)]

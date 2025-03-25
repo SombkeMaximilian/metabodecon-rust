@@ -9,3 +9,4 @@ pub use alignment::Alignment;
 mod solving;
 
 mod feature;
+mod assignment;

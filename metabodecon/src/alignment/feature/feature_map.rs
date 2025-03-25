@@ -1,4 +1,4 @@
-use crate::alignment::feature::Assignment;
+use crate::alignment::assignment::Assignment;
 
 #[derive(Debug)]
 pub(crate) struct FeatureMap {

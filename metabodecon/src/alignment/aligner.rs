@@ -1,6 +1,7 @@
 use crate::alignment::Alignment;
+use crate::alignment::assignment::AssignmentChain;
 use crate::alignment::feature::FeatureMap;
-use crate::alignment::feature::{AssignmentChain, FeatureLayer};
+use crate::alignment::feature::FeatureLayer;
 use crate::alignment::solving::{LinearProgramming, Solver};
 use crate::deconvolution::Deconvolution;
 use std::sync::Arc;
