@@ -19,7 +19,7 @@ use std::sync::LazyLock;
 ///
 /// # Supported Versions and Formats
 ///
-/// This implementation can currently only handle version 5.xx and 6.xx of the
+/// This implementation will only ever handle version 5.xx and 6.xx of the
 /// format. Due to the fact that version 4.xx was not designed for NMR spectra
 /// but for other kinds of spectroscopy data, it is not possible to construct
 /// meaningful NMR spectra from it consistently. As a result, version 4.xx will
