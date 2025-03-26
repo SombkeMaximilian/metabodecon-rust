@@ -1,7 +1,6 @@
-use crate::Result;
-use crate::Settings;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::{Peak, ScoringMethod};
+use crate::{Result, Settings};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

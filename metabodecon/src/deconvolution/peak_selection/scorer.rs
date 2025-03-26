@@ -1,6 +1,5 @@
-use crate::Result;
-use crate::Settings;
 use crate::deconvolution::peak_selection::Peak;
+use crate::{Result, Settings};
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};

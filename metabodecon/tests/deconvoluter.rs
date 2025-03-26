@@ -1,4 +1,5 @@
-use metabodecon::{deconvolution::*, spectrum::*};
+use metabodecon::deconvolution::*;
+use metabodecon::spectrum::*;
 
 pub mod utilities;
 use utilities::{store_deconvolution, workspace_dir};
