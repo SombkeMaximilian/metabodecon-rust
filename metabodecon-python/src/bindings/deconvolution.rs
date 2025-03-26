@@ -87,6 +87,7 @@ impl Deconvolution {
     #[staticmethod]
     pub fn read_json(path: &str) -> PyResult<Self> {
         let serialized = std::fs::read_to_string(path)?;
+
         match serde_json::from_str::<deconvolution::Deconvolution>(&serialized) {
             Ok(deserialized) => Ok(deserialized.into()),
             Err(error) => Err(SerializationError::new_err(error.to_string())),

@@ -1,12 +1,11 @@
-//! A module for representing and parsing 1D NMR spectra from various file
-//! formats.
+//! Data structures and file format interfaces for 1D NMR spectra.
 //!
 //! # Key Components
 //!
-//! - [`Spectrum`]: A container for spectral 1D NMR data and metadata.
-//! - [`Bruker`]: An interface for parsing Bruker TopSpin NMR data.
-//! - [`JcampDx`]: An interface for parsing spectra from JCAMP-DX files.
-//! - [`meta`]: A module containing metadata structures for NMR spectra.
+//! - [`Spectrum`]: Container for spectral 1D NMR data and metadata.
+//! - [`Bruker`]: Interface for parsing spectra from Bruker TopSpin format.
+//! - [`JcampDx`]: Interface for parsing spectra from JCAMP-DX files.
+//! - [`meta`]: Data structures for NMR spectrum metadata.
 //!
 //! # Example: Reading multiple spectra from Bruker TopSpin format
 //!

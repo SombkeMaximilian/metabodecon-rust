@@ -382,7 +382,7 @@ impl Spectrum {
     /// Sets the signal region boundaries of the `Spectrum`.
     ///
     /// The boundaries are automatically reordered to match the ordering of the
-    /// chemical shifts (ascending or descending) if necessary.
+    /// chemical shifts (ascending or descending), if necessary.
     ///
     /// # Errors
     ///
