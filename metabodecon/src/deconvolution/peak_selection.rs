@@ -8,9 +8,8 @@ mod peak;
 pub(crate) use peak::Peak;
 
 mod scorer;
-pub(crate) use scorer::Scorer;
-pub(crate) use scorer::ScorerMinimumSum;
 pub use scorer::ScoringMethod;
+pub(crate) use scorer::{Scorer, ScorerMinimumSum};
 
 mod selector;
 pub use selector::SelectionSettings;

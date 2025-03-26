@@ -10,6 +10,30 @@ use crate::deconvolution::SerializedDeconvolution;
 use serde::{Deserialize, Serialize};
 
 /// Data structure representing the result of a deconvolution.
+///
+/// A `Deconvolution` contains the deconvoluted signals as [`Lorentzian`]s, the
+/// deconvolution settings used, and the mean squared error between the original
+/// [`Spectrum`] and the superposition of the [`Lorentzian`]s.
+///
+/// [`Spectrum`]: crate::spectrum::Spectrum
+///
+/// While it is possible to construct a `Deconvolution` directly, this will
+/// almost never be what you want. This type is the output of the deconvolution
+/// functions of the [`Deconvoluter`] type.
+///
+/// [`Deconvoluter`]: crate::deconvolution::Deconvoluter
+///
+/// # Thread Safety
+///
+/// The `Deconvolution` type is both [`Send`] and [`Sync`], allowing it to be
+/// safely shared and accessed across threads.
+///
+/// # Serialization with Serde
+///
+/// When the `serde` feature is enabled, `Deconvolution` implements the
+/// [`Serialize`] and [`Deserialize`] traits. Since this type is a container for
+/// [`Lorentzian`], the same warnings regarding user created instances apply
+/// here as well.
 #[derive(Clone, Debug)]
 #[cfg_attr(
     feature = "serde",
@@ -37,6 +61,15 @@ impl AsRef<Deconvolution> for Deconvolution {
 
 impl Deconvolution {
     /// Constructs a new `Deconvolution`.
+    ///
+    /// Normally, this type is only instantiated by the deconvolution functions
+    /// of the [`Deconvoluter`] type. Note that due to how [`Lorentzian`] is
+    /// implemented, you must be careful when constructing instances of this
+    /// type manually. See the [Negative Transformed Parameters] section of
+    /// [`Lorentzian`] for more information.
+    ///
+    /// [`Deconvoluter`]: crate::deconvolution::Deconvoluter
+    /// [Negative Transformed Parameters]: Lorentzian#negative-transformed-parameters
     pub fn new(
         lorentzians: Vec<Lorentzian>,
         smoothing_settings: SmoothingSettings,
@@ -54,8 +87,6 @@ impl Deconvolution {
     }
 
     /// Returns the deconvoluted signals as a slice of [`Lorentzian`].
-    ///
-    /// [`Lorentzian`]: Lorentzian
     pub fn lorentzians(&self) -> &[Lorentzian] {
         &self.lorentzians
     }

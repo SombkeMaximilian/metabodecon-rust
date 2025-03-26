@@ -42,9 +42,8 @@ impl From<metabodecon::Error> for MetabodeconError {
 
 impl From<MetabodeconError> for PyErr {
     fn from(value: MetabodeconError) -> PyErr {
-        use metabodecon::{
-            deconvolution::error::Kind as DecErrKind, spectrum::error::Kind as SpecErrKind,
-        };
+        use metabodecon::deconvolution::error::Kind as DecErrKind;
+        use metabodecon::spectrum::error::Kind as SpecErrKind;
 
         match value.0 {
             metabodecon::Error::Spectrum(ref inner) => match inner.kind() {

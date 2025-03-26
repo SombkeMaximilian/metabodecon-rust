@@ -50,10 +50,12 @@ use serde::{Deserialize, Serialize};
 /// # Negative Transformed Parameters
 ///
 /// For `Lorentzian` to represent a valid peak shape, the transformed parameters
-/// `sfhw` and `hw2` must be positive. This is not strictly enforced to avoid
-/// unnecessary overhead. Instances created by the library are guaranteed to
-/// have valid values, but if you construct a `Lorentzian` manually, you are
-/// responsible for ensuring the parameters are meaningful in your context.
+/// `sfhw` and `hw2` must be positive. Additionally, if `hw2` is negative,
+/// attempting to recover `hw` by taking the square root will corrupt the data.
+/// This is not enforced to avoid unnecessary overhead. Instances created by the
+/// library are guaranteed to have valid values, but if you construct a
+/// `Lorentzian` manually, you are responsible for ensuring the parameters are
+/// valid.
 ///
 /// # Thread Safety
 ///
@@ -166,6 +168,16 @@ impl Lorentzian {
     /// efficient for evaluation and solving systems of equations.
     ///
     /// [Lorentzian function]: https://en.wikipedia.org/wiki/Cauchy_distribution
+    ///
+    /// # Negative Transformed Parameters
+    ///
+    /// For `Lorentzian` to represent a valid peak shape, the transformed
+    /// parameters `sfhw` and `hw2` must be positive. Additionally, if `hw2` is
+    /// negative, attempting to recover `hw` by taking the square root will
+    /// corrupt the data. This is not enforced to avoid unnecessary overhead.
+    /// Instances created by the library are guaranteed to have valid values,
+    /// but if you construct a `Lorentzian` manually, you are responsible for
+    /// ensuring the parameters are valid.
     ///
     /// # Example
     ///
