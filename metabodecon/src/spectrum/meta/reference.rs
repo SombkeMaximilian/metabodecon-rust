@@ -156,8 +156,16 @@ pub struct ReferenceCompound {
     /// Index within the Spectrum that corresponds to the reference position.
     index: usize,
     /// Optional name for the reference compound.
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     name: Option<String>,
     /// Optional information about the method used for referencing.
+    #[cfg_attr(
+        feature = "serde",
+        serde(default, skip_serializing_if = "Option::is_none")
+    )]
     method: Option<ReferencingMethod>,
 }
 
@@ -381,5 +389,31 @@ mod tests {
                 assert_eq!(init.name(), rec.name());
                 assert_eq!(init.method(), rec.method());
             })
+    }
+
+    #[cfg(feature = "serde")]
+    #[test]
+    fn deserialization_missing_fields() {
+        let serialized = [
+            "{\"chemicalShift\": 14.0, \"index\": 0}",
+            "{\"chemicalShift\": 4.8, \"index\": 16384, \"name\": \"H2O\"}",
+            "{\"chemicalShift\": 0.0, \"index\": 12000, \"method\": \"internal\"}",
+        ];
+        let expected = [
+            14_f64.into(),
+            ReferenceCompound::new(4.8, 2_usize.pow(14), Some("H2O"), None),
+            ReferenceCompound::new::<&str>(0.0, 12000, None, Some(ReferencingMethod::Internal)),
+        ];
+        let deserialized = serialized
+            .map(|reference| serde_json::from_str::<ReferenceCompound>(reference).unwrap());
+        expected
+            .into_iter()
+            .zip(deserialized)
+            .for_each(|(init, rec)| {
+                assert_approx_eq!(f64, init.chemical_shift(), rec.chemical_shift());
+                assert_eq!(init.index(), rec.index());
+                assert_eq!(init.name(), rec.name());
+                assert_eq!(init.method(), rec.method());
+            });
     }
 }
