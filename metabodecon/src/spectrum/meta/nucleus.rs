@@ -53,7 +53,9 @@ use serde::{Deserialize, Serialize};
 /// ```
 ///
 ///
-/// # Serialization with Serde
+/// # Serialization with [Serde]
+///
+/// [Serde]: https://serde.rs/
 ///
 /// If the `serde` feature is enabled, `Nucleus` implements [`Serialize`] and
 /// [`Deserialize`]. Serialization always uses the IUPAC atomic element (AE)

@@ -64,7 +64,6 @@
 //!
 //! ```
 //! use metabodecon::spectrum::Spectrum;
-//! use metabodecon::spectrum::meta::Nucleus;
 //!
 //! # fn main() -> metabodecon::Result<()> {
 //! // Generate 2^15 chemical shifts between 0 and 10 ppm.
@@ -90,7 +89,7 @@
 //! let mut spectrum = Spectrum::new(chemical_shifts, intensities, signal_boundaries)?;
 //!
 //! // Add metadata
-//! spectrum.set_nucleus(Nucleus::Carbon13);
+//! spectrum.set_nucleus("13C");
 //! spectrum.set_frequency(400.0);
 //!
 //! // Set the central point as the reference and shift it to 4.8.

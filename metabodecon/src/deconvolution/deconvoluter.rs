@@ -53,9 +53,9 @@ use rayon::prelude::*;
 ///
 /// The most expensive parts of the deconvolution process can also be performed
 /// in parallel by enabling the `parallel` feature (part of the `default`
-/// features). This adds [rayon] as a dependency.
+/// features). This adds [Rayon] as a dependency.
 ///
-/// [rayon]: https://docs.rs/rayon/latest/rayon/
+/// [rayon]: https://docs.rs/rayon/
 ///
 /// ```
 /// use metabodecon::deconvolution::Deconvoluter;
@@ -82,12 +82,13 @@ use rayon::prelude::*;
 /// # }
 /// ```
 ///
-/// # Example: Configuring the Deconvoluter
+/// # Example: Configuring the `Deconvoluter`
 ///
 /// `Deconvoluter` is modular and allows you to configure the smoothing, peak
-/// selection, and fitting algorithms independently. Additionally, you can
-/// specify ppm regions to be ignored during the deconvolution. This may be
-/// useful for compounds like stabilizing agents or a water signal.
+/// selection, and fitting settings independently, though currently only one
+/// method is implemented for each. Additionally, you can specify regions to be
+/// ignored during the deconvolution. This may be useful for compounds like
+/// stabilizing agents or a water signal.
 ///
 /// ```
 /// use metabodecon::deconvolution::{

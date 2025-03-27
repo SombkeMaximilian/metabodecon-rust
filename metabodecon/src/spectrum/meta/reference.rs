@@ -50,7 +50,9 @@ use serde::{Deserialize, Serialize};
 /// assert_eq!(external, "external");
 /// ```
 ///
-/// # Serialization with Serde
+/// # Serialization with [Serde]
+///
+/// [Serde]: https://serde.rs/
 ///
 /// If the `serde` feature is enabled, `ReferencingMethod` implements
 /// [`Serialize`] and [`Deserialize`].
@@ -137,7 +139,9 @@ impl std::fmt::Display for ReferencingMethod {
 /// assert!(water.method().is_none());
 /// ```
 ///
-/// # Serialization with Serde
+/// # Serialization with [Serde]
+///
+/// [Serde]: https://serde.rs/
 ///
 /// If the `serde` feature is enabled, `ReferenceCompound` implements
 /// [`Serialize`] and [`Deserialize`].
