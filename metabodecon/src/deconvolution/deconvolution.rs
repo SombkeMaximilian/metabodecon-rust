@@ -28,7 +28,9 @@ use serde::{Deserialize, Serialize};
 /// The `Deconvolution` type is both [`Send`] and [`Sync`], allowing it to be
 /// safely shared and accessed across threads.
 ///
-/// # Serialization with Serde
+/// # Serialization with [Serde]
+///
+/// [Serde]: https://serde.rs/
 ///
 /// When the `serde` feature is enabled, `Deconvolution` implements the
 /// [`Serialize`] and [`Deserialize`] traits. Since this type is a container for

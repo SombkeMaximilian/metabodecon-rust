@@ -30,7 +30,9 @@ use serde::{Deserialize, Serialize};
 /// shared and accessed across threads. This makes `Spectrum` suitable for use
 /// in concurrent or parallel applications.
 ///
-/// # Serialization with Serde
+/// # Serialization with [Serde]
+///
+/// [Serde]: https://serde.rs/
 ///
 /// When the `serde` feature is enabled, `Spectrum` implements the [`Serialize`]
 /// and [`Deserialize`] traits. Note that storing `Spectrum` instances as text
@@ -42,7 +44,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [`Serialize`]: serde::Serialize
 /// [`Deserialize`]: serde::Deserialize
-/// [MessagePack]: https://docs.rs/rmp-serde/latest/
+/// [MessagePack]: https://docs.rs/rmp-serde
 ///
 /// # Parsing from Common NMR Formats
 ///
