@@ -1,104 +1,164 @@
 class Error(Exception):
-    """Base class for exceptions in this module."""
+    """
+    Base class for all Metabodecon errors.
+    """
 
-    pass
+    ...
 
-class Unexpected(Error):
-    """An exception raised for unexpected errors."""
 
-    pass
+class UnexpectedError(Error):
+    """
+    Exception raised when an unexpected error occurs.
+    """
+
+    ...
+
 
 class SerializationError(Error):
-    """An exception raised for errors in serialization."""
+    """
+    Exception raised when serialization or deserialization fails.
+    """
 
-    pass
+    ...
+
 
 class SpectrumError(Error):
-    """An exception raised for errors in the Spectrum class."""
+    """
+    An exception raised for errors in the Spectrum class.
+    """
 
-    pass
+    ...
+
 
 class EmptyData(SpectrumError):
-    """Input data is empty."""
+    """
+    Input data is empty.
+    """
 
-    pass
+    ...
+
 
 class DataLengthMismatch(SpectrumError):
-    """Input data lengths do not match."""
+    """
+    Input data lengths do not match.
+    """
 
-    pass
+    ...
+
 
 class NonUniformSpacing(SpectrumError):
-    """Chemical shifts are not uniformly spaced."""
+    """
+    Chemical shifts are not uniformly spaced.
+    """
 
-    pass
+    ...
+
 
 class InvalidIntensities(SpectrumError):
     """Intensities contain invalid values."""
 
-    pass
+    ...
+
 
 class InvalidSignalBoundaries(SpectrumError):
-    """Signal boundaries are invalid."""
+    """
+    Signal boundaries are invalid.
+    """
 
-    pass
+    ...
+
 
 class MissingMetadata(SpectrumError):
-    """Metadata is missing from NMR format-related file."""
+    """
+    Metadata is missing from NMR format-related file.
+    """
 
-    pass
+    ...
+
 
 class MalformedMetadata(SpectrumError):
-    """Metadata in some NMR format-related file is malformed."""
+    """
+    Metadata in some NMR format-related file is malformed.
+    """
 
-    pass
+    ...
+
 
 class MissingData(SpectrumError):
-    """Some NMR format-related file contains no data."""
+    """
+    Some NMR format-related file contains no data.
+    """
 
-    pass
+    ...
+
 
 class MalformedData(SpectrumError):
-    """Data in some NMR format-related file is malformed."""
+    """
+    Data in some NMR format-related file is malformed.
+    """
 
-    pass
+    ...
+
 
 class DeconvolutionError(Error):
-    """An exception raised for errors during the deconvolution process."""
+    """
+    An exception raised for errors during the deconvolution process.
+    """
 
-    pass
+    ...
+
 
 class InvalidSmoothingSettings(DeconvolutionError):
-    """Smoothing settings are invalid."""
+    """
+    Smoothing settings are invalid.
+    """
 
-    pass
+    ...
+
 
 class InvalidSelectionSettings(DeconvolutionError):
-    """Peak selection settings are invalid."""
+    """
+    Peak selection settings are invalid.
+    """
 
-    pass
+    ...
+
 
 class InvalidFittingSettings(DeconvolutionError):
-    """Peak fitting settings are invalid."""
+    """
+    Peak fitting settings are invalid.
+    """
 
-    pass
+    ...
+
 
 class InvalidIgnoreRegion(DeconvolutionError):
-    """Ignore region boundaries are invalid."""
+    """
+    Ignore region boundaries are invalid.
+    """
 
-    pass
+    ...
+
 
 class NoPeaksDetected(DeconvolutionError):
-    """No peaks were detected in the spectrum."""
+    """
+    No peaks were detected in the spectrum.
+    """
 
-    pass
+    ...
+
 
 class EmptySignalRegion(DeconvolutionError):
-    """Signal region contains no peaks."""
+    """
+    Signal region contains no peaks.
+    """
 
-    pass
+    ...
+
 
 class EmptySignalFreeRegion(DeconvolutionError):
-    """Signal-free region contains no peaks."""
+    """
+    Signal-free region contains no peaks.
+    """
 
-    pass
+    ...

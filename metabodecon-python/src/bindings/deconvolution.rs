@@ -7,7 +7,7 @@ use pyo3::types::PyList;
 
 #[pyclass]
 #[derive(Clone, Debug)]
-pub struct Deconvolution {
+pub(crate) struct Deconvolution {
     inner: deconvolution::Deconvolution,
 }
 
@@ -26,7 +26,7 @@ impl From<deconvolution::Deconvolution> for Deconvolution {
 #[pymethods]
 impl Deconvolution {
     #[getter]
-    pub fn lorentzians<'py>(&self, py: Python<'py>) -> Result<Bound<'py, PyList>, PyErr> {
+    pub(crate) fn lorentzians<'py>(&self, py: Python<'py>) -> Result<Bound<'py, PyList>, PyErr> {
         PyList::new(
             py,
             self.inner
@@ -38,15 +38,15 @@ impl Deconvolution {
     }
 
     #[getter]
-    pub fn mse(&self) -> f64 {
+    pub(crate) fn mse(&self) -> f64 {
         self.inner.mse()
     }
 
-    pub fn superposition(&self, chemical_shift: f64) -> f64 {
+    pub(crate) fn superposition(&self, chemical_shift: f64) -> f64 {
         deconvolution::Lorentzian::superposition(chemical_shift, self.inner.lorentzians())
     }
 
-    pub fn superposition_vec<'py>(
+    pub(crate) fn superposition_vec<'py>(
         &self,
         py: Python<'py>,
         chemical_shifts: PyReadonlyArray1<'_, f64>,
@@ -60,7 +60,7 @@ impl Deconvolution {
         )
     }
 
-    pub fn par_superposition_vec<'py>(
+    pub(crate) fn par_superposition_vec<'py>(
         &self,
         py: Python<'py>,
         chemical_shifts: PyReadonlyArray1<'_, f64>,
@@ -74,7 +74,7 @@ impl Deconvolution {
         )
     }
 
-    pub fn write_json(&self, path: &str) -> PyResult<()> {
+    pub(crate) fn write_json(&self, path: &str) -> PyResult<()> {
         let serialized = match serde_json::to_string_pretty(self.as_ref()) {
             Ok(serialized) => serialized,
             Err(error) => return Err(SerializationError::new_err(error.to_string())),
@@ -85,7 +85,7 @@ impl Deconvolution {
     }
 
     #[staticmethod]
-    pub fn read_json(path: &str) -> PyResult<Self> {
+    pub(crate) fn read_json(path: &str) -> PyResult<Self> {
         let serialized = std::fs::read_to_string(path)?;
 
         match serde_json::from_str::<deconvolution::Deconvolution>(&serialized) {
@@ -94,7 +94,7 @@ impl Deconvolution {
         }
     }
 
-    pub fn write_bin(&self, path: &str) -> PyResult<()> {
+    pub(crate) fn write_bin(&self, path: &str) -> PyResult<()> {
         let serialized = match rmp_serde::to_vec(self.as_ref()) {
             Ok(serialized) => serialized,
             Err(error) => return Err(SerializationError::new_err(error.to_string())),
@@ -105,7 +105,7 @@ impl Deconvolution {
     }
 
     #[staticmethod]
-    pub fn read_bin(path: &str) -> PyResult<Self> {
+    pub(crate) fn read_bin(path: &str) -> PyResult<Self> {
         let serialized = std::fs::read(path)?;
 
         match rmp_serde::from_slice::<deconvolution::Deconvolution>(&serialized) {
