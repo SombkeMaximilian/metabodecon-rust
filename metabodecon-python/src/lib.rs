@@ -1,10 +1,9 @@
 use pyo3::prelude::*;
 
+pub(crate) mod error;
+
 mod bindings;
 pub(crate) use bindings::{Deconvoluter, Deconvolution, Lorentzian, Spectrum};
-
-mod error;
-pub(crate) use error::MetabodeconError;
 
 #[pymodule]
 fn _metabodecon(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
