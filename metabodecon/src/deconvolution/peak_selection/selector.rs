@@ -19,7 +19,9 @@ pub(crate) trait Selector: Send + Sync + std::fmt::Debug {
     fn settings(&self) -> SelectionSettings;
 }
 
-/// Peak selection methods.
+/// Peak selection settings for configuring the [`Deconvoluter`].
+///
+/// [`Deconvoluter`]: crate::deconvolution::Deconvoluter
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(

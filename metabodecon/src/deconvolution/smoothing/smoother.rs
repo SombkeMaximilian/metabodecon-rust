@@ -14,7 +14,9 @@ pub(crate) trait Smoother<T>: Send + Sync + std::fmt::Debug {
     fn settings(&self) -> SmoothingSettings;
 }
 
-/// Smoothing methods for the signal intensities.
+/// Signal intensity smoothing settings for configuring the [`Deconvoluter`].
+///
+/// [`Deconvoluter`]: crate::deconvolution::Deconvoluter
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(
@@ -27,7 +29,19 @@ pub enum SmoothingSettings {
     ///
     /// The moving average filter is a low-pass filter that replaces each value
     /// in the sequence with the average of the values in a sliding window
-    /// centered around the value.
+    /// centered around the value, that dynamically grows and shrinks at the
+    /// edges. For example, with a window size of 5 (window center marked by
+    /// `x`, extent marked by `-`):
+    ///
+    /// | Index  | 0   | 1   | 2   | 3   | 4   | 5   | 6   |
+    /// | ------ | --- | --- | --- | --- | --- | --- | --- |
+    /// | Step 1 | x   | -   | -   |     |     |     |     |
+    /// | Step 2 | -   | x   | -   | -   |     |     |     |
+    /// | Step 3 | -   | -   | x   | -   | -   |     |     |
+    /// | Step 4 |     | -   | -   | x   | -   | -   |     |
+    /// | Step 5 |     |     | -   | -   | x   | -   | -   |
+    /// | Step 6 |     |     |     | -   | -   | x   | -   |
+    /// | Step 7 |     |     |     |     | -   | -   | x   |
     MovingAverage {
         /// The number of iterations to apply the filter.
         iterations: usize,

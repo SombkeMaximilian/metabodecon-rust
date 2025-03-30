@@ -21,7 +21,9 @@ pub(crate) trait Fitter: Send + Sync + std::fmt::Debug {
     fn settings(&self) -> FittingSettings;
 }
 
-/// Fitting methods.
+/// Lorentzian function fitting settings for configuring the [`Deconvoluter`].
+///
+/// [`Deconvoluter`]: crate::deconvolution::Deconvoluter
 #[non_exhaustive]
 #[derive(Copy, Clone, Debug)]
 #[cfg_attr(
@@ -31,6 +33,23 @@ pub(crate) trait Fitter: Send + Sync + std::fmt::Debug {
 )]
 pub enum FittingSettings {
     /// Fitting by solving a system of linear equations analytically.
+    ///
+    /// Finds the parameters of [`Lorentzian`]s for each peak using the system
+    /// of 3 equations
+    /// ```text
+    /// y_1 = sfhw / (hw2 + (x_1 - maxp)^2)
+    /// y_2 = sfhw / (hw2 + (x_2 - maxp)^2)
+    /// y_3 = sfhw / (hw2 + (x_3 - maxp)^2)
+    /// ```
+    ///
+    /// Extracts the chemical shift and intensity values of the 3 points that
+    /// represent each peak, solves the system of equations for the parameters,
+    /// then iteratively refines the fit as follows:
+    /// 1. Calculates the ratio of the superposition of the [`Lorentzian`]s to
+    ///    the original spectrum.
+    /// 2. Updates the extracted intensities of the peak points by multiplying
+    ///    them by the ratio.
+    /// 3. Solves system of equations for the parameters of the [`Lorentzian`]s.
     Analytical {
         /// The number of iterations to refine the fit.
         iterations: usize,
