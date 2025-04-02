@@ -178,21 +178,23 @@ impl Deconvoluter {
         selection_settings.validate()?;
         fitting_settings.validate()?;
 
-        let smoother = Arc::new(match smoothing_settings {
+        let smoother: Arc<dyn Smoother<f64>> = match smoothing_settings {
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
-            } => MovingAverage::<f64>::new(iterations, window_size),
-        });
-        let selector = Arc::new(match selection_settings {
+            } => Arc::new(MovingAverage::<f64>::new(iterations, window_size)),
+        };
+        let selector: Arc<dyn Selector> = match selection_settings {
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,
-            } => NoiseScoreFilter::new(scoring_method, threshold),
-        });
-        let fitter = Arc::new(match fitting_settings {
-            FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
-        });
+            } => Arc::new(NoiseScoreFilter::new(scoring_method, threshold)),
+        };
+        let fitter: Arc<dyn Fitter> = match fitting_settings {
+            FittingSettings::Analytical { iterations } => {
+                Arc::new(FitterAnalytical::new(iterations))
+            }
+        };
 
         Ok(Self {
             smoother,
