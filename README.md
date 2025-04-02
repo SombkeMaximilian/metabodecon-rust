@@ -189,9 +189,9 @@ suggestions and bug reports. I will get back to them after my thesis is done.
 
 ## License
 
-This project is licensed under the GPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ### Contribution
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as
-defined in the GPL-3.0 license, shall be licensed as GPL-3.0, without any additional terms or conditions.
+defined in the MIT license, shall be licensed as MIT, without any additional terms or conditions.
