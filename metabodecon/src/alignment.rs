@@ -6,7 +6,8 @@ pub use aligner::Aligner;
 mod alignment;
 pub use alignment::Alignment;
 
-mod solving;
+mod assignment;
 
 mod feature;
-mod assignment;
+
+mod solving;
