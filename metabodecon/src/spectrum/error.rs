@@ -186,7 +186,7 @@ impl core::fmt::Display for Error {
                 (true, true) => "chemical shifts and intensities are empty".to_string(),
                 (true, false) => "chemical shifts are empty".to_string(),
                 (false, true) => "intensities are empty".to_string(),
-                _ => unreachable!("shifts/intensities falsely detected as empty"),
+                _ => unreachable!("chemical shifts/intensities falsely detected as empty"),
             },
             Kind::DataLengthMismatch {
                 chemical_shifts,
@@ -310,6 +310,7 @@ impl core::fmt::Display for Error {
                 "unsupported JCAMP-DX file (see documentation for supported file types)".to_string()
             }
         };
-        write!(f, "{description}")
+
+        write!(f, "{}", description)
     }
 }

@@ -88,7 +88,7 @@ impl Settings for SmoothingSettings {
                 iterations,
                 window_size,
             } => {
-                if *iterations == 0 || *window_size == 0 {
+                if *iterations == 0 || *window_size <= 1 {
                     return Err(
                         Error::new(Kind::InvalidSmoothingSettings { settings: *self }).into(),
                     );

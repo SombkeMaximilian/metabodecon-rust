@@ -110,30 +110,31 @@ impl core::fmt::Display for Error {
                 SmoothingSettings::MovingAverage {
                     iterations,
                     window_size,
-                } => match (*iterations == 0, *window_size == 0) {
-                    (true, true) => "moving average filter parameters cannot be 0".to_string(),
-                    (true, false) => "moving average filter iterations cannot be 0".to_string(),
-                    (false, true) => "moving average filter window size cannot be 0".to_string(),
-                    (false, false) => unreachable!("valid settings falsely detected as invalid"),
+                } => match (*iterations == 0, *window_size <= 1) {
+                    (true, true) => {
+                        "iterations and window size must be greater than 0 and 1 respectively"
+                            .to_string()
+                    }
+                    (true, false) => "iterations must be greater than 0".to_string(),
+                    (false, true) => "window size must be greater than 1".to_string(),
+                    (false, false) => {
+                        unreachable!("valid settings falsely detected as invalid")
+                    }
                 },
             },
             Kind::InvalidSelectionSettings { settings } => match settings {
                 SelectionSettings::DetectorOnly => unreachable!("detector only is always valid"),
                 SelectionSettings::NoiseScoreFilter { threshold, .. } => {
                     match (threshold.is_finite(), *threshold <= 0.0) {
-                        (false, _) => {
-                            "noise score filter threshold must be a finite number".to_string()
-                        }
-                        (true, true) => {
-                            "noise score filter threshold must be greater than 0".to_string()
-                        }
+                        (false, _) => "threshold must be a finite number".to_string(),
+                        (true, true) => "threshold must be greater than 0".to_string(),
                         (true, false) => unreachable!("valid settings falsely detected as invalid"),
                     }
                 }
             },
             Kind::InvalidFittingSettings { settings } => match settings {
                 FittingSettings::Analytical { iterations } => match *iterations == 0 {
-                    true => "analytical fitting iterations cannot be 0".to_string(),
+                    true => "iterations must be greater than 0".to_string(),
                     false => unreachable!("valid settings falsely detected as invalid"),
                 },
             },
@@ -161,6 +162,7 @@ impl core::fmt::Display for Error {
                 "no peaks found in the signal-free region of the spectrum".to_string()
             }
         };
-        write!(f, "{description}")
+
+        write!(f, "{}", description)
     }
 }
