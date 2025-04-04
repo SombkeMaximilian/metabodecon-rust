@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 
 create_exception!(metabodecon, Error, PyException);
 create_exception!(metabodecon, UnexpectedError, Error);
+create_exception!(metabodecon, ThreadPoolError, Error);
 create_exception!(metabodecon, SerializationError, Error);
 
 create_exception!(metabodecon, SpectrumError, Error);
@@ -66,7 +67,7 @@ impl From<MetabodeconError> for PyErr {
                 }
                 SpecErrKind::MissingData { .. } => MissingData::new_err(inner.to_string()),
                 SpecErrKind::MalformedData { .. } => MalformedData::new_err(inner.to_string()),
-                _ => UnexpectedError::new_err(format!("Unexpected error: {}", value)),
+                _ => UnexpectedError::new_err(format!("unexpected error: {}", value)),
             },
             metabodecon::Error::Deconvolution(ref inner) => match inner.kind() {
                 DecErrKind::InvalidSmoothingSettings { .. } => {
@@ -86,10 +87,10 @@ impl From<MetabodeconError> for PyErr {
                 DecErrKind::EmptySignalFreeRegion => {
                     EmptySignalFreeRegion::new_err(inner.to_string())
                 }
-                _ => UnexpectedError::new_err(format!("Unexpected error: {}", value)),
+                _ => UnexpectedError::new_err(format!("unexpected error: {}", value)),
             },
             metabodecon::Error::IoError(inner) => PyIOError::new_err(inner.to_string()),
-            _ => UnexpectedError::new_err(format!("Unexpected error: {}", value)),
+            _ => UnexpectedError::new_err(format!("unexpected error: {}", value)),
         }
     }
 }
@@ -98,6 +99,7 @@ pub(crate) fn error_module(py: Python) -> PyResult<Bound<PyModule>> {
     let exceptions = PyModule::new(py, "exceptions")?;
     exceptions.add("Error", py.get_type::<Error>())?;
     exceptions.add("UnexpectedError", py.get_type::<UnexpectedError>())?;
+    exceptions.add("ThreadPoolError", py.get_type::<ThreadPoolError>())?;
     exceptions.add("SerializationError", py.get_type::<SerializationError>())?;
     exceptions.add("SpectrumError", py.get_type::<SpectrumError>())?;
     exceptions.add("EmptyData", py.get_type::<EmptyData>())?;

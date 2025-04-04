@@ -162,7 +162,7 @@ impl Spectrum {
         let name = match reference.get_item("name") {
             Ok(name) => match name.is_none() {
                 false => Some(name.extract::<String>().map_err(|_| {
-                    PyTypeError::new_err("Reference compound name must be a string")
+                    PyTypeError::new_err("reference compound name must be a string")
                 })?),
                 true => None,
             },
@@ -173,11 +173,11 @@ impl Spectrum {
                 false => Some(
                     method
                         .extract::<String>()
-                        .map_err(|_| PyTypeError::new_err("Referencing method must be a string"))?
+                        .map_err(|_| PyTypeError::new_err("referencing method must be a string"))?
                         .parse()
                         .map_err(|_| {
                             PyValueError::new_err(
-                                "Referencing method must be either 'external' or 'internal'",
+                                "referencing method must be either 'external' or 'internal'",
                             )
                         })?,
                 ),
