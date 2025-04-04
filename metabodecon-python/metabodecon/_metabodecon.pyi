@@ -13,7 +13,7 @@ class Deconvoluter:
     def set_moving_average_smoother(self, iterations: int, window_size: int) -> None:
         ...
 
-    def set_detector_only(&self) -> None:
+    def set_detector_only(self) -> None:
         ...
 
     def set_noise_score_selector(self, threshold: float) -> None:
@@ -26,6 +26,12 @@ class Deconvoluter:
         ...
 
     def clear_ignore_regions(self) -> None:
+        ...
+
+    def set_threads(self, threads: int) -> None:
+        ...
+
+    def clear_threads(self) -> None:
         ...
 
     def deconvolute_spectrum(self, spectrum: "Spectrum") -> "Deconvolution":
