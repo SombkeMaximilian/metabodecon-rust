@@ -106,6 +106,7 @@ impl core::fmt::Display for Error {
     fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
         let description = match &self.kind {
             Kind::InvalidSmoothingSettings { settings } => match settings {
+                SmoothingSettings::Identity => unreachable!("no smoothing is always valid"),
                 SmoothingSettings::MovingAverage {
                     iterations,
                     window_size,
@@ -117,6 +118,7 @@ impl core::fmt::Display for Error {
                 },
             },
             Kind::InvalidSelectionSettings { settings } => match settings {
+                SelectionSettings::DetectorOnly => unreachable!("detector only is always valid"),
                 SelectionSettings::NoiseScoreFilter { threshold, .. } => {
                     match (threshold.is_finite(), *threshold <= 0.0) {
                         (false, _) => {

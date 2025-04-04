@@ -43,15 +43,15 @@ use serde::{Deserialize, Serialize};
     serde(into = "SerializedDeconvolution", try_from = "SerializedDeconvolution")
 )]
 pub struct Deconvolution {
-    /// The deconvoluted signals.
+    /// Deconvoluted signals.
     lorentzians: Arc<[Lorentzian]>,
-    /// The smoothing parameters used.
+    /// Smoothing parameters used.
     smoothing_settings: SmoothingSettings,
-    /// The peak selection parameters used.
+    /// Peak selection parameters used.
     selection_settings: SelectionSettings,
-    /// The fitting parameters used.
+    /// Fitting parameters used.
     fitting_settings: FittingSettings,
-    /// The mean squared error of the deconvolution.
+    /// Mean squared error of the deconvolution.
     mse: f64,
 }
 
@@ -154,6 +154,7 @@ mod tests {
                 assert_approx_eq!(f64, init.maxp(), rec.maxp());
             });
         match deserialized.smoothing_settings() {
+            SmoothingSettings::Identity => panic!("expected moving average"),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
@@ -163,6 +164,7 @@ mod tests {
             }
         };
         match deserialized.selection_settings() {
+            SelectionSettings::DetectorOnly => panic!("expected noise score filter"),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,

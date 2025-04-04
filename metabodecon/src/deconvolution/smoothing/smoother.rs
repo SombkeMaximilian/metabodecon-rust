@@ -25,6 +25,11 @@ pub(crate) trait Smoother<T>: Send + Sync + std::fmt::Debug {
     serde(tag = "method", rename_all_fields = "camelCase")
 )]
 pub enum SmoothingSettings {
+    /// No smoothing.
+    ///
+    /// This option disables any smoothing of the signal intensities. May be
+    /// useful when no noise is expected.
+    Identity,
     /// Moving average low-pass filter.
     ///
     /// The moving average filter is a low-pass filter that replaces each value
@@ -62,6 +67,7 @@ impl Default for SmoothingSettings {
 impl std::fmt::Display for SmoothingSettings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            SmoothingSettings::Identity => write!(f, "No Smoothing"),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
@@ -77,6 +83,7 @@ impl std::fmt::Display for SmoothingSettings {
 impl Settings for SmoothingSettings {
     fn validate(&self) -> Result<()> {
         match self {
+            SmoothingSettings::Identity => {}
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
@@ -95,6 +102,7 @@ impl Settings for SmoothingSettings {
     #[cfg(test)]
     fn compare(&self, other: &Self) -> bool {
         match (self, other) {
+            (SmoothingSettings::Identity, SmoothingSettings::Identity) => true,
             (
                 SmoothingSettings::MovingAverage {
                     iterations: iterations1,
@@ -105,6 +113,7 @@ impl Settings for SmoothingSettings {
                     window_size: window_size2,
                 },
             ) => *iterations1 == *iterations2 && *window_size1 == *window_size2,
+            _ => false,
         }
     }
 }

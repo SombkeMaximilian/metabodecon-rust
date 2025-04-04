@@ -2,10 +2,24 @@ use crate::Result;
 use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::peak_selection::{
     Detector, Peak, Scorer, ScorerMinimumSum, ScoringMethod, SelectionSettings, Selector,
+    peak_region_boundaries, second_derivative,
 };
 
-/// Peak selection algorithm based on the score of peaks found in the signal
-/// free region.
+/// Detects peaks in a spectrum and returns the ones that pass a filter.
+///
+/// Peaks are detected using the curvature of the signal through the second
+/// derivative. The scores of the peaks are computed using the selected
+/// scoring algorithm. The mean and standard deviation of the scores in the
+/// signal free region (where only noise is present) are calculated, and
+/// peaks in the signal region are filtered according to the following
+/// criterion:
+///
+/// ```text
+/// score > mean + threshold * std_dev
+/// ```
+///
+/// Optionally, regions to be ignored can be provided. Peaks within these
+/// regions are also filtered out.
 #[derive(Debug)]
 pub(crate) struct NoiseScoreFilter {
     /// The scoring method to use.
@@ -15,39 +29,15 @@ pub(crate) struct NoiseScoreFilter {
 }
 
 impl Selector for NoiseScoreFilter {
-    /// Detects peaks in a spectrum and returns the ones that pass a filter.
-    ///
-    /// Peaks are detected using the curvature of the signal through the second
-    /// derivative. The scores of the peaks are computed using the selected
-    /// scoring algorithm. The mean and standard deviation of the scores in the
-    /// signal free region (where only noise is present) are calculated, and
-    /// peaks in the signal region are filtered according to the following
-    /// criterion:
-    ///
-    /// ```text
-    /// score > mean + threshold * std_dev
-    /// ```
-    ///
-    /// Optionally, regions to be ignored can be provided. Peaks within these
-    /// regions are also filtered out.
-    ///
-    /// # Errors
-    ///
-    /// The following errors are possible:
-    /// - [`NoPeaksDetected`](Kind::NoPeaksDetected)
-    /// - [`EmptySignalRegion`](Kind::EmptySignalRegion)
-    /// - [`EmptySignalFreeRegion`](Kind::EmptySignalFreeRegion)
     fn select_peaks(
         &self,
         intensities: &[f64],
         signal_boundaries: (usize, usize),
         ignore_regions: Option<&[(usize, usize)]>,
     ) -> Result<Vec<Peak>> {
-        let mut second_derivative = Self::second_derivative(intensities);
-        let mut peaks = {
-            let detector = Detector::new(&second_derivative);
-            detector.detect_peaks()?
-        };
+        let mut second_derivative = second_derivative(intensities);
+        let detector = Detector::new(&second_derivative);
+        let mut peaks = detector.detect_peaks()?;
         if let Some(ignore_regions) = ignore_regions {
             peaks.retain(|peak| {
                 !ignore_regions.iter().any(|(start, end)| {
@@ -72,22 +62,13 @@ impl Selector for NoiseScoreFilter {
 }
 
 impl NoiseScoreFilter {
-    /// Constructs a new `NoiseScoreFilter` with the given scoring algorithm and
+    /// Creates a new `NoiseScoreFilter` with the given scoring algorithm and
     /// threshold.
     pub(crate) fn new(scoring_method: ScoringMethod, threshold: f64) -> Self {
         Self {
             scoring_method,
             threshold,
         }
-    }
-
-    /// Computes the second derivative of a signal with 3-point finite
-    /// differences.
-    fn second_derivative(intensities: &[f64]) -> Vec<f64> {
-        intensities
-            .windows(3)
-            .map(|w| w[0] - 2.0 * w[1] + w[2])
-            .collect()
     }
 
     /// Filters peaks based on their scores.
@@ -116,7 +97,7 @@ impl NoiseScoreFilter {
         let scorer = match self.scoring_method {
             ScoringMethod::MinimumSum => ScorerMinimumSum::new(abs_second_derivative),
         };
-        let boundaries = Self::peak_region_boundaries(&peaks, signal_boundaries)?;
+        let boundaries = peak_region_boundaries(&peaks, signal_boundaries);
 
         if peaks[..boundaries.0].is_empty() && peaks[boundaries.1..].is_empty() {
             return Err(Error::new(Kind::EmptySignalFreeRegion).into());
@@ -144,36 +125,6 @@ impl NoiseScoreFilter {
         Ok(peaks)
     }
 
-    /// Computes the indices in the slice of `Peak`s that delimit the signal
-    /// region.
-    ///
-    /// Peaks are ordered by their center due to how the peak detection
-    /// algorithm works. Therefore, there is a first and a last peak that belong
-    /// to the signal region. Note that the lower boundary is included in and
-    /// upper boundary is excluded from the signal region.
-    ///
-    /// |  Index            | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
-    /// | ----------------- | - | - | - | - | - | - | - | - | - | - |
-    /// | Signal Boundaries |   |   | x |   |   |   |   | x |   |   |
-    /// | Peak Centers      |   | 0 |   | 1 |   | 2 |   |   | 3 |   |
-    /// | Signal Peaks      |   |   |   | x |   | x |   |   |   |   |
-    /// | Noise Peaks       |   | x |   |   |   |   |   |   | x |   |
-    fn peak_region_boundaries(
-        peaks: &[Peak],
-        signal_boundaries: (usize, usize),
-    ) -> Result<(usize, usize)> {
-        let left = peaks
-            .iter()
-            .position(|peak| peak.center() > signal_boundaries.0)
-            .map_or(0, |i| i);
-        let right = peaks[left..]
-            .iter()
-            .position(|peak| peak.center() > signal_boundaries.1)
-            .map_or(peaks.len() - 1, |i| left + i);
-
-        Ok((left, right))
-    }
-
     /// Computes the mean and standard deviation of a vector of scores.
     fn mean_sd_scores(scores: Vec<f64>) -> (f64, f64) {
         let mean: f64 = scores.iter().sum::<f64>() / scores.len() as f64;
@@ -197,30 +148,6 @@ mod tests {
     fn thread_safety() {
         assert_send!(NoiseScoreFilter);
         assert_sync!(NoiseScoreFilter);
-    }
-
-    #[test]
-    fn second_derivative() {
-        let intensities = vec![1.0, 2.0, 3.0, 2.0, 1.0];
-        let expected_second_derivative = [0.0, -2.0, 0.0];
-        let computed_second_derivative = NoiseScoreFilter::second_derivative(&intensities);
-        computed_second_derivative
-            .iter()
-            .zip(expected_second_derivative.iter())
-            .for_each(|(&sdc, &sde)| assert_approx_eq!(f64, sdc, sde));
-    }
-
-    #[test]
-    fn peak_region_boundaries() {
-        let signal_region_boundaries: (usize, usize) = (3, 7);
-        let peaks = vec![2, 4, 5, 8]
-            .into_iter()
-            .map(|i| Peak::new(i - 1, i, i + 1))
-            .collect::<Vec<Peak>>();
-        assert_eq!(
-            NoiseScoreFilter::peak_region_boundaries(&peaks, signal_region_boundaries).unwrap(),
-            (1, 3)
-        );
     }
 
     #[test]

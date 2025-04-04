@@ -7,7 +7,13 @@ class Deconvoluter:
     def __init__(self) -> None:
         ...
 
+    def set_identity_smoother(self) -> None:
+        ...
+
     def set_moving_average_smoother(self, iterations: int, window_size: int) -> None:
+        ...
+
+    def set_detector_only(&self) -> None:
         ...
 
     def set_noise_score_selector(self, threshold: float) -> None:

@@ -16,6 +16,16 @@ impl Deconvoluter {
         Self::default()
     }
 
+    pub(crate) fn set_identity_smoother(&mut self) -> PyResult<()> {
+        match self
+            .inner
+            .set_smoothing_settings(deconvolution::SmoothingSettings::Identity)
+        {
+            Ok(_) => Ok(()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
+        }
+    }
+
     pub(crate) fn set_moving_average_smoother(
         &mut self,
         iterations: usize,
@@ -27,6 +37,16 @@ impl Deconvoluter {
                 iterations,
                 window_size,
             }) {
+            Ok(_) => Ok(()),
+            Err(error) => Err(MetabodeconError::from(error).into()),
+        }
+    }
+
+    pub(crate) fn set_detector_only(&mut self) -> PyResult<()> {
+        match self
+            .inner
+            .set_selection_settings(deconvolution::SelectionSettings::DetectorOnly)
+        {
             Ok(_) => Ok(()),
             Err(error) => Err(MetabodeconError::from(error).into()),
         }

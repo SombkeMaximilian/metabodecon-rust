@@ -3,9 +3,9 @@ use crate::deconvolution::error::{Error, Kind};
 use crate::deconvolution::fitting::{Fitter, FitterAnalytical, FittingSettings};
 use crate::deconvolution::lorentzian::Lorentzian;
 use crate::deconvolution::peak_selection::{
-    NoiseScoreFilter, ScoringMethod, SelectionSettings, Selector,
+    DetectorOnly, NoiseScoreFilter, ScoringMethod, SelectionSettings, Selector,
 };
-use crate::deconvolution::smoothing::{MovingAverage, Smoother, SmoothingSettings};
+use crate::deconvolution::smoothing::{Identity, MovingAverage, Smoother, SmoothingSettings};
 use crate::spectrum::Spectrum;
 use crate::{Result, Settings};
 use std::sync::Arc;
@@ -116,13 +116,13 @@ use rayon::prelude::*;
 /// ```
 #[derive(Clone, Debug)]
 pub struct Deconvoluter {
-    /// The smoothing settings.
+    /// Smoothing settings.
     smoother: Arc<dyn Smoother<f64>>,
-    /// The peak selection settings.
+    /// Peak selection settings.
     selector: Arc<dyn Selector>,
-    /// The fitting settings.
+    /// Fitting settings.
     fitter: Arc<dyn Fitter>,
-    /// The regions to ignore during deconvolution.
+    /// Regions to ignore during deconvolution.
     ignore_regions: Option<Vec<(f64, f64)>>,
 }
 
@@ -179,12 +179,14 @@ impl Deconvoluter {
         fitting_settings.validate()?;
 
         let smoother: Arc<dyn Smoother<f64>> = match smoothing_settings {
+            SmoothingSettings::Identity => Arc::new(Identity::new()),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
             } => Arc::new(MovingAverage::<f64>::new(iterations, window_size)),
         };
         let selector: Arc<dyn Selector> = match selection_settings {
+            SelectionSettings::DetectorOnly => Arc::new(DetectorOnly::new()),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,
@@ -319,12 +321,13 @@ impl Deconvoluter {
     /// ```
     pub fn set_smoothing_settings(&mut self, smoothing_settings: SmoothingSettings) -> Result<()> {
         smoothing_settings.validate()?;
-        self.smoother = Arc::new(match smoothing_settings {
+        self.smoother = match smoothing_settings {
+            SmoothingSettings::Identity => Arc::new(Identity::new()),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
-            } => MovingAverage::<f64>::new(iterations, window_size),
-        });
+            } => Arc::new(MovingAverage::<f64>::new(iterations, window_size)),
+        };
 
         Ok(())
     }
@@ -354,12 +357,13 @@ impl Deconvoluter {
     /// ```
     pub fn set_selection_settings(&mut self, selection_settings: SelectionSettings) -> Result<()> {
         selection_settings.validate()?;
-        self.selector = Arc::new(match selection_settings {
+        self.selector = match selection_settings {
+            SelectionSettings::DetectorOnly => Arc::new(DetectorOnly::new()),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,
-            } => NoiseScoreFilter::new(scoring_method, threshold),
-        });
+            } => Arc::new(NoiseScoreFilter::new(scoring_method, threshold)),
+        };
 
         Ok(())
     }
@@ -386,9 +390,11 @@ impl Deconvoluter {
     /// ```
     pub fn set_fitting_settings(&mut self, fitting_settings: FittingSettings) -> Result<()> {
         fitting_settings.validate()?;
-        self.fitter = Arc::new(match fitting_settings {
-            FittingSettings::Analytical { iterations } => FitterAnalytical::new(iterations),
-        });
+        self.fitter = match fitting_settings {
+            FittingSettings::Analytical { iterations } => {
+                Arc::new(FitterAnalytical::new(iterations))
+            }
+        };
 
         Ok(())
     }

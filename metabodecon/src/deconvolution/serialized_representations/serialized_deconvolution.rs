@@ -94,6 +94,7 @@ mod tests {
                 assert_approx_eq!(f64, initial.maxp(), recovered.maxp());
             });
         match recovered.smoothing_settings {
+            SmoothingSettings::Identity => unreachable!(),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
@@ -103,6 +104,7 @@ mod tests {
             }
         };
         match recovered.selection_settings {
+            SelectionSettings::DetectorOnly => unreachable!("expected noise score filter"),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,
@@ -146,6 +148,7 @@ mod tests {
                 assert_approx_eq!(f64, init.maxp(), rec.maxp());
             });
         match recovered.smoothing_settings() {
+            SmoothingSettings::Identity => panic!("expected moving average"),
             SmoothingSettings::MovingAverage {
                 iterations,
                 window_size,
@@ -155,6 +158,7 @@ mod tests {
             }
         };
         match recovered.selection_settings() {
+            SelectionSettings::DetectorOnly => panic!("expected noise score filter"),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,

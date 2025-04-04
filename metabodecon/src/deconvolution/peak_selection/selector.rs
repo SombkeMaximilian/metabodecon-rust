@@ -30,6 +30,12 @@ pub(crate) trait Selector: Send + Sync + std::fmt::Debug {
     serde(tag = "method", rename_all_fields = "camelCase")
 )]
 pub enum SelectionSettings {
+    /// Only use the peak detector without any filtering.
+    ///
+    /// Finds peaks in the spectrum by analyzing the curvature of the signal
+    /// through the second derivative. This option disables any filtering of the
+    /// detected peaks. May be useful when no noise is expected.
+    DetectorOnly,
     /// Filter based on the score of peaks found in the signal free region.
     ///
     /// Finds peaks in the spectrum by analyzing the curvature of the signal
@@ -43,9 +49,9 @@ pub enum SelectionSettings {
     /// score > mean + threshold * std_dev
     /// ```
     NoiseScoreFilter {
-        /// The scoring method to use.
+        /// Scoring method to use.
         scoring_method: ScoringMethod,
-        /// The threshold to apply to the scores.
+        /// Score threshold to use for filtering peaks.
         threshold: f64,
     },
 }
@@ -62,6 +68,7 @@ impl Default for SelectionSettings {
 impl std::fmt::Display for SelectionSettings {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            SelectionSettings::DetectorOnly => write!(f, "Detector Only"),
             SelectionSettings::NoiseScoreFilter {
                 scoring_method,
                 threshold,
@@ -77,6 +84,7 @@ impl std::fmt::Display for SelectionSettings {
 impl Settings for SelectionSettings {
     fn validate(&self) -> Result<()> {
         match self {
+            SelectionSettings::DetectorOnly => {}
             SelectionSettings::NoiseScoreFilter { threshold, .. } => {
                 if *threshold <= 0.0 || !threshold.is_finite() {
                     return Err(
@@ -92,6 +100,7 @@ impl Settings for SelectionSettings {
     #[cfg(test)]
     fn compare(&self, other: &Self) -> bool {
         match (self, other) {
+            (SelectionSettings::DetectorOnly, SelectionSettings::DetectorOnly) => true,
             (
                 SelectionSettings::NoiseScoreFilter {
                     scoring_method: scoring_method1,
@@ -105,6 +114,7 @@ impl Settings for SelectionSettings {
                 ScoringMethod::compare(scoring_method1, scoring_method2)
                     && float_cmp::approx_eq!(f64, *threshold1, *threshold2)
             }
+            _ => false,
         }
     }
 }
