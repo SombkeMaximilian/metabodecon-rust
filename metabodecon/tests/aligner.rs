@@ -1,4 +1,4 @@
-use metabodecon::alignment::Aligner;
+use metabodecon::alignment::{Aligner, FilteringSettings, SimilarityMetric, SolvingSettings};
 use metabodecon::deconvolution::Deconvoluter;
 use metabodecon::spectrum::Bruker;
 
@@ -9,6 +9,13 @@ fn blood() {
     let deconvolutions = deconvoluter
         .deconvolute_spectra(&spectra)
         .unwrap();
-    let aligner = Aligner::new(0.02, 0.5);
+    let aligner = Aligner::new(
+        FilteringSettings::DistanceSimilarity {
+            similarity_metric: SimilarityMetric::Shape,
+            max_distance: 0.025,
+            min_similarity: 0.5,
+        },
+        SolvingSettings::LinearProgramming,
+    );
     let _ = aligner.align_deconvolutions(&deconvolutions);
 }

@@ -1,4 +1,3 @@
-use crate::alignment::assignment::Assignment;
 use crate::alignment::feature::FeaturePoint;
 use crate::deconvolution::Deconvolution;
 
@@ -43,32 +42,7 @@ impl IntoIterator for FeatureLayer {
 }
 
 impl FeatureLayer {
-    pub(crate) fn assignment_candidates(
-        &self,
-        other: &Self,
-        max_distance: f64,
-        min_similarity: f64,
-    ) -> Vec<Assignment> {
-        self.features
-            .iter()
-            .enumerate()
-            .flat_map(|(i, feature)| {
-                other
-                    .features
-                    .iter()
-                    .enumerate()
-                    .filter_map(|(j, other_feature)| {
-                        let distance = feature.distance(other_feature);
-                        let similarity = feature.similarity(other_feature);
-
-                        if distance <= max_distance && similarity >= min_similarity {
-                            Some(Assignment::new(i, j, feature.similarity(other_feature)))
-                        } else {
-                            None
-                        }
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .collect()
+    pub(crate) fn iter(&self) -> impl Iterator<Item = &FeaturePoint> {
+        self.features.iter()
     }
 }

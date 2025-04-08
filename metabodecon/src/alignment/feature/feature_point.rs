@@ -54,15 +54,7 @@ impl FeaturePoint {
         self.maxp = maxp;
     }
 
-    pub(crate) fn distance(&self, other: &Self) -> f64 {
-        f64::abs(self.maxp - other.maxp)
-    }
-
-    pub(crate) fn similarity(&self, other: &Self) -> f64 {
-        let height_term = f64::min(self.sf / self.hw, other.sf / other.hw)
-            / f64::max(self.sf / self.hw, other.sf / other.hw);
-        let hw_term = f64::min(self.hw, other.hw) / f64::max(self.hw, other.hw);
-
-        height_term * hw_term
+    pub(crate) fn max(&self) -> f64 {
+        self.sf / self.hw
     }
 }

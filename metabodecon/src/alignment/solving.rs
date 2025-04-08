@@ -9,6 +9,7 @@ pub(crate) use variable_map::VariableMap;
 
 mod solver;
 pub(crate) use solver::Solver;
+pub use solver::SolvingSettings;
 
 mod solver_linear_programming;
 pub(crate) use solver_linear_programming::LinearProgramming;
