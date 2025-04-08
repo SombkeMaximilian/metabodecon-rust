@@ -23,7 +23,7 @@ impl From<alignment::Alignment> for Alignment {
 #[pymethods]
 impl Alignment {
     #[getter]
-    pub fn deconvolutions<'py>(&self, py: Python<'py>) -> Result<Bound<'py, PyList>, PyErr> {
+    pub(crate) fn deconvolutions<'py>(&self, py: Python<'py>) -> Result<Bound<'py, PyList>, PyErr> {
         PyList::new(
             py,
             self.inner

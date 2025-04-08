@@ -11,13 +11,20 @@ pub struct Aligner {
 #[pymethods]
 impl Aligner {
     #[new]
-    pub fn new(max_distance: f64, min_similarity: f64) -> Self {
+    pub(crate) fn new(max_distance: f64, min_similarity: f64) -> Self {
         Self {
-            inner: alignment::Aligner::new(max_distance, min_similarity),
+            inner: alignment::Aligner::new(
+                alignment::FilteringSettings::DistanceSimilarity {
+                    similarity_metric: alignment::SimilarityMetric::Shape,
+                    max_distance,
+                    min_similarity,
+                },
+                alignment::SolvingSettings::LinearProgramming,
+            ),
         }
     }
 
-    pub fn align_deconvolutions(&self, deconvolutions: Vec<Deconvolution>) -> Alignment {
+    pub(crate) fn align_deconvolutions(&self, deconvolutions: Vec<Deconvolution>) -> Alignment {
         self.inner
             .align_deconvolutions(&deconvolutions)
             .into()

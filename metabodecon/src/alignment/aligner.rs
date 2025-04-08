@@ -1,23 +1,47 @@
 use crate::alignment::Alignment;
-use crate::alignment::assignment::AssignmentChain;
+use crate::alignment::assignment::{
+    AssignmentChain, DistanceSimilarityFilter, Filter, FilteringSettings,
+};
 use crate::alignment::feature::{FeatureLayer, FeatureMap};
-use crate::alignment::solving::{LinearProgramming, Solver};
+use crate::alignment::solving::{LinearProgramming, Solver, SolvingSettings};
 use crate::deconvolution::Deconvolution;
 use std::sync::Arc;
 
 pub struct Aligner {
+    filter: Arc<dyn Filter>,
     solver: Arc<dyn Solver>,
-    max_distance: f64,
-    min_similarity: f64,
+}
+
+impl Default for Aligner {
+    fn default() -> Self {
+        Self::new(
+            FilteringSettings::default(),
+            SolvingSettings::default(),
+        )
+    }
 }
 
 impl Aligner {
-    pub fn new(max_distance: f64, min_similarity: f64) -> Self {
-        Self {
-            solver: Arc::new(LinearProgramming),
-            max_distance,
-            min_similarity,
-        }
+    pub fn new(
+        filtering_settings: FilteringSettings,
+        solving_settings: SolvingSettings
+    ) -> Self {
+        let filter: Arc<dyn Filter> = match filtering_settings {
+            FilteringSettings::DistanceSimilarity {
+                similarity_metric,
+                max_distance,
+                min_similarity,
+            } => Arc::new(DistanceSimilarityFilter::new(
+                similarity_metric,
+                max_distance,
+                min_similarity,
+            )),
+        };
+        let solver: Arc<dyn Solver> = match solving_settings {
+            SolvingSettings::LinearProgramming => Arc::new(LinearProgramming),
+        };
+
+        Self { filter, solver }
     }
 
     pub fn align_deconvolutions<D: AsRef<Deconvolution>>(&self, deconvolutions: &[D]) -> Alignment {
@@ -30,11 +54,9 @@ impl Aligner {
             .iter()
             .enumerate()
             .map(|(i, feature_layer)| {
-                let assignments = feature_layers[0].assignment_candidates(
-                    feature_layer,
-                    self.max_distance,
-                    self.min_similarity,
-                );
+                let assignments = self
+                    .filter
+                    .filter_assignments(&feature_layers[0], feature_layer);
 
                 FeatureMap::new(0, i + 1, assignments)
             })
