@@ -1,5 +1,6 @@
 use crate::alignment::assignment::{Assignment, SimilarityMetric};
-use crate::alignment::feature::{FeatureLayer};
+use crate::alignment::error::{Error, Kind};
+use crate::alignment::feature::FeatureLayer;
 use crate::{Result, Settings};
 
 /// Trait interface for assignment candidate filtering.
@@ -62,7 +63,27 @@ impl std::fmt::Display for FilteringSettings {
 
 impl Settings for FilteringSettings {
     fn validate(&self) -> Result<()> {
-        todo!()
+        match self {
+            FilteringSettings::DistanceSimilarity {
+                similarity_metric,
+                max_distance,
+                min_similarity,
+            } => {
+                similarity_metric.validate()?;
+                if *max_distance < 0.0
+                    || *min_similarity < 0.0
+                    || *min_similarity > 1.0
+                    || !max_distance.is_finite()
+                    || !min_similarity.is_finite()
+                {
+                    return Err(
+                        Error::new(Kind::InvalidFilteringSettings { settings: *self }).into(),
+                    );
+                }
+            }
+        }
+
+        Ok(())
     }
 
     #[cfg(test)]
