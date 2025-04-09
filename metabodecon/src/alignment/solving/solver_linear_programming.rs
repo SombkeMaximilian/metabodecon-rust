@@ -1,3 +1,4 @@
+use crate::alignment::SolvingSettings;
 use crate::alignment::feature::FeatureMap;
 use crate::alignment::solving::{AlignmentProblem, Solver};
 use rayon::prelude::*;
@@ -16,5 +17,9 @@ impl Solver for LinearProgramming {
                 problem.best_assignment()
             })
             .collect()
+    }
+
+    fn settings(&self) -> SolvingSettings {
+        SolvingSettings::LinearProgramming
     }
 }

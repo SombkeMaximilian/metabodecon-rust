@@ -1,9 +1,13 @@
 use crate::alignment::feature::FeatureMap;
+use crate::{Result, Settings};
 
 /// Trait interface for solving the assignment problem.
 pub(crate) trait Solver: Send + Sync + std::fmt::Debug {
     /// Solves the assignment problem for the given feature maps.
     fn solve(&self, candidate_maps: Vec<FeatureMap>) -> Vec<FeatureMap>;
+
+    /// Returns the settings of the trait object.
+    fn settings(&self) -> SolvingSettings;
 }
 
 /// Solving settings for the assignment problem.
@@ -19,4 +23,29 @@ pub enum SolvingSettings {
     /// [HiGHS]: https://highs.dev/
     #[default]
     LinearProgramming,
+}
+
+impl std::fmt::Display for SolvingSettings {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SolvingSettings::LinearProgramming => write!(f, "Linear Programming"),
+        }
+    }
+}
+
+impl Settings for SolvingSettings {
+    fn validate(&self) -> Result<()> {
+        match self {
+            SolvingSettings::LinearProgramming => {}
+        }
+
+        Ok(())
+    }
+
+    #[cfg(test)]
+    fn compare(&self, other: &Self) -> bool {
+        match (self, other) {
+            (SolvingSettings::LinearProgramming, SolvingSettings::LinearProgramming) => true,
+        }
+    }
 }
