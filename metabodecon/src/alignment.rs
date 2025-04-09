@@ -10,8 +10,9 @@ mod assignment;
 pub use assignment::{FilteringSettings, SimilarityMetric};
 
 mod feature;
+pub use feature::AlignmentStrategy;
 
 mod solving;
-mod error;
-
 pub use solving::SolvingSettings;
+
+pub mod error;

@@ -1,8 +1,8 @@
+use crate::alignment::FilteringSettings;
 use crate::alignment::assignment::{
     Assignment, Filter, ShapeDistanceSimilarity, ShapeSimilarity, Similarity, SimilarityMetric,
 };
-use crate::alignment::feature::{FeatureLayer};
-use crate::alignment::FilteringSettings;
+use crate::alignment::feature::FeatureLayer;
 
 /// Generates all possible assignments between two feature layers and filters
 /// out ones that don't pass the filter.

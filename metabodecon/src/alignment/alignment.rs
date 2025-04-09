@@ -6,15 +6,13 @@ pub struct Alignment {
     deconvolutions: Arc<[Deconvolution]>,
 }
 
-impl<A: Into<Deconvolution>> FromIterator<A> for Alignment {
-    fn from_iter<T: IntoIterator<Item = A>>(iter: T) -> Self {
+impl Alignment {
+    pub fn new<I: IntoIterator<Item = Deconvolution>>(deconvolutions: I) -> Self {
         Self {
-            deconvolutions: iter.into_iter().map(Into::into).collect(),
+            deconvolutions: deconvolutions.into_iter().collect(),
         }
     }
-}
 
-impl Alignment {
     pub fn deconvolutions(&self) -> &[Deconvolution] {
         &self.deconvolutions
     }

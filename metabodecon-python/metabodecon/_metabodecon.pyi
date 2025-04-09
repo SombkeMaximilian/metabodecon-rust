@@ -4,7 +4,19 @@ __version__: str
 
 
 class Aligner:
-    def __init__(self, max_distance: float, min_similarity: float) -> None:
+    def __init__(self) -> None:
+        ...
+
+    def reference_alignment(self, reference: int) -> None:
+        ...
+
+    def pairwise_alignment(self, reference: int) -> None:
+        ...
+
+    def distance_similarity_filter(self, max_distance: float, min_similarity: float) -> None:
+        ...
+
+    def linear_programming_solver(self) -> None:
         ...
 
     def align_deconvolutions(self, deconvolutions: list["Deconvolution"]) -> "Alignment":
