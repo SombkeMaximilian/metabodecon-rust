@@ -3,7 +3,7 @@ name = "benches"
 version = "0.0.0"
 publish = false
 edition = "2021"
-license = "GPL-3"
+license = "MIT"
 
 [dependencies]
 metabodecon = { path = "../metabodecon", features = ["full"] }

@@ -9,7 +9,7 @@ description = """
 """
 readme = "../README.md"
 repository = "https://github.com/SombkeMaximilian/metabodecon-rust"
-license = "GPL-3"
+license = "MIT"
 keywords = [
     "bioinformatics",
     "metabolomics",
