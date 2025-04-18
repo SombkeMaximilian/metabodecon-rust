@@ -58,8 +58,8 @@ pub enum SmoothingSettings {
 impl Default for SmoothingSettings {
     fn default() -> Self {
         SmoothingSettings::MovingAverage {
-            iterations: 2,
-            window_size: 5,
+            iterations: 3,
+            window_size: 3,
         }
     }
 }

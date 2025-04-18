@@ -159,8 +159,8 @@ mod tests {
                 iterations,
                 window_size,
             } => {
-                assert_eq!(iterations, 2);
-                assert_eq!(window_size, 5);
+                assert_eq!(iterations, 3);
+                assert_eq!(window_size, 3);
             }
         };
         match deserialized.selection_settings() {
@@ -172,7 +172,7 @@ mod tests {
                 match scoring_method {
                     ScoringMethod::MinimumSum => {}
                 }
-                assert_approx_eq!(f64, threshold, 6.4);
+                assert_approx_eq!(f64, threshold, 5.0);
             }
         };
         match deserialized.fitting_settings() {

@@ -60,7 +60,7 @@ impl Default for SelectionSettings {
     fn default() -> Self {
         SelectionSettings::NoiseScoreFilter {
             scoring_method: ScoringMethod::default(),
-            threshold: 6.4,
+            threshold: 5.0,
         }
     }
 }

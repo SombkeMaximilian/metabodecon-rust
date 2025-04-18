@@ -220,8 +220,8 @@ impl Deconvoluter {
     ///         iterations,
     ///         window_size,
     ///     } => {
-    ///         assert_eq!(iterations, 2);
-    ///         assert_eq!(window_size, 5);
+    ///         assert_eq!(iterations, 3);
+    ///         assert_eq!(window_size, 3);
     ///     }
     ///     _ => panic!("Unexpected smoothing settings"),
     /// };
@@ -235,6 +235,7 @@ impl Deconvoluter {
     /// # Example
     ///
     /// ```
+    /// use float_cmp::assert_approx_eq;
     /// use metabodecon::deconvolution::{Deconvoluter, ScoringMethod, SelectionSettings};
     ///
     /// let deconvoluter = Deconvoluter::default();
@@ -248,7 +249,7 @@ impl Deconvoluter {
     ///             ScoringMethod::MinimumSum => {}
     ///             _ => panic!("Unexpected scoring method"),
     ///         };
-    ///         assert_eq!(threshold, 6.4);
+    ///         assert_approx_eq!(f64, threshold, 5.0);
     ///     }
     ///     _ => panic!("Unexpected peak selection settings"),
     /// };
