@@ -10,7 +10,7 @@ class Aligner:
     def reference_alignment(self, reference: int) -> None:
         ...
 
-    def pairwise_alignment(self, reference: int) -> None:
+    def pairwise_alignment(self) -> None:
         ...
 
     def distance_similarity_filter(self, max_distance: float, min_similarity: float) -> None:
