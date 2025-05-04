@@ -784,7 +784,7 @@ impl Deconvoluter {
         let optimal_settings = smoothing_settings
             .par_iter()
             .map(|smoothing| {
-                let mut deconvoluter = Deconvoluter::default();
+                let mut deconvoluter = self.clone();
                 deconvoluter
                     .set_smoothing_settings(*smoothing)
                     .unwrap();
