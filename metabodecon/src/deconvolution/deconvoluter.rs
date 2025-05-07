@@ -866,13 +866,22 @@ impl Deconvoluter {
         if let Some(ignore_regions) = self.ignore_regions.as_ref() {
             let step = spectrum.step();
             let first = spectrum.chemical_shifts()[0];
-            let boundaries = spectrum.signal_boundaries_indices();
+            let boundaries = spectrum.signal_boundaries();
+            let (lower_boundary, upper_boundary) = (
+                f64::min(boundaries.0, boundaries.1),
+                f64::max(boundaries.0, boundaries.1),
+            );
+            let boundary_indices = spectrum.signal_boundaries_indices();
             let (lower, upper) = (
-                usize::min(boundaries.0, boundaries.1),
-                usize::max(boundaries.0, boundaries.1),
+                usize::min(boundary_indices.0, boundary_indices.1),
+                usize::max(boundary_indices.0, boundary_indices.1),
             );
             let indices = ignore_regions
                 .iter()
+                .filter(|(start, end)| {
+                    !(*start < lower_boundary && *end < lower_boundary
+                        || *start > upper_boundary && *end > upper_boundary)
+                })
                 .filter_map(|(start, end)| {
                     let first_index = usize::max(((*start - first) / step).floor() as usize, lower);
                     let second_index = usize::min(((*end - first) / step).ceil() as usize, upper);
