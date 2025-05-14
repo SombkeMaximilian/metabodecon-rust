@@ -1,5 +1,7 @@
 # Metabodecon-Rust
 
+Development was moved to [spang-lab/zeenmr](https://github.com/spang-lab/zeenmr).
+
 Metabodecon is a work-in-progress project that provides functionality for handling and processing 1D NMR spectra. A more
 limited version of this was already implemented in R [here](https://github.com/spang-lab/metabodecon/). This project
 aims to improve on that by providing a more efficient and flexible implementation in Rust as well as additional features
