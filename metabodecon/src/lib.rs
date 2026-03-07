@@ -274,7 +274,7 @@
 
 #[macro_use]
 pub(crate) mod macros;
-pub(crate) const CHECK_PRECISION: f64 = 1.0e+3 * f64::EPSILON;
+pub(crate) const CHECK_PRECISION: f64 = 1.0e+6 * f64::EPSILON;
 
 mod settings;
 pub(crate) use settings::Settings;

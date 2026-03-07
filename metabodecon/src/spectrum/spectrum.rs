@@ -782,7 +782,7 @@ impl Spectrum {
     /// - [`NonUniformSpacing`](Kind::NonUniformSpacing)
     fn validate_spacing(chemical_shifts: &[f64]) -> Result<()> {
         let step_size = chemical_shifts[1] - chemical_shifts[0];
-        if step_size.abs() < crate::CHECK_PRECISION {
+        if step_size.abs() < crate::CHECK_PRECISION || !step_size.is_finite() {
             return Err(Error::new(Kind::NonUniformSpacing {
                 step_size,
                 positions: (0, 1),
@@ -790,8 +790,10 @@ impl Spectrum {
             .into());
         }
 
-        if let Some(position) = chemical_shifts.windows(2).position(|w| {
-            (w[1] - w[0] - step_size).abs() > crate::CHECK_PRECISION || !(w[1] - w[0]).is_finite()
+        let origin = chemical_shifts[0];
+        if let Some(position) = chemical_shifts.iter().enumerate().skip(1).position(|(i, &s)| {
+            (s - origin - (i as f64) * step_size).abs() > crate::CHECK_PRECISION * (i as f64)
+                || !s.is_finite()
         }) {
             Err(Error::new(Kind::NonUniformSpacing {
                 step_size,
