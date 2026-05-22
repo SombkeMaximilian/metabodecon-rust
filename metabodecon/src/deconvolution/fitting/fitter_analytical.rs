@@ -61,7 +61,12 @@ impl Fitter for FitterAnalytical {
                     let maxp = Self::maximum_position(stencil);
                     let hw2 = Self::half_width2(stencil, maxp);
                     let sfhw = Self::scale_factor_half_width(stencil, maxp, hw2);
-                    lorentzian.set_parameters(sfhw, hw2, maxp);
+                    if [hw2, sfhw, maxp].iter().all(|p| p.is_finite()) {
+                        lorentzian.set_parameters(sfhw, hw2, maxp);
+                    } else {
+                        lorentzian.set_sfhw(0.0);
+                        lorentzian.set_hw2(0.0);
+                    }
                 });
         }
         lorentzians.retain(|lorentzian| {
@@ -119,7 +124,12 @@ impl Fitter for FitterAnalytical {
                     let maxp = Self::maximum_position(stencil);
                     let hw2 = Self::half_width2(stencil, maxp);
                     let sfhw = Self::scale_factor_half_width(stencil, maxp, hw2);
-                    lorentzian.set_parameters(sfhw, hw2, maxp);
+                    if [hw2, sfhw, maxp].iter().all(|p| p.is_finite()) {
+                        lorentzian.set_parameters(sfhw, hw2, maxp);
+                    } else {
+                        lorentzian.set_sfhw(0.0);
+                        lorentzian.set_hw2(0.0);
+                    }
                 });
         }
         lorentzians.retain(|lorentzian| {
