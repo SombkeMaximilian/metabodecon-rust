@@ -791,10 +791,15 @@ impl Spectrum {
         }
 
         let origin = chemical_shifts[0];
-        if let Some(position) = chemical_shifts.iter().enumerate().skip(1).position(|(i, &s)| {
-            (s - origin - (i as f64) * step_size).abs() > crate::CHECK_PRECISION * (i as f64)
-                || !s.is_finite()
-        }) {
+        if let Some(position) = chemical_shifts
+            .iter()
+            .enumerate()
+            .skip(1)
+            .position(|(i, &s)| {
+                (s - origin - (i as f64) * step_size).abs() > crate::CHECK_PRECISION * (i as f64)
+                    || !s.is_finite()
+            })
+        {
             Err(Error::new(Kind::NonUniformSpacing {
                 step_size,
                 positions: (position, position + 1),

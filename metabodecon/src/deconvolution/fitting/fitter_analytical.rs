@@ -32,7 +32,12 @@ impl Fitter for FitterAnalytical {
                 let maxp = Self::maximum_position(peak);
                 let hw2 = Self::half_width2(peak, maxp);
                 let sfhw = Self::scale_factor_half_width(peak, maxp, hw2);
-                Lorentzian::new(sfhw, hw2, maxp)
+
+                if [hw2, sfhw, maxp].iter().all(|p| p.is_finite()) {
+                    Lorentzian::new(sfhw, hw2, maxp)
+                } else {
+                    Lorentzian::new(0.0, 0.0, peak.x_2())
+                }
             })
             .collect::<Vec<_>>();
 
@@ -95,7 +100,12 @@ impl Fitter for FitterAnalytical {
                 let maxp = Self::maximum_position(peak);
                 let hw2 = Self::half_width2(peak, maxp);
                 let sfhw = Self::scale_factor_half_width(peak, maxp, hw2);
-                Lorentzian::new(sfhw, hw2, maxp)
+
+                if [hw2, sfhw, maxp].iter().all(|p| p.is_finite()) {
+                    Lorentzian::new(sfhw, hw2, maxp)
+                } else {
+                    Lorentzian::new(0.0, 0.0, peak.x_2())
+                }
             })
             .collect::<Vec<_>>();
 
